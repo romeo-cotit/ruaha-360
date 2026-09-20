@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { Link, getRouteApi } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useScopeNames } from '@/app/scope'
 import { DrillLink } from '@/components/DrillLink'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { TableCard } from '@/components/controls'
 import { TileSkeleton } from '@/features/tower/TowerTile'
 import { partitionEnergyRows, type EnergyRow } from '@/features/tower/energyRows'
 import { validateVillageSearch } from '@/features/tower/towerSearch'
@@ -45,35 +46,14 @@ function DrillHeader({
   const villageName = village ? (scope.data?.villages?.[village] ?? '') : ''
 
   return (
-    <>
-      <Link
-        to="/ops/tower"
-        search={{ village } as never}
-        className="inline-flex w-fit items-center gap-1.5 font-semibold"
-        style={{ fontSize: 14, color: 'var(--primary-ink)' }}
-      >
-        <ArrowLeft aria-hidden size={16} strokeWidth={2.25} style={{ flex: 'none' }} />
-        {t('tower.backToTower')}
-      </Link>
-      <div className="flex flex-col gap-1">
-        <p className="type-section" style={{ color: 'var(--ink-3)' }}>
-          {[villageName, kind].filter(Boolean).join(' · ')}
-        </p>
-        <h1 className="type-screen-title">{title}</h1>
-      </div>
-    </>
-  )
-}
-
-/** A table in a card of its own, scrolling inside itself at a phone width. */
-function TableCard({ children }: { children: ReactNode }) {
-  return (
-    <div
-      className="overflow-hidden"
-      style={{ border: '1px solid var(--rule)', borderRadius: 'var(--radius-card)' }}
-    >
-      <div className="overflow-x-auto">{children}</div>
-    </div>
+    <PageHeader
+      backTo="/ops/tower"
+      backSearch={{ village }}
+      backLabel={t('tower.backToTower')}
+      eyebrow={[villageName, kind].filter(Boolean).join(' · ')}
+      title={title}
+      breadcrumbs={[{ label: t('nav.tower'), to: '/ops/tower' }, { label: title }]}
+    />
   )
 }
 

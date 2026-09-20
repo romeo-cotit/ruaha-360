@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { UnsavedDraftBadge } from '@/components/UnsavedDraftBadge'
 import { BangMark, HatchMark, VerificationMark } from '@/components/marks'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { buildRegisterPayload, type RegisterForm } from '@/features/officer/registerPayload'
 import {
   isRegisterDraft,
@@ -125,7 +126,7 @@ export function RegisterScreen() {
     [],
   )
 
-  const { register, handleSubmit, watch, reset, formState } = useForm<
+  const { register, handleSubmit, watch, reset, setValue, formState } = useForm<
     RegisterForm,
     unknown,
     RegisterForm
@@ -540,19 +541,21 @@ export function RegisterScreen() {
 
         <Fieldset number={5} legend={t('register.sections.cycle')}>
           <Field label={t('register.crop')} id="register-crop">
-            <select
-              id="register-crop"
-              data-testid="register-crop"
-              {...fieldProps('crop_id')}
-              {...register('crop_id')}
+            <Select
+              value={cropId}
+              onValueChange={(value) => setValue('crop_id', value ?? '', { shouldDirty: true, shouldValidate: true })}
             >
-              <option value="">{t('register.chooseCrop')}</option>
+              <SelectTrigger id="register-crop" data-testid="register-crop" {...fieldProps('crop_id')}>
+                {cropsQuery.crops.find((crop) => crop.id === cropId)?.name ?? t('register.chooseCrop')}
+              </SelectTrigger>
+              <SelectContent>
               {cropsQuery.crops.map((c) => (
-                <option key={c.id} value={c.id}>
+                <SelectItem key={c.id} value={c.id}>
                   {c.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+              </SelectContent>
+            </Select>
           </Field>
           {err('crop_id')}
 

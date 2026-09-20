@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { assertsSeededFigures } from './support/seeded'
+import { chooseSelect } from './support/select'
 
 /**
  * Specs 7.6, 7.7 and 7.8 — demand, coverage, opportunity and supply.
@@ -28,7 +29,6 @@ const MAIZE_DEMAND = 'e1000000-0000-4000-8000-000000000001'
 const COFFEE_DEMAND = 'e1000000-0000-4000-8000-000000000002'
 const ILUNDO = '30000000-0000-4000-8000-000000000001'
 // The already-fully-committed Ilundo maize figure (4,100 kg, all promised).
-const COMMITTED_HARVEST = 'c0000000-0000-4000-8000-000000000002'
 
 async function signInAsOps(page: Page) {
   await page.goto('/login')
@@ -71,8 +71,8 @@ test.describe('/ops/demand', () => {
     await signInAsOps(page)
     await page.goto('/ops/demand')
 
-    await page.getByTestId('demand-buyer').selectOption({ index: 1 })
-    await page.getByTestId('demand-crop').selectOption({ index: 1 })
+    await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
+    await chooseSelect(page, 'demand-crop', 'Maize')
     await page.getByTestId('demand-quantity').fill('2500')
     await page.getByTestId('demand-window-start').fill('2026-09-01')
     await page.getByTestId('demand-window-end').fill('2026-09-30')
@@ -89,8 +89,8 @@ test.describe('/ops/demand', () => {
     await signInAsOps(page)
     await page.goto('/ops/demand')
 
-    await page.getByTestId('demand-buyer').selectOption({ index: 1 })
-    await page.getByTestId('demand-crop').selectOption({ index: 1 })
+    await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
+    await chooseSelect(page, 'demand-crop', 'Maize')
     await page.getByTestId('demand-quantity').fill('100')
     await page.getByTestId('demand-window-start').fill('2026-09-30')
     await page.getByTestId('demand-window-end').fill('2026-09-01')
@@ -206,8 +206,8 @@ test.describe('/ops/opportunities/$opportunityId', () => {
     // A second maize demand over the same September window, so Ilundo's
     // already-committed harvest is reachable from a fresh opportunity.
     await page.goto('/ops/demand')
-    await page.getByTestId('demand-buyer').selectOption({ index: 1 })
-    await page.getByTestId('demand-crop').selectOption({ label: 'Maize' })
+    await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
+    await chooseSelect(page, 'demand-crop', 'Maize')
     await page.getByTestId('demand-quantity').fill('4000')
     await page.getByTestId('demand-window-start').fill('2026-09-01')
     await page.getByTestId('demand-window-end').fill('2026-09-30')
@@ -227,7 +227,7 @@ test.describe('/ops/opportunities/$opportunityId', () => {
 
     // c0000000-…02 is 4,100 kg and entirely promised to the seeded
     // opportunity, so any claim on it must be refused.
-    await page.getByTestId('attach-harvest').selectOption(COMMITTED_HARVEST)
+    await chooseSelect(page, 'attach-harvest', '4,100.00 kg')
     await page.getByTestId('attach-kg').fill('100')
     await page.getByTestId('attach-submit').click()
 

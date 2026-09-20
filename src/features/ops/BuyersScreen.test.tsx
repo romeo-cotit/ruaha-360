@@ -37,6 +37,11 @@ beforeEach(() => {
   createState.error = null
 })
 
+async function chooseChannel(label: string) {
+  await userEvent.click(screen.getByTestId('buyer-channel'))
+  await userEvent.click(await screen.findByRole('option', { name: label }))
+}
+
 const buyer = (over: Record<string, unknown> = {}) => ({
   id: 'b1',
   project_id: '20000000-0000-4000-8000-000000000001',
@@ -124,7 +129,7 @@ describe('BuyersScreen create', () => {
     render(<BuyersScreen />)
 
     await userEvent.type(screen.getByTestId('buyer-name'), '  Mbeya Millers  ')
-    await userEvent.selectOptions(screen.getByTestId('buyer-channel'), 'afm')
+    await chooseChannel('AFM')
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
 
     expect(mutate).toHaveBeenCalledTimes(1)

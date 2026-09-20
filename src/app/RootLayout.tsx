@@ -56,13 +56,17 @@ export function RootLayout() {
           className="flex flex-wrap items-center justify-between gap-3.5 px-4 py-3 lg:px-[18px]"
           style={{ background: 'var(--paper)', borderBottom: '1px solid var(--rule)' }}
         >
-          <Link to="/">
-            <BrandLockup height={layout === 'tabs' ? 23 : 26} />
-          </Link>
+          <div className="mx-auto flex w-full max-w-screen-2xl flex-wrap items-center justify-between gap-3.5">
+            <Link to="/">
+              <BrandLockup height={layout === 'tabs' ? 23 : 26} />
+            </Link>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center justify-end gap-2">
             {session?.appUser && (
-              <span data-testid="current-user" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
+              <span
+                data-testid="current-user"
+                className="rounded-full bg-sand-2 px-3 py-1.5 text-sm font-medium text-ink-2"
+              >
                 {session.appUser.display_name}
               </span>
             )}
@@ -71,6 +75,7 @@ export function RootLayout() {
             {signedIn && <TourButton />}
             <LanguageSwitch />
             {signedIn && <SignOutButton />}
+            </div>
           </div>
         </header>
 
@@ -87,9 +92,11 @@ export function RootLayout() {
           */}
           <main
             id="main"
-            className={layout === 'tabs' ? 'flex-1 p-4 pb-24' : 'flex-1 p-4 lg:p-[22px]'}
+            className={layout === 'tabs' ? 'flex-1 p-4 pb-24' : 'flex-1 p-4 lg:p-6'}
           >
-            <Outlet />
+            <div className="mx-auto w-full max-w-screen-2xl">
+              <Outlet />
+            </div>
           </main>
         </div>
 

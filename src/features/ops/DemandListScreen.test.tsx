@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useDemands = vi.fn()
@@ -59,9 +60,14 @@ beforeEach(() => {
   })
 })
 
-const fill = () => {
-  fireEvent.change(screen.getByTestId('demand-buyer'), { target: { value: 'b1' } })
-  fireEvent.change(screen.getByTestId('demand-crop'), { target: { value: 'c1' } })
+const choose = async (testId: string, label: string) => {
+  await userEvent.click(screen.getByTestId(testId))
+  await userEvent.click(await screen.findByRole('option', { name: label }))
+}
+
+const fill = async () => {
+  await choose('demand-buyer', 'Iringa Grain Traders')
+  await choose('demand-crop', 'Maize')
   fireEvent.change(screen.getByTestId('demand-quantity'), { target: { value: '2500' } })
 }
 
@@ -81,9 +87,9 @@ describe('the demand create form', () => {
     expect(button.closest('form')).not.toBeNull()
   })
 
-  test('so submitting the form records the demand', () => {
+  test('so submitting the form records the demand', async () => {
     render(<DemandListScreen />)
-    fill()
+    await fill()
 
     fireEvent.submit(screen.getByTestId('demand-create-submit').closest('form')!)
 
@@ -109,9 +115,9 @@ describe('the demand create form', () => {
   })
 
   // QA #23: the data was safe, but three submits in one tick is three writes.
-  test('a second submit in the same tick does not write twice', () => {
+  test('a second submit in the same tick does not write twice', async () => {
     render(<DemandListScreen />)
-    fill()
+    await fill()
 
     const form = screen.getByTestId('demand-create-submit').closest('form')!
     fireEvent.submit(form)

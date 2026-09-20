@@ -6,8 +6,12 @@ import { useSession } from '@/app/session'
 import { activeMemberships } from '@/app/membership'
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
-import { BUTTON_PRIMARY, CONTROL } from '@/components/controlStyles'
+import { CONTROL } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
+import { PageHeader } from '@/components/PageHeader'
+import { TableSurface } from '@/components/TableSurface'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   BUYER_CHANNELS,
   useBuyers,
@@ -86,23 +90,23 @@ export function BuyersScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1.5">
-        <h1 className="type-screen-title">{t('buyers.title')}</h1>
-        <p data-testid="buyers-note" className="type-note" style={{ color: 'var(--ink-3)' }}>
-          {t('buyers.channelNote')}
-        </p>
-      </header>
+      <PageHeader
+        title={t('buyers.title')}
+        description={<span data-testid="buyers-note">{t('buyers.channelNote')}</span>}
+      />
 
       {query.isLoading ? (
         <Loading testId="buyers-loading" />
       ) : (
-        <DataTable
-          columns={columns}
-          data={query.data ?? []}
-          testId="buyers-table"
-          rowTestId="buyer-row"
-          empty={{ title: t('buyers.noneTitle'), detail: t('buyers.noneDetail') }}
-        />
+        <TableSurface>
+          <DataTable
+            columns={columns}
+            data={query.data ?? []}
+            testId="buyers-table"
+            rowTestId="buyer-row"
+            empty={{ title: t('buyers.noneTitle'), detail: t('buyers.noneDetail') }}
+          />
+        </TableSurface>
       )}
 
       <section
@@ -133,18 +137,18 @@ export function BuyersScreen() {
 
           <label className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
             <span className="block type-note" style={{ color: 'var(--ink-2)' }}>{t('buyers.colChannel')}</span>
-            <select
-              data-testid="buyer-channel"
-              value={channel}
-              onChange={(e) => setChannel(e.target.value as Buyer['channel'])}
-              className="w-full" style={CONTROL}
-            >
-              {BUYER_CHANNELS.map((c) => (
-                <option key={c} value={c}>
-                  {t(`buyers.channel.${c}`)}
-                </option>
-              ))}
-            </select>
+            <Select value={channel} onValueChange={(value) => setChannel(value as Buyer['channel'])}>
+              <SelectTrigger data-testid="buyer-channel" className="w-full">
+                {t(`buyers.channel.${channel}`)}
+              </SelectTrigger>
+              <SelectContent>
+                {BUYER_CHANNELS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {t(`buyers.channel.${c}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
 
           <label className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
@@ -162,15 +166,14 @@ export function BuyersScreen() {
             the collision better than a generic failure would. */}
         {create.error && <ErrorState error={create.error} />}
 
-        <button
-          type="button"
+        <Button
           data-testid="buyer-create-submit"
           disabled={create.isPending}
           onClick={submit}
-          className="disabled:opacity-60" style={BUTTON_PRIMARY}
+          className="w-fit"
         >
           {create.isPending ? t('buyers.creating') : t('buyers.create')}
-        </button>
+        </Button>
       </section>
     </section>
   )

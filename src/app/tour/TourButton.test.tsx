@@ -27,10 +27,10 @@ describe('asking for the tour again', () => {
 
   test('keeps the 44px target the rest of the header uses', () => {
     render(<TourButton />)
-    const style = screen.getByTestId('tour-restart').getAttribute('style') ?? ''
+    const button = screen.getByTestId('tour-restart')
 
-    expect(style).toMatch(/min-height:\s*44px/)
-    expect(style, 'a Kiswahili label runs longer and has to be free to wrap').not.toMatch(
+    expect(button.className).toContain('min-h-11')
+    expect(button.className, 'a Kiswahili label runs longer and has to be free to wrap').not.toMatch(
       /(^|;)\s*height:/,
     )
   })

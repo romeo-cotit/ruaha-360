@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
+import { chooseSelect } from './support/select'
 
 /**
  * Spec §8 — the Control Tower, built last, from connected records.
@@ -52,9 +53,9 @@ async function openDrill(page: Page, tile: string) {
 test.describe('/ops/tower overview', () => {
   test('the village selector is held in the URL', async ({ page }) => {
     await openIlundoTower(page)
-    await expect(page.getByTestId('tower-village')).toHaveValue(VILLAGE.ILUNDO)
+    await expect(page.getByTestId('tower-village')).toContainText('Ilundo')
 
-    await page.getByTestId('tower-village').selectOption(VILLAGE.MGAMA)
+    await chooseSelect(page, 'tower-village', 'Mgama')
     await expect(page).toHaveURL(new RegExp(`village=${VILLAGE.MGAMA}`))
   })
 

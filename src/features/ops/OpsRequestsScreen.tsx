@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { useScopeNames } from '@/app/scope'
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
-import { CONTROL } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
+import { PageHeader } from '@/components/PageHeader'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
+import { TableSurface } from '@/components/TableSurface'
 import { validateRequestSearch } from '@/features/ops/requestSearch'
 import { useOpsRequests, type OpsRequest } from '@/features/ops/useOpsRequests'
 import type { RequestStatus } from '@/features/ops/transitions'
@@ -82,43 +84,59 @@ export function OpsRequestsScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="type-screen-title">{t('ops.requestsTitle')}</h1>
+      <PageHeader title={t('ops.requestsTitle')} />
 
-      <div className="flex flex-wrap gap-3">
-        <label className="text-sm">
-          <span style={{ color: 'var(--ink-2)' }}>{t('ops.filterStatus')}</span>
-          <select
+      <TableSurface
+        toolbar={
+          <div className="flex flex-wrap gap-3">
+            <label className="flex min-w-44 flex-col gap-1.5 text-sm">
+              <span className="font-medium text-ink-2">{t('ops.filterStatus')}</span>
+              <Select
+                value={search.status ?? ''}
+                onValueChange={(value) => setFilter({ status: value || undefined })}
+              >
+                <SelectTrigger
             data-testid="filter-status"
-            value={search.status ?? ''}
-            onChange={(e) => setFilter({ status: e.target.value || undefined })}
-            style={CONTROL}
-          >
-            <option value="">{t('ops.allStatuses')}</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(`requestStatus.${s}`)}
-              </option>
-            ))}
-          </select>
-        </label>
+                  className="min-w-44"
+                >
+                  {search.status ? t(`requestStatus.${search.status}`) : t('ops.allStatuses')}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">{t('ops.allStatuses')}</SelectItem>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {t(`requestStatus.${s}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
 
-        <label className="text-sm">
-          <span style={{ color: 'var(--ink-2)' }}>{t('ops.filterVillage')}</span>
-          <select
+            <label className="flex min-w-44 flex-col gap-1.5 text-sm">
+              <span className="font-medium text-ink-2">{t('ops.filterVillage')}</span>
+              <Select
+                value={search.village ?? ''}
+                onValueChange={(value) => setFilter({ village: value || undefined })}
+              >
+                <SelectTrigger
             data-testid="filter-village"
-            value={search.village ?? ''}
-            onChange={(e) => setFilter({ village: e.target.value || undefined })}
-            style={CONTROL}
-          >
-            <option value="">{t('ops.allVillages')}</option>
-            {Object.entries(scope.data?.villages ?? {}).map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+                  className="min-w-44"
+                >
+                  {search.village ? scope.data?.villages?.[search.village] ?? search.village : t('ops.allVillages')}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">{t('ops.allVillages')}</SelectItem>
+                  {Object.entries(scope.data?.villages ?? {}).map(([id, name]) => (
+                    <SelectItem key={id} value={id}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+          </div>
+        }
+      >
 
       {query.isLoading ? (
         <Loading testId="ops-requests-loading" />
@@ -134,6 +152,7 @@ export function OpsRequestsScreen() {
           empty={{ title: t('ops.noRequestsTitle'), detail: t('ops.noRequestsDetail') }}
         />
       )}
+      </TableSurface>
     </section>
   )
 }

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_SECONDARY } from '@/components/controlStyles'
 import { IndicativePill, Loading, ProductNote, TableCard } from '@/components/controls'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
 import {
   useCreateOpportunity,
@@ -67,11 +68,13 @@ export function DemandDetailScreen() {
 
   return (
     <section className="flex max-w-3xl flex-col gap-[18px]" data-testid="demand-detail">
+      <PageHeader
+        title={<>{demand.buyer_name} <StatusPill kind="demand" status={demand.status} /></>}
+        backTo="/ops/demand"
+        backLabel={t('tour.back')}
+        breadcrumbs={[{ label: t('nav.demand'), to: '/ops/demand' }, { label: demand.buyer_name }]}
+      />
       <header className="flex flex-col gap-2.5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="type-screen-title">{demand.buyer_name}</h1>
-          <StatusPill kind="demand" status={demand.status} />
-        </div>
         <dl className="grid gap-x-5 gap-y-1.5 sm:grid-cols-2">
           <Row label={t('demand.colCrop')} value={demand.crop_name} />
           <Row label={t('demand.colQuantity')} value={formatKg(demand.quantity_kg)} />

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { assertsSeededFigures } from './support/seeded'
+import { chooseSelect } from './support/select'
 
 /**
  * Spec 7.8's other half — the opportunity's status machine, and what moving it
@@ -28,7 +29,6 @@ const ILUNDO = '30000000-0000-4000-8000-000000000001'
 // Ilundo's one wholly uncommitted September maize figure: 5,600 kg, nothing
 // promised. The other two (4,100 + 2,300) are the seeded opportunity's. It is
 // Joseph's harvest — plot a0000000-…03, farm 90000000-…02.
-const FREE_HARVEST = 'c0000000-0000-4000-8000-000000000004'
 /** Enough to move the headline unmistakably, and well inside 5,600. */
 const CLAIM_KG = '1600'
 
@@ -50,8 +50,8 @@ async function signInAsOps(page: Page) {
  */
 async function createMarkedOpportunity(page: Page, note: string): Promise<string> {
   await page.goto('/ops/demand')
-  await page.getByTestId('demand-buyer').selectOption({ index: 1 })
-  await page.getByTestId('demand-crop').selectOption({ label: 'Maize' })
+  await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
+  await chooseSelect(page, 'demand-crop', 'Maize')
   await page.getByTestId('demand-quantity').fill('4000')
   await page.getByTestId('demand-window-start').fill('2026-09-01')
   await page.getByTestId('demand-window-end').fill('2026-09-30')
@@ -154,7 +154,7 @@ test.describe('declining releases the committed supply', () => {
     const opportunityUrl = await createMarkedOpportunity(page, 'E2E-release-cycle')
 
     // 1,600 kg out of the 5,600 nobody has promised.
-    await page.getByTestId('attach-harvest').selectOption(FREE_HARVEST)
+    await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('supply-row')).toHaveCount(1)
@@ -189,7 +189,7 @@ test.describe('declining releases the committed supply', () => {
     await signInAsOps(page)
     const opportunityUrl = await createMarkedOpportunity(page, 'E2E-release-lapse')
 
-    await page.getByTestId('attach-harvest').selectOption(FREE_HARVEST)
+    await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('offered-total')).toContainText('1,600.00 kg')
@@ -213,7 +213,7 @@ test.describe('declining releases the committed supply', () => {
     await signInAsOps(page)
     await createMarkedOpportunity(page, 'E2E-release-kept')
 
-    await page.getByTestId('attach-harvest').selectOption(FREE_HARVEST)
+    await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('supply-row')).toHaveCount(1)
@@ -232,7 +232,7 @@ test.describe('declining releases the committed supply', () => {
     await signInAsOps(page)
     await createMarkedOpportunity(page, 'E2E-release-farmer')
 
-    await page.getByTestId('attach-harvest').selectOption(FREE_HARVEST)
+    await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('supply-row')).toHaveCount(1)

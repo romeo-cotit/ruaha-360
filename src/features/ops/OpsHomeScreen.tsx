@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { ErrorState } from '@/components/ErrorState'
 import { Loading } from '@/components/controls'
+import { PageHeader } from '@/components/PageHeader'
 import { useOpsHome } from '@/features/ops/useOpsHome'
 
 type LinkTo = Parameters<typeof Link>[0]['to']
@@ -89,12 +90,7 @@ export function OpsHomeScreen() {
 
   return (
     <section data-testid="ops-home" className="flex flex-col gap-3.5">
-      <div className="flex flex-col gap-1">
-        <h1 className="type-screen-title">{t('opsHome.title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--ink-2)', textWrap: 'pretty' }}>
-          {t('opsHome.lead')}
-        </p>
-      </div>
+      <PageHeader title={t('opsHome.title')} description={t('opsHome.lead')} />
 
       <div className="flex flex-wrap gap-3.5">
         <Queue

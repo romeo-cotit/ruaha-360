@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useSession = vi.fn()
@@ -97,12 +98,17 @@ function renderScreen() {
 }
 
 /** Fills a complete, valid registration. */
-function fillValid() {
+async function chooseCrop(label: string) {
+  await userEvent.click(screen.getByTestId('register-crop'))
+  await userEvent.click(await screen.findByRole('option', { name: label }))
+}
+
+async function fillValid() {
   fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: 'Neema' } })
   fireEvent.change(screen.getByTestId('register-family-name'), { target: { value: 'Mwakalinga' } })
   fireEvent.change(screen.getByTestId('register-farm-label'), { target: { value: 'Shamba' } })
   fireEvent.change(screen.getByTestId('register-plot-label'), { target: { value: 'Kipande' } })
-  fireEvent.change(screen.getByTestId('register-crop'), { target: { value: MAIZE } })
+  await chooseCrop('Mahindi')
   fireEvent.change(screen.getByTestId('register-cycle-area'), { target: { value: '1.6' } })
 }
 
@@ -116,7 +122,7 @@ const submit = () => fireEvent.click(screen.getByTestId('register-submit'))
 describe('whitespace-only names', () => {
   test('are refused inline, and never reach the RPC', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: '   ' } })
     submit()
 
@@ -128,7 +134,7 @@ describe('whitespace-only names', () => {
 
   test('and the value that is stored is the trimmed one', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: '  Neema  ' } })
     submit()
 
@@ -146,7 +152,7 @@ describe('whitespace-only names', () => {
 describe('the conditional measure field', () => {
   test('is required for the crop that uses it', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-cycle-area'), { target: { value: '' } })
     submit()
 
@@ -158,8 +164,8 @@ describe('the conditional measure field', () => {
 
   test('follows the crop: a tree crop asks for trees', async () => {
     renderScreen()
-    fillValid()
-    fireEvent.change(screen.getByTestId('register-crop'), { target: { value: COFFEE } })
+    await fillValid()
+    await chooseCrop('Kahawa')
     submit()
 
     await waitFor(() =>
@@ -176,7 +182,7 @@ describe('the conditional measure field', () => {
 describe('the harvest window', () => {
   test('a backwards window is caught inline, on the end date', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-harvest-start'), {
       target: { value: '2026-09-30' },
     })
@@ -195,7 +201,7 @@ describe('the harvest window', () => {
   // catching this here.
   test('and says what is wrong in words', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-harvest-start'), {
       target: { value: '2026-09-30' },
     })
@@ -217,7 +223,7 @@ describe('the harvest window', () => {
 describe('the message names the actual problem', () => {
   test('text in a number field says so', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-harvest-kg'), { target: { value: 'abc' } })
     submit()
 
@@ -227,7 +233,7 @@ describe('the message names the actual problem', () => {
 
   test('a number too big for its column says that, rather than overflowing', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-harvest-kg'), {
       target: { value: '999999999999' },
     })
@@ -240,7 +246,7 @@ describe('the message names the actual problem', () => {
 
   test('an empty required field still says it is required', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-family-name'), { target: { value: '' } })
     submit()
 
@@ -256,7 +262,7 @@ describe('the phone field', () => {
 
     expect(screen.getByTestId('register-phone-hint')).toHaveTextContent(/\+255/)
 
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-phone'), { target: { value: '0700 000 101' } })
     submit()
 
@@ -299,7 +305,7 @@ describe('silent rounding', () => {
 describe('a valid registration', () => {
   test('is not newly blocked by any of this', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-phone'), { target: { value: '+255700000101' } })
     fireEvent.change(screen.getByTestId('register-plot-area'), { target: { value: '1.8' } })
     fireEvent.change(screen.getByTestId('register-harvest-start'), {
@@ -319,7 +325,7 @@ describe('a valid registration', () => {
   // rather than creating a second farmer.
   test('sends the draft id as its client_ref', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     submit()
 
     await waitFor(() => expect(rpc).toHaveBeenCalledTimes(1))
@@ -330,7 +336,7 @@ describe('a valid registration', () => {
 
   test('clears the draft only after the RPC returned', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     submit()
 
     await waitFor(() => expect(clear).toHaveBeenCalledTimes(1))
@@ -353,7 +359,7 @@ describe('the saving state spec 5.2 asks for', () => {
     // like from the officer's side.
     rpc.mockImplementation(() => new Promise(() => {}))
     renderScreen()
-    fillValid()
+    await fillValid()
 
     submit()
     submit()
@@ -366,7 +372,7 @@ describe('the saving state spec 5.2 asks for', () => {
   test('and the control says what is happening rather than nothing', async () => {
     rpc.mockImplementation(() => new Promise(() => {}))
     renderScreen()
-    fillValid()
+    await fillValid()
     submit()
 
     await waitFor(() => expect(screen.getByTestId('register-submit')).toBeDisabled())
@@ -377,7 +383,7 @@ describe('the saving state spec 5.2 asks for', () => {
   // and submit again.
   test('a form that failed validation is submittable again', async () => {
     renderScreen()
-    fillValid()
+    await fillValid()
     fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: '   ' } })
     submit()
 

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { chooseSelect } from './support/select'
 
 /**
  * Spec 4.1: "Language switch, persisted to app_user.locale."
@@ -26,7 +27,7 @@ test('the session applies app_user.locale on sign-in', async ({ page }) => {
   await signIn(page, 'officer.ilundo@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/officer$/)
 
-  await expect(page.getByTestId('language-switch')).toHaveValue('sw')
+  await expect(page.getByTestId('language-switch')).toContainText('Kiswahili')
 })
 
 test('an account seeded as English stays English', async ({ page }) => {
@@ -34,29 +35,29 @@ test('an account seeded as English stays English', async ({ page }) => {
   await signIn(page, 'ops@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/ops$/)
 
-  await expect(page.getByTestId('language-switch')).toHaveValue('en')
+  await expect(page.getByTestId('language-switch')).toContainText('English')
 })
 
 test('a language change survives a reload, because it is stored on app_user', async ({ page }) => {
   await signIn(page, 'officer.ilundo@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/officer$/)
-  await expect(page.getByTestId('language-switch')).toHaveValue('sw')
+  await expect(page.getByTestId('language-switch')).toContainText('Kiswahili')
 
   const select = page.getByTestId('language-switch')
 
-  await select.selectOption('en')
-  await expect(select).toHaveValue('en')
+  await chooseSelect(page, 'language-switch', 'Kiingereza')
+  await expect(select).toContainText('English')
   // The switch disables itself while the write is in flight, so being enabled
   // again is the user-visible signal that it landed. No arbitrary waiting.
   await expect(select).toBeEnabled()
 
   await page.reload()
-  await expect(select).toHaveValue('en')
+  await expect(select).toContainText('English')
 
   // Leave the seed as it was found, so the suite is re-runnable.
-  await select.selectOption('sw')
-  await expect(select).toHaveValue('sw')
+  await chooseSelect(page, 'language-switch', 'Kiswahili')
+  await expect(select).toContainText('Kiswahili')
   await expect(select).toBeEnabled()
   await page.reload()
-  await expect(select).toHaveValue('sw')
+  await expect(select).toContainText('Kiswahili')
 })

@@ -9,6 +9,7 @@ import { ControlLabel, Loading } from '@/components/controls'
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { validatePeopleSearch, VERIFICATIONS } from '@/features/officer/peopleSearch'
 import { usePeople, type PersonRow } from '@/features/officer/usePeople'
 
@@ -85,19 +86,21 @@ export function PeopleScreen() {
         </ControlLabel>
 
         <ControlLabel label={t('people.filterVerification')}>
-          <select
-            data-testid="people-filter-verification"
+          <Select
             value={search.verification ?? ''}
-            onChange={(e) => setSearch({ verification: e.target.value || undefined })}
-            style={{ ...CONTROL, minHeight: 44, fontWeight: 400 }}
+            onValueChange={(value) => setSearch({ verification: value || undefined })}
           >
-            <option value="">{t('people.allVerifications')}</option>
+            <SelectTrigger data-testid="people-filter-verification" className="min-h-11">
+              {search.verification ? t(`verification.${search.verification}`) : t('people.allVerifications')}
+            </SelectTrigger>
+            <SelectContent>
             {VERIFICATIONS.map((v) => (
-              <option key={v} value={v}>
+              <SelectItem key={v} value={v}>
                 {t(`verification.${v}`)}
-              </option>
+              </SelectItem>
             ))}
-          </select>
+            </SelectContent>
+          </Select>
         </ControlLabel>
       </div>
 

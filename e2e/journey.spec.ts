@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { markedName } from './support/marker'
 import { CROP, VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
+import { chooseSelect } from './support/select'
 
 /**
  * THE ACCEPTANCE JOURNEY — CLAUDE.md's definition of done, and spec §11.
@@ -106,7 +107,7 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId('register-plot-area').fill('1.5')
       // Selected by id: crop names come from the database per the user's
       // locale, and the seeded Ilundo officer reads Swahili.
-      await page.getByTestId('register-crop').selectOption(CROP.MAIZE.id)
+      await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
       await page.getByTestId('register-cycle-area').fill('1.2')
       // September, so the figure lands in the same production and supply
       // window as the seeded maize the later steps read.
@@ -263,8 +264,8 @@ test.describe('the acceptance journey', () => {
 
     await test.step('7 · ops creates an opportunity and attaches supply', async () => {
       await page.goto('/ops/demand')
-      await page.getByTestId('demand-buyer').selectOption({ index: 1 })
-      await page.getByTestId('demand-crop').selectOption({ label: CROP.MAIZE.en })
+      await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
+      await chooseSelect(page, 'demand-crop', CROP.MAIZE.en)
       await page.getByTestId('demand-quantity').fill('3000')
       await page.getByTestId('demand-window-start').fill('2026-09-01')
       await page.getByTestId('demand-window-end').fill('2026-09-30')
@@ -279,17 +280,9 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId(`match-row-${ILUNDO}`).getByTestId('drill-link').click()
       await expect(page.getByTestId('opportunity-detail')).toBeVisible()
 
-      // The harvest step 1 registered, identified by its own figure. Its id is
-      // read off the option rather than guessed, because the RPC minted it.
-      const option = page
-        .getByTestId('attach-harvest')
-        .locator('option')
-        .filter({ hasText: '3,140.00 kg' })
-      await expect(option).toHaveCount(1)
-      const harvestId = await option.getAttribute('value')
-      expect(harvestId).toMatch(/^[0-9a-f-]{36}$/)
-
-      await page.getByTestId('attach-harvest').selectOption(harvestId!)
+      // The harvest step 1 registered, identified by its own figure. The
+      // custom Select keeps the human-readable figure as the choice users see.
+      await chooseSelect(page, 'attach-harvest', '3,140.00 kg')
       await page.getByTestId('attach-kg').fill(EXPECTED_KG)
       await page.getByTestId('attach-submit').click()
 

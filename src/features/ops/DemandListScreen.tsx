@@ -8,7 +8,10 @@ import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_PRIMARY, CONTROL } from '@/components/controlStyles'
 import { IndicativePill, Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { TableSurface } from '@/components/TableSurface'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   useCreateDemand,
   useDemandFormOptions,
@@ -118,7 +121,7 @@ export function DemandListScreen() {
 
   return (
     <section className="flex flex-col gap-5">
-      <h1 className="type-screen-title">{t('demand.title')}</h1>
+      <PageHeader title={t('demand.title')} />
 
       <section
         className="flex max-w-2xl flex-col gap-3 p-[18px]"
@@ -145,21 +148,29 @@ export function DemandListScreen() {
         >
         <div className="flex flex-wrap gap-3">
           <Field label={t('demand.buyer')} id="demand-buyer" error={missing.buyer ? t('demand.required') : undefined} errorTestId="demand-buyer-error">
-            <select id="demand-buyer" data-testid="demand-buyer" value={buyerId} onChange={(e) => setBuyerId(e.target.value)} className={input} style={CONTROL}>
-              <option value="">{t('demand.chooseBuyer')}</option>
+            <Select value={buyerId} onValueChange={(value) => setBuyerId(value ?? '')}>
+              <SelectTrigger id="demand-buyer" data-testid="demand-buyer" className={input}>
+                {options.data?.buyers.find((buyer) => buyer.id === buyerId)?.name ?? t('demand.chooseBuyer')}
+              </SelectTrigger>
+              <SelectContent>
               {(options.data?.buyers ?? []).map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
+                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
               ))}
-            </select>
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label={t('demand.crop')} id="demand-crop" error={missing.crop ? t('demand.required') : undefined} errorTestId="demand-crop-error">
-            <select id="demand-crop" data-testid="demand-crop" value={cropId} onChange={(e) => setCropId(e.target.value)} className={input} style={CONTROL}>
-              <option value="">{t('demand.chooseCrop')}</option>
+            <Select value={cropId} onValueChange={(value) => setCropId(value ?? '')}>
+              <SelectTrigger id="demand-crop" data-testid="demand-crop" className={input}>
+                {options.data?.crops.find((crop) => crop.id === cropId)?.name ?? t('demand.chooseCrop')}
+              </SelectTrigger>
+              <SelectContent>
               {(options.data?.crops ?? []).map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
               ))}
-            </select>
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label={t('demand.quantity')} id="demand-quantity" error={missing.quantity ? t('demand.required') : undefined} errorTestId="demand-quantity-error">
@@ -208,14 +219,16 @@ export function DemandListScreen() {
       {query.isLoading ? (
         <Loading testId="demand-loading" />
       ) : (
-        <DataTable
-          columns={columns}
-          data={query.demands}
-          testId="demand-table"
-          rowTestId="demand-row"
-          onRowClick={(row) => void navigate({ to: '/ops/demand/$demandId', params: { demandId: row.id } })}
-          empty={{ title: t('demand.noneTitle'), detail: t('demand.noneDetail') }}
-        />
+        <TableSurface>
+          <DataTable
+            columns={columns}
+            data={query.demands}
+            testId="demand-table"
+            rowTestId="demand-row"
+            onRowClick={(row) => void navigate({ to: '/ops/demand/$demandId', params: { demandId: row.id } })}
+            empty={{ title: t('demand.noneTitle'), detail: t('demand.noneDetail') }}
+          />
+        </TableSurface>
       )}
     </section>
   )

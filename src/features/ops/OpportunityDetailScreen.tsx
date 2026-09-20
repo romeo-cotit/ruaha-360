@@ -9,7 +9,9 @@ import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, CONTROL } from '@/components/controlStyles'
 import { Loading, ProductNote, TableCard } from '@/components/controls'
 import { BangMark } from '@/components/marks'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { supplySchema } from '@/features/ops/supplySchema'
 import {
   OPPORTUNITY_ACTION_TARGET,
@@ -91,6 +93,7 @@ export function OpportunityDetailScreen() {
   }
 
   const rows = available.data ?? []
+  const selectedHarvest = rows.find((row) => row.harvest_report_id === harvestId)
   const actions = opportunityActions(opportunity.status)
   const released = actions.length === 0
   const offered = formatKg(opportunity.offered_quantity_kg)
@@ -149,14 +152,16 @@ export function OpportunityDetailScreen() {
 
   return (
     <section className="flex max-w-3xl flex-col gap-[18px]" data-testid="opportunity-detail">
-      <header className="flex flex-col gap-2.5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="type-screen-title">
-            {opportunity.buyer_name} · {opportunity.village_name}
-          </h1>
-          <StatusPill kind="opportunity" status={opportunity.status} />
-        </div>
-        <p style={{ fontSize: 15, color: 'var(--ink-2)' }}>{opportunity.crop_name}</p>
+      <PageHeader
+        title={<>{opportunity.buyer_name} · {opportunity.village_name} <StatusPill kind="opportunity" status={opportunity.status} /></>}
+        description={opportunity.crop_name}
+        backTo={opportunity.buyer_demand_id ? `/ops/demand/${opportunity.buyer_demand_id}` : '/ops/demand'}
+        backLabel={t('tour.back')}
+        breadcrumbs={[
+          { label: t('nav.demand'), to: '/ops/demand' },
+          { label: opportunity.buyer_name },
+        ]}
+      />
 
         {/*
           Two quantities, and the screen's whole job is keeping them apart —
@@ -180,8 +185,6 @@ export function OpportunityDetailScreen() {
         <p data-testid="offered-total-note" className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
           {t('opportunity.offeredNote')}
         </p>
-      </header>
-
       {/* An opportunity is not a sale. Stated on every opportunity surface. */}
       <ProductNote>{t('opportunity.notASale')}</ProductNote>
 
@@ -401,19 +404,20 @@ export function OpportunityDetailScreen() {
               <label className="block" htmlFor="attach-harvest" style={LABEL}>
                 {t('opportunity.attachHarvest')}
               </label>
-              <select
-                id="attach-harvest"
-                data-testid="attach-harvest"
-                value={harvestId}
-                onChange={(e) => setHarvestId(e.target.value)}
-                className="w-full"
-                style={CONTROL}
-              >
-                <option value="">{t('opportunity.chooseHarvest')}</option>
+              <Select value={harvestId} onValueChange={(value) => setHarvestId(value ?? '')}>
+                <SelectTrigger id="attach-harvest" data-testid="attach-harvest" className="w-full">
+                  {selectedHarvest
+                    ? `${t('opportunity.harvestOption', {
+                        expected: formatKg(selectedHarvest.quantity_kg),
+                        available: formatKg(selectedHarvest.available_kg),
+                      })}${selectedHarvest.harvest_start ? ` · ${formatPlainDate(selectedHarvest.harvest_start)}` : ''}`
+                    : t('opportunity.chooseHarvest')}
+                </SelectTrigger>
+                <SelectContent>
                 {/* Fully committed figures stay listed. Hiding them would be a
                     client-side pre-check of the guard. */}
                 {rows.map((r) => (
-                  <option key={r.harvest_report_id} value={r.harvest_report_id ?? ''}>
+                  <SelectItem key={r.harvest_report_id} value={r.harvest_report_id ?? ''}>
                     {/* Both figures named, in sentence case: an unlabelled
                         leading number on this screen is exactly the ambiguity
                         the rest of it exists to avoid. QA #12. */}
@@ -422,9 +426,10 @@ export function OpportunityDetailScreen() {
                       available: formatKg(r.available_kg),
                     })}
                     {r.harvest_start ? ` · ${formatPlainDate(r.harvest_start)}` : ''}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+                </SelectContent>
+              </Select>
               {attachError('harvest_report_id', 'attach-harvest')}
             </div>
 

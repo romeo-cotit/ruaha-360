@@ -93,7 +93,7 @@ describe('PeopleScreen filters', () => {
     render(<PeopleScreen />)
 
     expect(screen.getByTestId('people-search')).toHaveValue('Neema')
-    expect(screen.getByTestId('people-filter-verification')).toHaveValue('verified')
+    expect(screen.getByTestId('people-filter-verification')).toHaveTextContent('Verified')
   })
 
   // Filter state lives in the URL (spec §10), so changing a filter navigates
@@ -103,10 +103,8 @@ describe('PeopleScreen filters', () => {
     usePeople.mockReturnValue({ isLoading: false, error: null, data: [person()] })
     render(<PeopleScreen />)
 
-    await userEvent.selectOptions(
-      screen.getByTestId('people-filter-verification'),
-      'unverified',
-    )
+    await userEvent.click(screen.getByTestId('people-filter-verification'))
+    await userEvent.click(await screen.findByRole('option', { name: 'Unverified' }))
 
     expect(navigate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -123,7 +121,7 @@ describe('PeopleScreen filters', () => {
     usePeople.mockReturnValue({ isLoading: false, error: null, data: [person()] })
     render(<PeopleScreen />)
 
-    expect(screen.getByTestId('people-filter-verification')).toHaveValue('')
+    expect(screen.getByTestId('people-filter-verification')).toHaveTextContent('All')
     expect(screen.queryByTestId('error-state')).not.toBeInTheDocument()
   })
 

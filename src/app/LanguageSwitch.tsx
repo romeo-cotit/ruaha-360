@@ -8,6 +8,7 @@ import { humanizeDbError } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { queryKeys } from '@/lib/queryKeys'
 import { isSupportedLanguage, supportedLanguages } from '@/i18n'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 
 /**
  * Spec 4.1: the language choice is persisted to `app_user.locale`.
@@ -93,28 +94,25 @@ export function LanguageSwitch() {
     <div className="inline-flex flex-col items-end gap-1">
       <label className="inline-flex items-center gap-2 text-sm">
         <span className="sr-only">{t('a11y.language')}</span>
-        <select
-          data-testid="language-switch"
-          className="px-2.5 py-1.5 disabled:opacity-60"
-          style={{
-            minHeight: 40,
-            fontSize: 14,
-            fontFamily: 'inherit',
-            border: '1.5px solid var(--rule-2)',
-            borderRadius: 'var(--radius-control)',
-            background: 'var(--paper)',
-            color: 'var(--ink)',
-          }}
+        <Select
           value={i18n.resolvedLanguage}
+          onValueChange={(value) => void onChange(value ?? '')}
           disabled={persist.isPending}
-          onChange={(e) => void onChange(e.target.value)}
         >
-          {supportedLanguages.map((lng) => (
-            <option key={lng} value={lng}>
-              {t(`language.${lng}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+          data-testid="language-switch"
+            className="min-h-10 w-auto min-w-28 px-2.5"
+          >
+            {t(`language.${i18n.resolvedLanguage}`)}
+          </SelectTrigger>
+          <SelectContent>
+            {supportedLanguages.map((lng) => (
+              <SelectItem key={lng} value={lng}>
+                {t(`language.${lng}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </label>
 
       {failureMessage && (

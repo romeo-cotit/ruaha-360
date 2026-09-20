@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
+import { PageHeader } from '@/components/PageHeader'
+import { TableSurface } from '@/components/TableSurface'
 import { IndicativePill, Loading } from '@/components/controls'
 // Shared reference data, not a farmer-only concern: the same catalogue rows
 // drive the farmer's request form (§6.3) and this ops list (§7.4), scoped the
@@ -80,25 +82,23 @@ export function CatalogueScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1.5">
-        <h1 className="type-screen-title">{t('catalogue.title')}</h1>
-        {/* Prices are indicative, never quotations. Stated once for the whole
-            table as well as on every row. */}
-        <p data-testid="catalogue-note" className="type-note" style={{ color: 'var(--ink-3)' }}>
-          {t('equipment.notAQuotation')}
-        </p>
-      </header>
+      <PageHeader
+        title={t('catalogue.title')}
+        description={<span data-testid="catalogue-note">{t('equipment.notAQuotation')}</span>}
+      />
 
       {query.isLoading ? (
         <Loading testId="catalogue-loading" />
       ) : (
-        <DataTable
-          columns={columns}
-          data={query.items}
-          testId="catalogue-table"
-          rowTestId="catalogue-row"
-          empty={{ title: t('equipment.noneTitle'), detail: t('equipment.noneDetail') }}
-        />
+        <TableSurface>
+          <DataTable
+            columns={columns}
+            data={query.items}
+            testId="catalogue-table"
+            rowTestId="catalogue-row"
+            empty={{ title: t('equipment.noneTitle'), detail: t('equipment.noneDetail') }}
+          />
+        </TableSurface>
       )}
     </section>
   )

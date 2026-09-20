@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
+import { chooseSelect } from './support/select'
 
 /**
  * Specs 7.2 and 7.3 — the request pipeline, review and decide.
@@ -66,7 +67,7 @@ test.describe('/ops/requests', () => {
     await signIn(page, 'ops@demo.ruaha360.test', /\/ops$/)
     await page.goto('/ops/requests?status=approved')
 
-    await expect(page.getByTestId('filter-status')).toHaveValue('approved')
+    await expect(page.getByTestId('filter-status')).toContainText('Approved')
     // Wait for the table before counting: locator.count() does not auto-wait,
     // so counting while the query is still in flight reads zero.
     await expect(page.getByTestId('requests-table')).toBeVisible()
@@ -81,7 +82,7 @@ test.describe('/ops/requests', () => {
     }
 
     await page.reload()
-    await expect(page.getByTestId('filter-status')).toHaveValue('approved')
+    await expect(page.getByTestId('filter-status')).toContainText('Approved')
     await expect(page.getByTestId('requests-table')).toBeVisible()
     await expect(page.getByTestId('status-pill').first()).toHaveAttribute(
       'data-status',
@@ -93,7 +94,7 @@ test.describe('/ops/requests', () => {
     await signIn(page, 'ops@demo.ruaha360.test', /\/ops$/)
     await page.goto('/ops/requests')
 
-    await page.getByTestId('filter-status').selectOption('rejected')
+    await chooseSelect(page, 'filter-status', 'Rejected')
     await expect(page).toHaveURL(/status=rejected/)
     await expect(page.getByTestId('requests-table')).toBeVisible()
     await expect(page.getByTestId('status-pill').first()).toHaveAttribute(
@@ -129,8 +130,8 @@ test.describe('/ops/requests', () => {
     await expect(page.getByTestId('request-row')).toHaveCount(unfiltered)
     await expect(page.getByTestId('error-state')).toHaveCount(0)
     // Both filters fell back to "all".
-    await expect(page.getByTestId('filter-status')).toHaveValue('')
-    await expect(page.getByTestId('filter-village')).toHaveValue('')
+    await expect(page.getByTestId('filter-status')).toContainText('All statuses')
+    await expect(page.getByTestId('filter-village')).toContainText('All villages')
   })
 
   test('a filter matching nothing is an empty state, not an error', async ({ page }) => {

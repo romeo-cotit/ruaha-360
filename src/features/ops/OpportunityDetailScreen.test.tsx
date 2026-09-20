@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useOpportunity = vi.fn()
@@ -79,6 +80,11 @@ const loaded = (over: Record<string, unknown> = {}) =>
     opportunity: opportunity(over),
     refetch: vi.fn(),
   })
+
+async function chooseHarvest(label: RegExp = /4,100/) {
+  await userEvent.click(screen.getByTestId('attach-harvest'))
+  await userEvent.click(await screen.findByRole('option', { name: label }))
+}
 
 describe('OpportunityDetailScreen states', () => {
   test('loading shows a loading state', () => {
@@ -341,7 +347,7 @@ describe('a released opportunity explains itself', () => {
  * label at all on a screen that exists to keep two quantities apart.
  */
 describe('the harvest options name their figures', () => {
-  test('both quantities are labelled, in sentence case', () => {
+  test('both quantities are labelled, in sentence case', async () => {
     loaded({ status: 'proposed' })
     useAvailableHarvest.mockReturnValue({
       isLoading: false,
@@ -357,9 +363,8 @@ describe('the harvest options name their figures', () => {
     })
     render(<OpportunityDetailScreen />)
 
-    const option = within(screen.getByTestId('attach-harvest')).getByRole('option', {
-      name: /4,100/,
-    })
+    await userEvent.click(screen.getByTestId('attach-harvest'))
+    const option = await screen.findByRole('option', { name: /4,100/ })
     expect(option).toHaveTextContent(/4,100\.00 kg expected/)
     expect(option).toHaveTextContent(/0\.00 kg available/)
     expect(option).not.toHaveTextContent('Available')
@@ -367,7 +372,7 @@ describe('the harvest options name their figures', () => {
 
   // Fully committed figures stay listed: hiding them would be a client-side
   // copy of opportunity_supply_guard.
-  test('a fully committed figure is still offered', () => {
+  test('a fully committed figure is still offered', async () => {
     loaded({ status: 'proposed' })
     useAvailableHarvest.mockReturnValue({
       isLoading: false,
@@ -377,9 +382,8 @@ describe('the harvest options name their figures', () => {
     })
     render(<OpportunityDetailScreen />)
 
-    expect(
-      within(screen.getByTestId('attach-harvest')).getAllByRole('option'),
-    ).toHaveLength(2)
+    await userEvent.click(screen.getByTestId('attach-harvest'))
+    expect(await screen.findAllByRole('option')).toHaveLength(1)
   })
 })
 
@@ -406,55 +410,55 @@ describe('the contribution has to be a contribution', () => {
     })
   }
 
-  const attach = (kg: string, harvest = 'h9') => {
+  const attach = async (kg: string, harvest = 'h9') => {
     render(<OpportunityDetailScreen />)
-    if (harvest) fireEvent.change(screen.getByTestId('attach-harvest'), { target: { value: harvest } })
+    if (harvest) await chooseHarvest()
     fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: kg } })
     fireEvent.click(screen.getByTestId('attach-submit'))
   }
 
-  test('zero kilograms is refused inline, not by the database', () => {
+  test('zero kilograms is refused inline, not by the database', async () => {
     withHarvest()
-    attach('0')
+    await attach('0')
 
     expect(screen.getByTestId('attach-kg-error')).toHaveTextContent(/more than zero/i)
     expect(attachMutate).not.toHaveBeenCalled()
   })
 
-  test('a negative contribution is refused', () => {
+  test('a negative contribution is refused', async () => {
     withHarvest()
-    attach('-5')
+    await attach('-5')
 
     expect(screen.getByTestId('attach-kg-error')).toBeInTheDocument()
     expect(attachMutate).not.toHaveBeenCalled()
   })
 
-  test('text is refused, and says what is wrong', () => {
+  test('text is refused, and says what is wrong', async () => {
     withHarvest()
-    attach('abc')
+    await attach('abc')
 
     expect(screen.getByTestId('attach-kg-error')).toHaveTextContent(/enter a number/i)
   })
 
-  test('a blank says which answer is missing rather than nothing happening', () => {
+  test('a blank says which answer is missing rather than nothing happening', async () => {
     withHarvest()
-    attach('')
+    await attach('')
 
     expect(screen.getByTestId('attach-kg-error')).toBeInTheDocument()
     expect(attachMutate).not.toHaveBeenCalled()
   })
 
-  test('choosing no harvest figure says so', () => {
+  test('choosing no harvest figure says so', async () => {
     withHarvest()
-    attach('100', '')
+    await attach('100', '')
 
     expect(screen.getByTestId('attach-harvest-error')).toBeInTheDocument()
     expect(attachMutate).not.toHaveBeenCalled()
   })
 
-  test('a valid contribution goes through', () => {
+  test('a valid contribution goes through', async () => {
     withHarvest()
-    attach('1600')
+    await attach('1600')
 
     // The second argument is the per-call `onSettled` that releases the
     // in-flight latch, so the payload is asserted on its own.
@@ -472,17 +476,17 @@ describe('the contribution has to be a contribution', () => {
    * check would drift and would be wrong the moment another opportunity
    * committed the same harvest.
    */
-  test('a quantity beyond what is available is still sent to the guard', () => {
+  test('a quantity beyond what is available is still sent to the guard', async () => {
     withHarvest()
-    attach('99999')
+    await attach('99999')
 
     expect(attachMutate.mock.calls[0][0]).toMatchObject({ contributedKg: 99999 })
   })
 
-  test('the error clears once the figure is fixed', () => {
+  test('the error clears once the figure is fixed', async () => {
     withHarvest()
     render(<OpportunityDetailScreen />)
-    fireEvent.change(screen.getByTestId('attach-harvest'), { target: { value: 'h9' } })
+    await chooseHarvest()
     fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: '0' } })
     fireEvent.click(screen.getByTestId('attach-submit'))
     expect(screen.getByTestId('attach-kg-error')).toBeInTheDocument()
@@ -527,11 +531,11 @@ describe('attaching supply is a real form', () => {
     expect(button.closest('form')).not.toBeNull()
   })
 
-  test('so submitting the form attaches, without touching the button', () => {
+  test('so submitting the form attaches, without touching the button', async () => {
     withHarvest()
     render(<OpportunityDetailScreen />)
 
-    fireEvent.change(screen.getByTestId('attach-harvest'), { target: { value: 'h9' } })
+    await chooseHarvest()
     fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: '1600' } })
     fireEvent.submit(screen.getByTestId('attach-submit').closest('form')!)
 
@@ -555,11 +559,11 @@ describe('attaching supply is a real form', () => {
     expect(screen.getByTestId('attach-submit')).toBeDisabled()
   })
 
-  test('and a second submit in the same tick does not fire twice', () => {
+  test('and a second submit in the same tick does not fire twice', async () => {
     withHarvest()
     render(<OpportunityDetailScreen />)
 
-    fireEvent.change(screen.getByTestId('attach-harvest'), { target: { value: 'h9' } })
+    await chooseHarvest()
     fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: '1600' } })
     const form = screen.getByTestId('attach-submit').closest('form')!
     fireEvent.submit(form)

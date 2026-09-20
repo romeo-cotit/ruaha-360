@@ -17,7 +17,9 @@ import { useScopeNames } from '@/app/scope'
 import { CoverageBar } from '@/components/CoverageBar'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   BasisPill,
   Figure,
@@ -92,49 +94,35 @@ export function TowerScreen() {
 
   return (
     <section className="flex flex-col gap-5" data-testid="tower">
-      <header className="flex flex-wrap items-end justify-between gap-3.5">
-        <div className="flex flex-col gap-1">
-          <p className="type-section" style={{ color: 'var(--ink-3)' }}>
-            {[villageName, programme].filter(Boolean).join(' · ')}
-          </p>
-          <h1 className="type-screen-title">{t('tower.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--ink-2)' }}>{t('tower.lead')}</p>
-        </div>
-        <label
-          className="flex flex-col gap-1.5 font-semibold"
-          style={{ fontSize: 13, color: 'var(--ink-2)' }}
-        >
-          {t('tower.village')}
-          <select
-            data-testid="tower-village"
-            value={village ?? ''}
-            onChange={(e) =>
-              void navigate({
-                to: '/ops/tower',
-                search: { village: e.target.value || undefined },
-                replace: true,
-              })
-            }
-            className="px-3 py-2.5"
-            style={{
-              minHeight: 44,
-              fontSize: 15,
-              fontFamily: 'inherit',
-              border: '1.5px solid var(--rule-2)',
-              borderRadius: 'var(--radius-control)',
-              background: 'var(--paper)',
-              color: 'var(--ink)',
-            }}
-          >
-            <option value="">{t('tower.chooseVillage')}</option>
-            {Object.entries(scope.data?.villages ?? {}).map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
+      <PageHeader
+        eyebrow={[villageName, programme].filter(Boolean).join(' · ')}
+        title={t('tower.title')}
+        description={t('tower.lead')}
+        actions={
+          <label className="flex min-w-48 flex-col gap-1.5 text-sm font-semibold text-ink-2">
+            {t('tower.village')}
+            <Select
+              value={village ?? ''}
+              onValueChange={(value) =>
+                void navigate({
+                  to: '/ops/tower',
+                  search: { village: value || undefined },
+                  replace: true,
+                })
+              }
+            >
+              <SelectTrigger data-testid="tower-village">
+                {village ? villageName : t('tower.chooseVillage')}
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(scope.data?.villages ?? {}).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        }
+      />
 
       {!village ? (
         <EmptyState title={t('tower.noVillageTitle')} detail={t('tower.noVillageDetail')} />

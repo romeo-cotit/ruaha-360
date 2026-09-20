@@ -40,6 +40,11 @@ function renderSwitch() {
   }
 }
 
+async function chooseLanguage(label: string) {
+  await userEvent.click(screen.getByTestId('language-switch'))
+  await userEvent.click(await screen.findByRole('option', { name: label }))
+}
+
 const signedIn = (locale: string) => ({
   data: { appUser: { id: 'u1', person_id: null, display_name: 'Salima', locale }, memberships: [] },
   isLoading: false,
@@ -60,7 +65,7 @@ describe('LanguageSwitch loading and signed-out states', () => {
     const select = screen.getByTestId('language-switch')
     expect(select).toBeEnabled()
 
-    await userEvent.selectOptions(select, 'sw')
+    await chooseLanguage('Kiswahili')
     await waitFor(() => expect(i18n.resolvedLanguage).toBe('sw'))
     // Nothing to persist to yet, so nothing is attempted.
     expect(update).not.toHaveBeenCalled()
@@ -70,7 +75,7 @@ describe('LanguageSwitch loading and signed-out states', () => {
     useSession.mockReturnValue({ data: null, isLoading: false })
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await waitFor(() => expect(i18n.resolvedLanguage).toBe('sw'))
     expect(update).not.toHaveBeenCalled()
   })
@@ -82,7 +87,7 @@ describe('LanguageSwitch persistence', () => {
     update.mockResolvedValue({ error: null })
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await waitFor(() => expect(update).toHaveBeenCalledWith({ locale: 'sw' }))
   })
 
@@ -92,7 +97,7 @@ describe('LanguageSwitch persistence', () => {
     update.mockReturnValue(new Promise((r) => (release = r)))
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await waitFor(() => expect(screen.getByTestId('language-switch')).toBeDisabled())
 
     release({ error: null })
@@ -106,7 +111,7 @@ describe('LanguageSwitch persistence', () => {
     update.mockResolvedValue({ error: { message: 'permission denied for table app_user' } })
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
 
     expect(await screen.findByTestId('language-error')).toHaveTextContent(
       'permission denied for table app_user',
@@ -118,7 +123,7 @@ describe('LanguageSwitch persistence', () => {
     update.mockRejectedValue(new Error('offline'))
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     expect(await screen.findByTestId('language-error')).toHaveTextContent('offline')
   })
 
@@ -127,11 +132,11 @@ describe('LanguageSwitch persistence', () => {
     update.mockResolvedValueOnce({ error: { message: 'offline' } })
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await screen.findByTestId('language-error')
 
     update.mockResolvedValueOnce({ error: null })
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'en')
+    await chooseLanguage('Kiingereza')
     await waitFor(() => expect(screen.queryByTestId('language-error')).not.toBeInTheDocument())
   })
 })
@@ -161,7 +166,7 @@ describe('what the failure says, and how long it says it', () => {
     update.mockRejectedValue(new TypeError('Failed to fetch'))
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
 
     const banner = await screen.findByTestId('language-error')
     expect(banner).toHaveTextContent(/check your connection/i)
@@ -176,7 +181,7 @@ describe('what the failure says, and how long it says it', () => {
     update.mockResolvedValue({ error: { message: 'permission denied for table app_user' } })
     renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     expect(await screen.findByTestId('language-error')).toHaveTextContent(
       'permission denied for table app_user',
     )
@@ -192,7 +197,7 @@ describe('what the failure says, and how long it says it', () => {
     update.mockRejectedValue(new Error('offline'))
     const { rerender } = renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await screen.findByTestId('language-error')
 
     pathname = '/officer/people'
@@ -208,7 +213,7 @@ describe('what the failure says, and how long it says it', () => {
     update.mockRejectedValue(new Error('offline'))
     const { rerender } = renderSwitch()
 
-    await userEvent.selectOptions(screen.getByTestId('language-switch'), 'sw')
+    await chooseLanguage('Kiswahili')
     await screen.findByTestId('language-error')
 
     rerender()

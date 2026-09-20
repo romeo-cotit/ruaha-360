@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
+import { PageHeader } from '@/components/PageHeader'
+import { TableSurface } from '@/components/TableSurface'
 import { Loading } from '@/components/controls'
 import { useVillageCapacity, type VillageCapacity } from '@/features/ops/useOpsReference'
 import { formatKw, formatPlainDate } from '@/lib/format'
@@ -75,23 +77,23 @@ export function VillagesScreen() {
 
   return (
     <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1.5">
-        <h1 className="type-screen-title">{t('villages.title')}</h1>
-        <p data-testid="villages-note" className="type-note" style={{ color: 'var(--ink-3)' }}>
-          {t('villages.plannedNote')}
-        </p>
-      </header>
+      <PageHeader
+        title={t('villages.title')}
+        description={<span data-testid="villages-note">{t('villages.plannedNote')}</span>}
+      />
 
       {query.isLoading ? (
         <Loading testId="villages-loading" />
       ) : (
-        <DataTable
-          columns={columns}
-          data={query.data ?? []}
-          testId="villages-table"
-          rowTestId="village-row"
-          empty={{ title: t('villages.noneTitle'), detail: t('villages.noneDetail') }}
-        />
+        <TableSurface>
+          <DataTable
+            columns={columns}
+            data={query.data ?? []}
+            testId="villages-table"
+            rowTestId="village-row"
+            empty={{ title: t('villages.noneTitle'), detail: t('villages.noneDetail') }}
+          />
+        </TableSurface>
       )}
 
       <p className="type-note" style={{ color: 'var(--ink-3)' }}>{t('villages.simultaneityNote')}</p>

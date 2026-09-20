@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { signOut } from '@/app/session'
+import { Button } from '@/components/ui/button'
 
 /**
  * Shared by the shell header and the no-access screen.
@@ -33,28 +34,16 @@ export function SignOutButton({ className }: { className?: string }) {
 
   return (
     <>
-      <button
-        type="button"
+      <Button
         data-testid="sign-out"
         disabled={pending}
         onClick={() => void onClick()}
-        className={className ?? 'px-3.5 py-2 font-medium disabled:opacity-60'}
-        style={
-          className
-            ? undefined
-            : {
-                minHeight: 40,
-                fontSize: 14,
-                fontFamily: 'inherit',
-                border: '1.5px solid var(--rule-2)',
-                borderRadius: 'var(--radius-control)',
-                background: 'var(--paper)',
-                color: 'var(--ink)',
-              }
-        }
+        variant="secondary"
+        size="sm"
+        className={className}
       >
         {pending ? t('nav.signingOut') : t('nav.signOut')}
-      </button>
+      </Button>
       {error && (
         <p
           data-testid="sign-out-error"

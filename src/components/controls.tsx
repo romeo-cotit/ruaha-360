@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { TableSurface } from '@/components/TableSurface'
+
 /**
  * The shared control surface. The two densities and the button styles live in
  * `controlStyles.ts` beside this file — a module that exports both components
@@ -66,12 +68,9 @@ export function Card({
  */
 export function TableCard({ children }: { children: ReactNode }) {
   return (
-    <div
-      className="overflow-hidden"
-      style={{ border: '1px solid var(--rule)', borderRadius: 'var(--radius-card)' }}
-    >
-      {children}
-    </div>
+    <TableSurface>
+      <div className="overflow-x-auto">{children}</div>
+    </TableSurface>
   )
 }
 

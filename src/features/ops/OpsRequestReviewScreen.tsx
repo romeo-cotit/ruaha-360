@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_PRIMARY, CONTROL } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
+import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
 import {
   requiresDecisionNote,
@@ -64,11 +65,13 @@ export function OpsRequestReviewScreen() {
 
   return (
     <section className="flex max-w-2xl flex-col gap-[18px]" data-testid="request-review">
+      <PageHeader
+        title={<>{request.equipment_name} <StatusPill kind="request" status={request.status} /></>}
+        backTo="/ops/requests"
+        backLabel={t('tour.back')}
+        breadcrumbs={[{ label: t('nav.requests'), to: '/ops/requests' }, { label: request.equipment_name }]}
+      />
       <header className="flex flex-col gap-2.5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="type-screen-title">{request.equipment_name}</h1>
-          <StatusPill kind="request" status={request.status} />
-        </div>
         <dl className="grid gap-x-5 gap-y-1.5 sm:grid-cols-2">
           <Row label={t('ops.applicant')} value={request.applicant} />
           <Row label={t('ops.village')} value={request.village_name} />

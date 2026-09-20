@@ -118,6 +118,19 @@ describe('the utilities the tests and screens depend on', () => {
   })
 })
 
+describe('the responsive document frame', () => {
+  const live = read(LIVE)
+
+  test('prevents page-level overflow while table wrappers own horizontal scrolling', () => {
+    expect(live).toMatch(/body\s*\{[^}]*overflow-x:\s*hidden/)
+  })
+
+  test('keeps text rendering crisp on the brand font', () => {
+    expect(live).toMatch(/-webkit-font-smoothing:\s*antialiased/)
+    expect(live).toMatch(/text-rendering:\s*optimizeLegibility/)
+  })
+})
+
 describe('no dark palette is introduced', () => {
   const live = read(LIVE)
 

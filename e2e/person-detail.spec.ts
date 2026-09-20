@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { markedName } from './support/marker'
 import { CROP } from './support/seed'
+import { chooseSelect } from './support/select'
 
 /**
  * Spec 5.4 — person detail with provenance on every record, plus verify.
@@ -31,7 +32,7 @@ async function registerAndOpen(page: Page): Promise<string> {
   await page.getByTestId('register-farm-label').fill(`${family} farm`)
   await page.getByTestId('register-plot-label').fill(`${family} plot`)
   await page.getByTestId('register-plot-area').fill('1.5')
-  await page.getByTestId('register-crop').selectOption(CROP.MAIZE.id)
+  await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
   await page.getByTestId('register-cycle-area').fill('1.2')
   await page.getByTestId('register-harvest-start').fill('2026-09-01')
   await page.getByTestId('register-harvest-end').fill('2026-09-30')
