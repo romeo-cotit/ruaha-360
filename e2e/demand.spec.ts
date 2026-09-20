@@ -38,6 +38,11 @@ async function signInAsOps(page: Page) {
   await expect(page).toHaveURL(/\/ops$/)
 }
 
+async function openDemandCreate(page: Page) {
+  await page.getByTestId('demand-create-open').click()
+  await expect(page.getByTestId('demand-create-panel')).toBeVisible()
+}
+
 test.describe('/ops/demand', () => {
   test('lists the seeded demands with buyer, crop and window', async ({ page }) => {
     await signInAsOps(page)
@@ -60,6 +65,7 @@ test.describe('/ops/demand', () => {
   test('creating a demand requires the fields the schema requires', async ({ page }) => {
     await signInAsOps(page)
     await page.goto('/ops/demand')
+    await openDemandCreate(page)
 
     await page.getByTestId('demand-create-submit').click()
     await expect(page.getByTestId('demand-buyer-error')).toBeVisible()
@@ -70,6 +76,7 @@ test.describe('/ops/demand', () => {
   test('a created demand appears in the list', async ({ page }) => {
     await signInAsOps(page)
     await page.goto('/ops/demand')
+    await openDemandCreate(page)
 
     await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
     await chooseSelect(page, 'demand-crop', 'Maize')
@@ -88,6 +95,7 @@ test.describe('/ops/demand', () => {
   test('a backwards window is refused with the database message', async ({ page }) => {
     await signInAsOps(page)
     await page.goto('/ops/demand')
+    await openDemandCreate(page)
 
     await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
     await chooseSelect(page, 'demand-crop', 'Maize')
@@ -206,6 +214,7 @@ test.describe('/ops/opportunities/$opportunityId', () => {
     // A second maize demand over the same September window, so Ilundo's
     // already-committed harvest is reachable from a fresh opportunity.
     await page.goto('/ops/demand')
+    await openDemandCreate(page)
     await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
     await chooseSelect(page, 'demand-crop', 'Maize')
     await page.getByTestId('demand-quantity').fill('4000')

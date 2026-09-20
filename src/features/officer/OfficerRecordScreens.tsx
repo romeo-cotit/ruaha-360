@@ -62,7 +62,7 @@ export function OfficerFarmScreen() {
   }
 
   return (
-    <section data-testid="farm-detail" className="flex max-w-2xl flex-col gap-4">
+    <section data-testid="farm-detail" className="flex w-full flex-col gap-4">
       <header className="flex flex-wrap items-center gap-2.5">
         <h1 className="type-screen-title">{farm.label}</h1>
         <ProvenanceBadge

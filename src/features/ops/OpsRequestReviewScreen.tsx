@@ -64,7 +64,7 @@ export function OpsRequestReviewScreen() {
   }
 
   return (
-    <section className="flex max-w-2xl flex-col gap-[18px]" data-testid="request-review">
+    <section className="flex w-full flex-col gap-[18px]" data-testid="request-review">
       <PageHeader
         title={<>{request.equipment_name} <StatusPill kind="request" status={request.status} /></>}
         backTo="/ops/requests"

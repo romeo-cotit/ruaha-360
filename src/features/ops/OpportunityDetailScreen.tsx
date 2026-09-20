@@ -151,7 +151,7 @@ export function OpportunityDetailScreen() {
   }
 
   return (
-    <section className="flex max-w-3xl flex-col gap-[18px]" data-testid="opportunity-detail">
+    <section className="flex w-full flex-col gap-[18px]" data-testid="opportunity-detail">
       <PageHeader
         title={<>{opportunity.buyer_name} · {opportunity.village_name} <StatusPill kind="opportunity" status={opportunity.status} /></>}
         description={opportunity.crop_name}
@@ -363,7 +363,7 @@ export function OpportunityDetailScreen() {
       </section>
 
       <section
-        className="flex max-w-lg flex-col gap-3 p-[18px]"
+        className="flex w-full flex-col gap-3 p-4 sm:p-[18px]"
         style={{
           border: '1px solid var(--rule)',
           borderRadius: 'var(--radius-card)',

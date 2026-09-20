@@ -50,6 +50,8 @@ async function signInAsOps(page: Page) {
  */
 async function createMarkedOpportunity(page: Page, note: string): Promise<string> {
   await page.goto('/ops/demand')
+  await page.getByTestId('demand-create-open').click()
+  await expect(page.getByTestId('demand-create-panel')).toBeVisible()
   await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
   await chooseSelect(page, 'demand-crop', 'Maize')
   await page.getByTestId('demand-quantity').fill('4000')

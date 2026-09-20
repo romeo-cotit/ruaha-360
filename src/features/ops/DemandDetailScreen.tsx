@@ -67,7 +67,7 @@ export function DemandDetailScreen() {
       .reduce<number | null>((sum, s) => (sum ?? 0) + (s.committed_kg ?? 0), null)
 
   return (
-    <section className="flex max-w-3xl flex-col gap-[18px]" data-testid="demand-detail">
+    <section className="flex w-full flex-col gap-[18px]" data-testid="demand-detail">
       <PageHeader
         title={<>{demand.buyer_name} <StatusPill kind="demand" status={demand.status} /></>}
         backTo="/ops/demand"

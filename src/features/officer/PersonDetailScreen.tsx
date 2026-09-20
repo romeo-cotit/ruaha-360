@@ -46,7 +46,7 @@ export function PersonDetailScreen() {
     verify.isPending && verify.variables?.table === table && verify.variables?.id === id
 
   return (
-    <section className="flex max-w-3xl flex-col gap-[18px]" data-testid="person-detail">
+    <section className="flex w-full flex-col gap-[18px]" data-testid="person-detail">
       <header className="flex flex-col gap-2.5">
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="type-screen-title">
@@ -284,4 +284,3 @@ function Card({ children, testId }: { children: React.ReactNode; testId: string 
     </div>
   )
 }
-

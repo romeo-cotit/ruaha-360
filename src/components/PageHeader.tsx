@@ -29,7 +29,7 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="flex flex-col gap-3">
+    <header className="flex w-full flex-col gap-3">
       {(backTo || breadcrumbs?.length) && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           {backTo && (
@@ -54,13 +54,13 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           {eyebrow && <p className="type-section text-ink-3">{eyebrow}</p>}
           <h1 className="type-screen-title text-balance">{title}</h1>
           {description && <p className="type-body max-w-3xl text-ink-2">{description}</p>}
         </div>
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
     </header>
   )

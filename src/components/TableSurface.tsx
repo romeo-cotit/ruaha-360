@@ -11,7 +11,7 @@ export function TableSurface({
 }) {
   return (
     <section
-      className={`overflow-hidden rounded-[var(--radius-card)] border border-rule bg-paper ${className}`}
+      className={`w-full overflow-hidden rounded-[var(--radius-card)] border border-rule bg-paper ${className}`}
     >
       {toolbar && (
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-rule bg-paper p-4">
@@ -22,4 +22,3 @@ export function TableSurface({
     </section>
   )
 }
-

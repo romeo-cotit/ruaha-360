@@ -1,16 +1,18 @@
 import { useMemo, useRef, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
-import { BUTTON_PRIMARY, CONTROL } from '@/components/controlStyles'
+import { CONTROL } from '@/components/controlStyles'
 import { IndicativePill, Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
 import { TableSurface } from '@/components/TableSurface'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   useCreateDemand,
@@ -37,6 +39,7 @@ export function DemandListScreen() {
   const [pricePerKg, setPricePerKg] = useState('')
   const [qualityNote, setQualityNote] = useState('')
   const [touched, setTouched] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   /**
    * QA #23. `isPending` only becomes true on the NEXT render, so Enter and a
    * click arriving in one tick both passed the disabled check. A ref latches
@@ -121,32 +124,61 @@ export function DemandListScreen() {
 
   return (
     <section className="flex flex-col gap-5">
-      <PageHeader title={t('demand.title')} />
+      <PageHeader
+        title={t('demand.title')}
+        actions={
+          <Button
+            type="button"
+            data-testid="demand-create-open"
+            aria-expanded={createOpen}
+            aria-controls="demand-create-panel"
+            variant={createOpen ? 'secondary' : 'primary'}
+            onClick={() => setCreateOpen((open) => !open)}
+          >
+            {createOpen ? t('common.close') : t('demand.create')}
+            {createOpen ? <ChevronUp aria-hidden size={16} /> : <ChevronDown aria-hidden size={16} />}
+          </Button>
+        }
+      />
 
-      <section
-        className="flex max-w-2xl flex-col gap-3 p-[18px]"
-        style={{
-          border: '1px solid var(--rule)',
-          borderRadius: 'var(--radius-card)',
-          background: 'var(--paper)',
-        }}
-      >
-        <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>
-          {t('demand.createTitle')}
-        </h2>
-
-        {/* A real form: eight fields typed then submitted, so Enter has to
-            work and a keyboard user must not have to tab past all of them to
-            reach the control. QA #11. */}
-        <form
-          className="flex flex-col gap-3"
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault()
-            submit()
+      {createOpen && (
+        <section
+          id="demand-create-panel"
+          data-testid="demand-create-panel"
+          className="flex w-full flex-col gap-3 p-4 sm:p-[18px]"
+          style={{
+            border: '1px solid var(--rule)',
+            borderRadius: 'var(--radius-card)',
+            background: 'var(--paper)',
           }}
         >
-        <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>
+              {t('demand.createTitle')}
+            </h2>
+            <Button
+              type="button"
+              data-testid="demand-create-close"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCreateOpen(false)}
+            >
+              {t('common.close')}
+            </Button>
+          </div>
+
+          {/* A real form: eight fields typed then submitted, so Enter has to
+              work and a keyboard user must not have to tab past all of them to
+              reach the control. QA #11. */}
+          <form
+            className="flex flex-col gap-3"
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault()
+              submit()
+            }}
+          >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Field label={t('demand.buyer')} id="demand-buyer" error={missing.buyer ? t('demand.required') : undefined} errorTestId="demand-buyer-error">
             <Select value={buyerId} onValueChange={(value) => setBuyerId(value ?? '')}>
               <SelectTrigger id="demand-buyer" data-testid="demand-buyer" className={input}>
@@ -204,17 +236,17 @@ export function DemandListScreen() {
           </div>
         )}
 
-        <button
-          type="submit"
-          data-testid="demand-create-submit"
-          disabled={create.isPending}
-          className="w-fit disabled:opacity-60"
-          style={BUTTON_PRIMARY}
-        >
-          {create.isPending ? t('demand.creating') : t('demand.create')}
-        </button>
-        </form>
-      </section>
+            <Button
+              type="submit"
+              data-testid="demand-create-submit"
+              disabled={create.isPending}
+              className="w-fit"
+            >
+              {create.isPending ? t('demand.creating') : t('demand.create')}
+            </Button>
+          </form>
+        </section>
+      )}
 
       {query.isLoading ? (
         <Loading testId="demand-loading" />
@@ -250,7 +282,7 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px' }}>
+    <div className="flex min-w-0 flex-col gap-1.5">
       <label
         className="block"
         htmlFor={id}

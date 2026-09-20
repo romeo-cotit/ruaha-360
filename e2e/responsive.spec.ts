@@ -105,6 +105,103 @@ test.describe('the ops surface on a desktop', () => {
 })
 
 /**
+ * The wide-screen pass protects against the opposite failure: a screen that
+ * technically fits but leaves its real workspace stranded in a narrow island.
+ * These assertions deliberately measure rendered geometry rather than class
+ * names, so a future wrapper cannot reintroduce the screenshot problem by
+ * changing one utility class.
+ */
+test.describe('the workspace uses wide screens deliberately', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  async function assertUsesWorkspace(page: Page, testId: string) {
+    const box = await page.getByTestId(testId).boundingBox()
+    expect(box, `${testId} should be laid out`).not.toBeNull()
+    expect(box!.width, `${testId} is stranded in a narrow column`).toBeGreaterThan(1440 * 0.72)
+  }
+
+  test('demand keeps creation progressive and expands the form when opened', async ({ page }) => {
+    await signInAsOps(page)
+    await page.goto('/ops/demand')
+
+    await expect(page.getByTestId('demand-create-panel')).toHaveCount(0)
+    await assertUsesWorkspace(page, 'demand-table')
+
+    await page.getByTestId('demand-create-open').click()
+    await expect(page.getByTestId('demand-create-panel')).toBeVisible()
+    await assertUsesWorkspace(page, 'demand-create-panel')
+  })
+
+  test('buyers keeps creation progressive and expands the form when opened', async ({ page }) => {
+    await signInAsOps(page)
+    await page.goto('/ops/buyers')
+
+    await expect(page.getByTestId('buyer-create-panel')).toHaveCount(0)
+    await assertUsesWorkspace(page, 'buyers-table')
+
+    await page.getByTestId('buyer-create-open').click()
+    await expect(page.getByTestId('buyer-create-panel')).toBeVisible()
+    await assertUsesWorkspace(page, 'buyer-create-panel')
+  })
+
+  test('request detail uses the available desktop workspace', async ({ page }) => {
+    await signInAsOps(page)
+    await page.goto('/ops/requests/d0000000-0000-4000-8000-000000000005')
+    await expect(page.getByTestId('request-review')).toBeVisible()
+    await assertUsesWorkspace(page, 'request-review')
+  })
+
+  test('Tower drills use the available desktop workspace', async ({ page }) => {
+    await signInAsOps(page)
+    await page.goto(`/ops/tower/production?village=${ILUNDO}`)
+    await expect(page.getByTestId('production-table')).toBeVisible()
+    await assertUsesWorkspace(page, 'production-table')
+
+    await page.goto(`/ops/tower/market?village=${ILUNDO}`)
+    await expect(page.getByTestId('market-table')).toBeVisible()
+    await assertUsesWorkspace(page, 'market-table')
+  })
+
+  test('officer record detail uses the available desktop workspace', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByTestId('login-email').fill('officer.ilundo@demo.ruaha360.test')
+    await page.getByTestId('login-password').fill(PASSWORD)
+    await page.getByTestId('login-submit').click()
+    await expect(page).toHaveURL(/\/officer$/)
+
+    await page.goto('/officer/people/60000000-0000-4000-8000-000000000001')
+    await expect(page.getByTestId('person-detail')).toBeVisible()
+    await assertUsesWorkspace(page, 'person-detail')
+  })
+})
+
+for (const width of [320, 375, 768, 1024, 1440] as const) {
+  test.describe(`workspace frame at ${width}px`, () => {
+    test.use({ viewport: { width, height: 900 } })
+
+    test('keeps page overflow out of the viewport and table overflow inside the table', async ({ page }) => {
+      await signInAsOps(page)
+      await page.goto('/ops/demand')
+      await expect(page.getByTestId('demand-table')).toBeVisible()
+
+      const viewportWidth = page.viewportSize()!.width
+      const tableWrapper = page.getByTestId('demand-table').locator('xpath=..')
+      const wrapperBox = await tableWrapper.boundingBox()
+      expect(wrapperBox!.x + wrapperBox!.width).toBeLessThanOrEqual(viewportWidth)
+
+      const documentOverflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      )
+      expect(documentOverflow).toBeLessThanOrEqual(1)
+
+      await page.getByTestId('demand-create-open').click()
+      const panelBox = await page.getByTestId('demand-create-panel').boundingBox()
+      expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(viewportWidth)
+    })
+  })
+}
+
+/**
  * The other half of the tab-bar problem, and the half no unit test can see.
  *
  * `RootLayout` pads `main` clear of the fixed bar, which is enough for content

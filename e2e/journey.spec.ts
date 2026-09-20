@@ -264,6 +264,8 @@ test.describe('the acceptance journey', () => {
 
     await test.step('7 · ops creates an opportunity and attaches supply', async () => {
       await page.goto('/ops/demand')
+      await page.getByTestId('demand-create-open').click()
+      await expect(page.getByTestId('demand-create-panel')).toBeVisible()
       await chooseSelect(page, 'demand-buyer', 'Iringa Grain Traders')
       await chooseSelect(page, 'demand-crop', CROP.MAIZE.en)
       await page.getByTestId('demand-quantity').fill('3000')

@@ -86,7 +86,7 @@ export function TowerProductionScreen() {
   )
 
   return (
-    <section className="flex max-w-5xl flex-col gap-4">
+    <section className="flex w-full flex-col gap-4">
       <DrillHeader village={village} kind={t('tower.production')} title={t('tower.productionDrill')} />
 
       {/* The grouped figures the tile shows, so the drill-down and the
@@ -431,7 +431,7 @@ export function TowerMarketScreen() {
   const matches = query.data?.matches ?? []
 
   return (
-    <section className="flex max-w-5xl flex-col gap-4">
+    <section className="flex w-full flex-col gap-4">
       <DrillHeader village={village} kind={t('tower.market')} title={t('tower.marketDrill')} />
 
       {query.isLoading ? (

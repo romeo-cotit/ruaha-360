@@ -92,9 +92,13 @@ export function RootLayout() {
           */}
           <main
             id="main"
-            className={layout === 'tabs' ? 'flex-1 p-4 pb-24' : 'flex-1 p-4 lg:p-6'}
+            className={
+              layout === 'tabs'
+                ? 'min-w-0 flex-1 p-4 pb-24'
+                : 'min-w-0 flex-1 p-4 lg:p-8 xl:p-10'
+            }
           >
-            <div className="mx-auto w-full max-w-screen-2xl">
+            <div className="mx-auto w-full min-w-0">
               <Outlet />
             </div>
           </main>

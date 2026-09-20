@@ -5,6 +5,8 @@
 - Modernize the shared shell, page headers, buttons, table surfaces, status pills, dropdowns, and responsive layout without changing routes, data contracts, business rules, or existing selectors.
 - Prioritize `/ops` and Tower screens while keeping shared controls safe for officer and other modules.
 - Use the existing `base-nova` shadcn configuration and `@base-ui/react`; no dependency installation is required.
+- On wide screens, let the workspace and data surfaces use the available width instead of leaving narrow centered islands.
+- Keep inline create forms collapsed by default and expose them through accessible page actions; once opened, their fields use responsive full-width grids.
 
 ## Coverage gate
 
@@ -21,6 +23,10 @@ Every source file changed in this pass must have existing coverage extended or a
 | Tower overview and drill-downs | `TowerScreen.test.tsx`, `TowerDrillScreens.test.tsx` |
 | officer people and registration | `PeopleScreen.test.tsx`, `RegisterScreen.test.tsx` |
 | global styling | existing styles/token/contrast/depth/motion tests |
+| wide workspace sizing | `RootLayout.test.tsx`, `TableSurface.test.tsx`, `TowerDrillScreens.test.tsx`, `OfficerRecordScreens.test.tsx` |
+| progressive ops create forms | `DemandListScreen.test.tsx`, `BuyersScreen.test.tsx`, `responsive.spec.ts`, `demand.spec.ts`, `opportunity.spec.ts`, `journey.spec.ts` |
+| ops/Tower/officer detail width | existing detail screen tests plus `responsive.spec.ts` geometry checks |
+| translated close action | `bundles.test.ts` key-contract coverage |
 
 ## Acceptance checks
 
@@ -29,4 +35,6 @@ Every source file changed in this pass must have existing coverage extended or a
 - Table surfaces are white, with filters/actions included in the same surface and horizontal scrolling limited to the table region.
 - Status chips use solid semantic fills with readable contrast; hatching remains only on provisional/estimate indicators.
 - Responsive checks cover 320, 375, 768, 1024, and 1440px without document-level horizontal overflow.
+- At 1440px, demand/buyer create panels, request detail, Tower drills, and officer detail occupy the available workspace; create panels remain hidden until requested.
+- At every target width, table overflow stays inside the table wrapper and the create panel remains inside the viewport.
 - Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm e2e` before handoff.

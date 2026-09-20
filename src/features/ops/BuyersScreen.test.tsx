@@ -42,6 +42,10 @@ async function chooseChannel(label: string) {
   await userEvent.click(await screen.findByRole('option', { name: label }))
 }
 
+async function openCreate() {
+  await userEvent.click(screen.getByTestId('buyer-create-open'))
+}
+
 const buyer = (over: Record<string, unknown> = {}) => ({
   id: 'b1',
   project_id: '20000000-0000-4000-8000-000000000001',
@@ -104,9 +108,18 @@ describe('BuyersScreen content', () => {
 })
 
 describe('BuyersScreen create', () => {
+  test('the create form is collapsed until requested', () => {
+    useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
+    render(<BuyersScreen />)
+
+    expect(screen.queryByTestId('buyer-create-panel')).not.toBeInTheDocument()
+    expect(screen.getByTestId('buyer-create-open')).toHaveAttribute('aria-expanded', 'false')
+  })
+
   test('a nameless buyer is refused before a request is made', async () => {
     useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
     render(<BuyersScreen />)
+    await openCreate()
 
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
 
@@ -117,6 +130,7 @@ describe('BuyersScreen create', () => {
   test('a whitespace-only name is not a name', async () => {
     useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
     render(<BuyersScreen />)
+    await openCreate()
 
     await userEvent.type(screen.getByTestId('buyer-name'), '   ')
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
@@ -127,6 +141,7 @@ describe('BuyersScreen create', () => {
   test('a valid buyer is sent with the session project and trimmed values', async () => {
     useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
     render(<BuyersScreen />)
+    await openCreate()
 
     await userEvent.type(screen.getByTestId('buyer-name'), '  Mbeya Millers  ')
     await chooseChannel('AFM')
@@ -146,22 +161,24 @@ describe('BuyersScreen create', () => {
   // user is the collision in words: Postgres names the CONSTRAINT, not the
   // value, so `duplicate key value violates unique constraint
   // "buyer_project_id_name_key"` is not the sentence anybody needs (QA #4).
-  test('a database refusal is surfaced rather than swallowed', () => {
+  test('a database refusal is surfaced rather than swallowed', async () => {
     createState.error = new Error(
       'duplicate key value violates unique constraint "buyer_project_id_name_key"',
     )
     useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
     render(<BuyersScreen />)
+    await openCreate()
 
     const shown = screen.getByTestId('error-state')
     expect(shown).toHaveTextContent(/buyer with that name already exists/i)
     expect(shown).not.toHaveTextContent('buyer_project_id_name_key')
   })
 
-  test('submit is disabled while the write is in flight', () => {
+  test('submit is disabled while the write is in flight', async () => {
     createState.isPending = true
     useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
     render(<BuyersScreen />)
+    await openCreate()
 
     expect(screen.getByTestId('buyer-create-submit')).toBeDisabled()
   })

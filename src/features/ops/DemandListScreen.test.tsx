@@ -65,7 +65,12 @@ const choose = async (testId: string, label: string) => {
   await userEvent.click(await screen.findByRole('option', { name: label }))
 }
 
+const openCreate = async () => {
+  await userEvent.click(screen.getByTestId('demand-create-open'))
+}
+
 const fill = async () => {
+  await openCreate()
   await choose('demand-buyer', 'Iringa Grain Traders')
   await choose('demand-crop', 'Maize')
   fireEvent.change(screen.getByTestId('demand-quantity'), { target: { value: '2500' } })
@@ -79,8 +84,24 @@ const fill = async () => {
  * fields to reach it, and Enter did nothing.
  */
 describe('the demand create form', () => {
-  test('submits as a form, not as a click handler', () => {
+  test('stays collapsed until the create action is requested', () => {
     render(<DemandListScreen />)
+
+    expect(screen.queryByTestId('demand-create-panel')).not.toBeInTheDocument()
+    expect(screen.getByTestId('demand-create-open')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('opens the full-width form from the page action', async () => {
+    render(<DemandListScreen />)
+    await openCreate()
+
+    expect(screen.getByTestId('demand-create-panel')).toHaveClass('w-full')
+    expect(screen.getByTestId('demand-create-open')).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  test('submits as a form, not as a click handler', async () => {
+    render(<DemandListScreen />)
+    await openCreate()
 
     const button = screen.getByTestId('demand-create-submit')
     expect(button).toHaveAttribute('type', 'submit')
@@ -98,8 +119,9 @@ describe('the demand create form', () => {
 
   // The required-field checks still run on the form's own submit, not only on
   // a click.
-  test('and an empty form still reports what is missing', () => {
+  test('and an empty form still reports what is missing', async () => {
     render(<DemandListScreen />)
+    await openCreate()
 
     fireEvent.submit(screen.getByTestId('demand-create-submit').closest('form')!)
 
@@ -107,9 +129,10 @@ describe('the demand create form', () => {
     expect(mutate).not.toHaveBeenCalled()
   })
 
-  test('a write in flight disables the control', () => {
+  test('a write in flight disables the control', async () => {
     createState.isPending = true
     render(<DemandListScreen />)
+    await openCreate()
 
     expect(screen.getByTestId('demand-create-submit')).toBeDisabled()
   })

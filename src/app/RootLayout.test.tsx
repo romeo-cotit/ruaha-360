@@ -147,6 +147,16 @@ describe('the tab bar never covers the last control', () => {
     expect(main.className).toMatch(/lg:p-/)
     expect(screen.queryByTestId('nav-tabs')).not.toBeInTheDocument()
   })
+
+  test('the desktop workspace is not capped to a narrow centered column', () => {
+    useSession.mockReturnValue({ data: { appUser: { display_name: 'Asha' }, memberships: [m('ops')] } })
+    pathname.mockReturnValue('/ops/demand')
+    renderLayout()
+
+    const workspace = screen.getByTestId('outlet').parentElement!
+    expect(workspace).toHaveClass('w-full', 'min-w-0')
+    expect(workspace).not.toHaveClass('max-w-screen-2xl')
+  })
 })
 
 /**

@@ -44,6 +44,7 @@ describe('Tower drill-down screens', () => {
     expect(screen.getByTestId('production-row')).toHaveTextContent('Maize')
     expect(screen.getByRole('link', { name: /Back to the Tower/ })).toHaveAttribute('href', '/ops/tower')
     expect(screen.getByTestId('production-table').parentElement).toHaveClass('overflow-x-auto')
+    expect(screen.getByTestId('production-table').closest('section')?.parentElement).toHaveClass('w-full')
   })
 
   test('energy keeps prospective and approved figures in separate groups', () => {

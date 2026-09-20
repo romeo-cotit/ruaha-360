@@ -30,7 +30,7 @@ export function VerifyQueueScreen() {
   const rows = query.data ?? []
 
   return (
-    <section data-testid="verify-queue" className="flex max-w-2xl flex-col gap-4">
+    <section data-testid="verify-queue" className="flex w-full flex-col gap-4">
       <header className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-baseline gap-3">
           <h1 className="type-screen-title">{t('verifyQueue.title')}</h1>

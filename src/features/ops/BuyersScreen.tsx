@@ -36,6 +36,7 @@ export function BuyersScreen() {
   const [channel, setChannel] = useState<Buyer['channel']>('direct')
   const [contactNote, setContactNote] = useState('')
   const [nameError, setNameError] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
 
   // Ops and admin hold whole-project scope, so the membership names the
   // project a new buyer belongs to.
@@ -93,6 +94,18 @@ export function BuyersScreen() {
       <PageHeader
         title={t('buyers.title')}
         description={<span data-testid="buyers-note">{t('buyers.channelNote')}</span>}
+        actions={
+          <Button
+            type="button"
+            data-testid="buyer-create-open"
+            aria-expanded={createOpen}
+            aria-controls="buyer-create-panel"
+            variant={createOpen ? 'secondary' : 'primary'}
+            onClick={() => setCreateOpen((open) => !open)}
+          >
+            {createOpen ? t('common.close') : t('buyers.create')}
+          </Button>
+        }
       />
 
       {query.isLoading ? (
@@ -109,18 +122,32 @@ export function BuyersScreen() {
         </TableSurface>
       )}
 
-      <section
-        className="flex max-w-3xl flex-col gap-3 p-[18px]"
-        style={{
-          border: '1px solid var(--rule)',
-          borderRadius: 'var(--radius-card)',
-          background: 'var(--paper)',
-        }}
-      >
-        <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>{t('buyers.createTitle')}</h2>
+      {createOpen && (
+        <section
+          id="buyer-create-panel"
+          data-testid="buyer-create-panel"
+          className="flex w-full flex-col gap-3 p-4 sm:p-[18px]"
+          style={{
+            border: '1px solid var(--rule)',
+            borderRadius: 'var(--radius-card)',
+            background: 'var(--paper)',
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>{t('buyers.createTitle')}</h2>
+            <Button
+              type="button"
+              data-testid="buyer-create-close"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCreateOpen(false)}
+            >
+              {t('common.close')}
+            </Button>
+          </div>
 
-        <div className="flex flex-wrap gap-3">
-          <label className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <label className="flex min-w-0 flex-col gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
             <span className="block type-note" style={{ color: 'var(--ink-2)' }}>{t('buyers.colName')}</span>
             <input
               data-testid="buyer-name"
@@ -135,7 +162,7 @@ export function BuyersScreen() {
             )}
           </label>
 
-          <label className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+          <label className="flex min-w-0 flex-col gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
             <span className="block type-note" style={{ color: 'var(--ink-2)' }}>{t('buyers.colChannel')}</span>
             <Select value={channel} onValueChange={(value) => setChannel(value as Buyer['channel'])}>
               <SelectTrigger data-testid="buyer-channel" className="w-full">
@@ -151,7 +178,7 @@ export function BuyersScreen() {
             </Select>
           </label>
 
-          <label className="flex min-w-0 flex-col gap-1.5" style={{ flex: '1 1 200px', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+          <label className="flex min-w-0 flex-col gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
             <span className="block type-note" style={{ color: 'var(--ink-2)' }}>{t('buyers.colContact')}</span>
             <input
               data-testid="buyer-contact-note"
@@ -174,7 +201,8 @@ export function BuyersScreen() {
         >
           {create.isPending ? t('buyers.creating') : t('buyers.create')}
         </Button>
-      </section>
+        </section>
+      )}
     </section>
   )
 }
