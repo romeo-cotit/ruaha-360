@@ -8,7 +8,9 @@ import { CONTROL } from '@/components/controlStyles'
 import { ControlLabel, Loading } from '@/components/controls'
 import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
+import { PageHeader } from '@/components/PageHeader'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
+import { TableSurface } from '@/components/TableSurface'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { validatePeopleSearch, VERIFICATIONS } from '@/features/officer/peopleSearch'
 import { usePeople, type PersonRow } from '@/features/officer/usePeople'
@@ -70,54 +72,59 @@ export function PeopleScreen() {
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
   return (
-    <section className="flex flex-col gap-4">
-      <h1 className="type-screen-title">{t('people.title')}</h1>
+    <section className="flex min-w-0 flex-col gap-5 overflow-x-hidden">
+      <PageHeader title={t('people.title')} />
 
-      <div className="flex flex-wrap gap-2.5">
-        <ControlLabel label={t('people.search')} grow>
-          <input
-            data-testid="people-search"
-            type="search"
-            value={search.q ?? ''}
-            onChange={(e) => setSearch({ q: e.target.value || undefined })}
-            placeholder={t('people.searchPlaceholder')}
-            style={{ ...CONTROL, minHeight: 44, fontWeight: 400 }}
+      <TableSurface
+        className="min-w-0"
+        toolbar={
+          <div className="flex w-full min-w-0 flex-wrap gap-3">
+            <ControlLabel label={t('people.search')} grow>
+              <input
+                data-testid="people-search"
+                type="search"
+                value={search.q ?? ''}
+                onChange={(e) => setSearch({ q: e.target.value || undefined })}
+                placeholder={t('people.searchPlaceholder')}
+                style={{ ...CONTROL, minHeight: 44, width: '100%', fontWeight: 400 }}
+              />
+            </ControlLabel>
+
+            <ControlLabel label={t('people.filterVerification')}>
+              <Select
+                value={search.verification ?? ''}
+                onValueChange={(value) => setSearch({ verification: value || undefined })}
+              >
+                <SelectTrigger data-testid="people-filter-verification" className="min-h-11 min-w-32">
+                  {search.verification ? t(`verification.${search.verification}`) : t('people.allVerifications')}
+                </SelectTrigger>
+                <SelectContent>
+                  {VERIFICATIONS.map((v) => (
+                    <SelectItem key={v} value={v}>
+                      {t(`verification.${v}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </ControlLabel>
+          </div>
+        }
+      >
+        {query.isLoading ? (
+          <Loading testId="people-loading" />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={query.data ?? []}
+            testId="people-table"
+            rowTestId="people-row"
+            onRowClick={(row) =>
+              void navigate({ to: '/officer/people/$personId', params: { personId: row.id } })
+            }
+            empty={{ title: t('people.noneTitle'), detail: t('people.noneDetail') }}
           />
-        </ControlLabel>
-
-        <ControlLabel label={t('people.filterVerification')}>
-          <Select
-            value={search.verification ?? ''}
-            onValueChange={(value) => setSearch({ verification: value || undefined })}
-          >
-            <SelectTrigger data-testid="people-filter-verification" className="min-h-11">
-              {search.verification ? t(`verification.${search.verification}`) : t('people.allVerifications')}
-            </SelectTrigger>
-            <SelectContent>
-            {VERIFICATIONS.map((v) => (
-              <SelectItem key={v} value={v}>
-                {t(`verification.${v}`)}
-              </SelectItem>
-            ))}
-            </SelectContent>
-          </Select>
-        </ControlLabel>
-      </div>
-
-      {query.isLoading ? (
-        <Loading testId="people-loading" />
-      ) : (
-        <DataTable
-          columns={columns}
-          data={query.data ?? []}
-          testId="people-table"
-          rowTestId="people-row"
-          onRowClick={(row) =>
-            void navigate({ to: '/officer/people/$personId', params: { personId: row.id } })
-          }
-          empty={{ title: t('people.noneTitle'), detail: t('people.noneDetail') }}
-        />
-      )}
+        )}
+      </TableSurface>
     </section>
   )
 }

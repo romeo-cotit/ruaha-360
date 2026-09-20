@@ -129,12 +129,12 @@ function TabBar({ items }: { items: NavItem[] }) {
       ref={bar}
       aria-label={t('a11y.primaryNav')}
       data-testid="nav-tabs"
-      className="fixed inset-x-0 bottom-0 z-10 pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-10 box-border w-full max-w-full overflow-hidden pb-[env(safe-area-inset-bottom)]"
       style={{ background: 'var(--paper)', borderTop: '1px solid var(--rule-2)' }}
     >
-      <ul className="flex">
+      <ul className="flex w-full min-w-0">
         {items.map((item) => (
-          <li key={item.to} className="flex-1">
+          <li key={item.to} className="min-w-0 flex-1">
             <SurfaceLink item={item} layout="tabs" label={t(item.labelKey)} />
           </li>
         ))}
@@ -164,7 +164,7 @@ function SurfaceLink({
       className={
         sidebar
           ? 'flex items-center gap-[11px] rounded-[var(--radius-control)] px-3 py-2.5 text-ink-2 hover:bg-sand-2 data-[status=active]:border-l-[3px] data-[status=active]:border-l-primary data-[status=active]:bg-primary-tint data-[status=active]:pl-[9px] data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
-          : 'flex flex-col items-center justify-center gap-[5px] px-1 py-2 text-center text-ink-2 data-[status=active]:border-t-2 data-[status=active]:border-t-primary data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
+          : 'flex w-full min-w-0 flex-col items-center justify-center gap-[5px] break-words px-1 py-2 text-center text-wrap-balance text-ink-2 data-[status=active]:border-t-2 data-[status=active]:border-t-primary data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
       }
       style={sidebar ? { minHeight: 44, fontSize: 15 } : { minHeight: 60, fontSize: 12 }}
     >

@@ -70,10 +70,15 @@ describe('SurfaceNav touch targets', () => {
   // `height`: a Kiswahili label runs longer and has to be allowed to wrap.
   test('a field tab is 60px and does not fix its height', () => {
     render(<SurfaceNav layout="tabs" items={FARMER} />)
-    const style = screen.getByTestId('nav-tabs').querySelector('a')?.getAttribute('style') ?? ''
+    const tabs = screen.getByTestId('nav-tabs')
+    const style = tabs.querySelector('a')?.getAttribute('style') ?? ''
 
     expect(style).toMatch(/min-height:\s*60px/)
     expect(style).not.toMatch(/(^|;)\s*height:/)
+    expect(tabs).toHaveClass('w-full', 'max-w-full', 'overflow-hidden')
+    expect(tabs.querySelector('ul')).toHaveClass('w-full', 'min-w-0')
+    expect(tabs.querySelector('li')).toHaveClass('min-w-0', 'flex-1')
+    expect(tabs.querySelector('a')).toHaveClass('w-full', 'min-w-0')
   })
 
   test('an ops item is 44px and does not fix its height', () => {

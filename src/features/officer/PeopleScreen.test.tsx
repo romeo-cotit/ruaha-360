@@ -73,6 +73,7 @@ describe('PeopleScreen content', () => {
     render(<PeopleScreen />)
 
     const table = screen.getByTestId('people-table')
+    expect(table.parentElement?.parentElement).toHaveClass('bg-paper', 'overflow-hidden', 'min-w-0')
     expect(table).toHaveTextContent('Neema Mwakalinga')
     expect(table).toHaveTextContent('Ilundo')
     expect(screen.getByTestId('provenance-badge')).toBeInTheDocument()

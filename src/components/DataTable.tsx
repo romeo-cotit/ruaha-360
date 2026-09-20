@@ -92,7 +92,7 @@ export function DataTable<T>({
   const clickable = Boolean(onRowClick)
 
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table
         data-testid={testId}
         className="w-full border-collapse"
