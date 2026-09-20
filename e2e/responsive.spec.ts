@@ -88,6 +88,40 @@ test.describe('the ops surface on a phone', () => {
     )
     expect(overflow).toBeLessThanOrEqual(1)
   })
+
+  test('page headers and shell actions use a stacked mobile composition', async ({ page }) => {
+    await signInAsOps(page)
+
+    for (const path of ['/ops', '/ops/requests', '/ops/demand', '/ops/buyers', '/ops/tower']) {
+      await page.goto(path)
+      await expect(page.getByTestId('page-header')).toBeVisible()
+
+      const viewportWidth = page.viewportSize()!.width
+      const pageHeader = await page.getByTestId('page-header').boundingBox()
+      const shellActions = page.getByTestId('global-header-actions')
+      const shellBox = await shellActions.boundingBox()
+
+      expect(pageHeader!.x + pageHeader!.width).toBeLessThanOrEqual(viewportWidth)
+      expect(shellBox!.x + shellBox!.width).toBeLessThanOrEqual(viewportWidth)
+      expect(await shellActions.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+
+      const pageActions = page.getByTestId('page-header-actions')
+      if (await pageActions.count()) {
+        const actionBox = await pageActions.boundingBox()
+        expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(viewportWidth)
+        expect(actionBox!.width).toBeGreaterThanOrEqual(pageHeader!.width * 0.9)
+
+        const controls = await pageActions.locator('button, [role="button"]').evaluateAll((elements) =>
+          elements.map((element) => {
+            const box = element.getBoundingClientRect()
+            return { right: box.right, height: box.height }
+          }),
+        )
+        expect(controls.length).toBeGreaterThan(0)
+        expect(controls.every(({ right, height }) => right <= viewportWidth && height >= 44)).toBe(true)
+      }
+    }
+  })
 })
 
 test.describe('the ops surface on a desktop', () => {

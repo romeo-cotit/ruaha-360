@@ -53,28 +53,32 @@ export function RootLayout() {
         <DemoBanner />
 
         <header
-          className="flex flex-wrap items-center justify-between gap-3.5 px-4 py-3 lg:px-[18px]"
+          data-testid="global-header"
+          className="flex flex-wrap items-center justify-between gap-3.5 px-3 py-3 sm:px-4 lg:px-[18px]"
           style={{ background: 'var(--paper)', borderBottom: '1px solid var(--rule)' }}
         >
-          <div className="mx-auto flex w-full max-w-screen-2xl flex-wrap items-center justify-between gap-3.5">
-            <Link to="/">
+          <div className="mx-auto flex w-full max-w-screen-2xl flex-col items-stretch gap-3.5 sm:flex-row sm:items-center sm:justify-between">
+            <Link to="/" className="self-start">
               <BrandLockup height={layout === 'tabs' ? 23 : 26} />
             </Link>
 
-            <div className="flex flex-wrap items-center justify-end gap-2">
-            {session?.appUser && (
-              <span
-                data-testid="current-user"
-                className="rounded-full bg-sand-2 px-3 py-1.5 text-sm font-medium text-ink-2"
-              >
-                {session.appUser.display_name}
-              </span>
-            )}
-            {/* The tour crosses screens, so the way back to it belongs in the
-                header rather than on any one of them. */}
-            {signedIn && <TourButton />}
-            <LanguageSwitch />
-            {signedIn && <SignOutButton />}
+            <div
+              data-testid="global-header-actions"
+              className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full sm:[&>button]:w-auto [&>div]:w-full sm:[&>div]:w-auto"
+            >
+              {session?.appUser && (
+                <span
+                  data-testid="current-user"
+                  className="col-span-2 inline-flex min-h-11 items-center rounded-full bg-sand-2 px-3 py-1.5 text-sm font-medium text-ink-2 sm:col-span-auto"
+                >
+                  {session.appUser.display_name}
+                </span>
+              )}
+              {/* The tour crosses screens, so the way back to it belongs in the
+                  header rather than on any one of them. */}
+              {signedIn && <TourButton />}
+              <LanguageSwitch className="w-full sm:w-auto" />
+              {signedIn && <SignOutButton className="w-full sm:w-auto" />}
             </div>
           </div>
         </header>
@@ -94,7 +98,7 @@ export function RootLayout() {
             id="main"
             className={
               layout === 'tabs'
-                ? 'min-w-0 flex-1 p-4 pb-24'
+                ? 'min-w-0 flex-1 overflow-x-hidden p-4 pb-24'
                 : 'min-w-0 flex-1 p-4 lg:p-8 xl:p-10'
             }
           >

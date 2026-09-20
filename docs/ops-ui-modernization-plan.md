@@ -26,6 +26,7 @@ Every source file changed in this pass must have existing coverage extended or a
 | wide workspace sizing | `RootLayout.test.tsx`, `TableSurface.test.tsx`, `TowerDrillScreens.test.tsx`, `OfficerRecordScreens.test.tsx` |
 | progressive ops create forms | `DemandListScreen.test.tsx`, `BuyersScreen.test.tsx`, `responsive.spec.ts`, `demand.spec.ts`, `opportunity.spec.ts`, `journey.spec.ts` |
 | ops/Tower/officer detail width | existing detail screen tests plus `responsive.spec.ts` geometry checks |
+| mobile page and shell header composition | `PageHeader.test.tsx`, `RootLayout.test.tsx`, `responsive.spec.ts` |
 | translated close action | `bundles.test.ts` key-contract coverage |
 
 ## Acceptance checks
@@ -37,4 +38,5 @@ Every source file changed in this pass must have existing coverage extended or a
 - Responsive checks cover 320, 375, 768, 1024, and 1440px without document-level horizontal overflow.
 - At 1440px, demand/buyer create panels, request detail, Tower drills, and officer detail occupy the available workspace; create panels remain hidden until requested.
 - At every target width, table overflow stays inside the table wrapper and the create panel remains inside the viewport.
+- At phone widths, PageHeader navigation/actions and global account actions use a non-cramped stacked/grid layout with usable touch targets.
 - Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm e2e` before handoff.

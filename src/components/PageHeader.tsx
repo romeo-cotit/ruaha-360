@@ -29,9 +29,9 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="flex w-full flex-col gap-3">
+    <header data-testid="page-header" className="flex w-full min-w-0 flex-col gap-4">
       {(backTo || breadcrumbs?.length) && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
           {backTo && (
             <Link
               to={backTo as never}
@@ -43,7 +43,7 @@ export function PageHeader({
             </Link>
           )}
           {breadcrumbs?.length ? (
-            <Breadcrumbs className={backTo ? 'ml-auto' : undefined}>
+            <Breadcrumbs className={backTo ? 'sm:ml-auto' : undefined}>
               {breadcrumbs.map((crumb, index) => (
                 <BreadcrumbItem key={`${crumb.label}-${index}`} current={!crumb.to}>
                   {crumb.to ? <BreadcrumbLink href={crumb.to}>{crumb.label}</BreadcrumbLink> : crumb.label}
@@ -54,13 +54,20 @@ export function PageHeader({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           {eyebrow && <p className="type-section text-ink-3">{eyebrow}</p>}
           <h1 className="type-screen-title text-balance">{title}</h1>
           {description && <p className="type-body max-w-3xl text-ink-2">{description}</p>}
         </div>
-        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+        {actions && (
+          <div
+            data-testid="page-header-actions"
+            className="flex w-full min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center md:w-auto md:shrink-0 md:justify-end [&>*]:w-full sm:[&>*]:w-auto"
+          >
+            {actions}
+          </div>
+        )}
       </div>
     </header>
   )

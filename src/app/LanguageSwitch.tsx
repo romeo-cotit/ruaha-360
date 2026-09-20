@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
  * choice follows the user to their next device. Signed out there is nothing to
  * persist to, and the switch is in-memory only.
  */
-export function LanguageSwitch() {
+export function LanguageSwitch({ className = '' }: { className?: string }) {
   const { i18n, t } = useTranslation()
   const { data: session } = useSession()
   const queryClient = useQueryClient()
@@ -91,7 +91,7 @@ export function LanguageSwitch() {
     human === null ? undefined : human.kind === 'verbatim' ? human.message : t(human.key)
 
   return (
-    <div className="inline-flex flex-col items-end gap-1">
+    <div className={`inline-flex flex-col items-end gap-1 ${className}`}>
       <label className="inline-flex items-center gap-2 text-sm">
         <span className="sr-only">{t('a11y.language')}</span>
         <Select
@@ -101,7 +101,7 @@ export function LanguageSwitch() {
         >
           <SelectTrigger
           data-testid="language-switch"
-            className="min-h-10 w-auto min-w-28 px-2.5"
+            className="min-h-10 w-full min-w-28 px-2.5 sm:w-auto"
           >
             {t(`language.${i18n.resolvedLanguage}`)}
           </SelectTrigger>

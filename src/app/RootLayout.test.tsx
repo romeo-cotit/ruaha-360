@@ -157,6 +157,17 @@ describe('the tab bar never covers the last control', () => {
     expect(workspace).toHaveClass('w-full', 'min-w-0')
     expect(workspace).not.toHaveClass('max-w-screen-2xl')
   })
+
+  test('the shell header gives mobile actions their own full-width layout', () => {
+    useSession.mockReturnValue({
+      data: { appUser: { display_name: 'Asha' }, memberships: [m('ops')] },
+      isLoading: false,
+    })
+    renderLayout()
+
+    expect(screen.getByTestId('global-header-actions')).toHaveClass('grid', 'w-full', 'grid-cols-2')
+    expect(screen.getByTestId('current-user')).toHaveClass('col-span-2', 'min-h-11')
+  })
 })
 
 /**

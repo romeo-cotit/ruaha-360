@@ -21,11 +21,11 @@ vi.mock('@tanstack/react-router', () => ({
 const { LanguageSwitch } = await import('@/app/LanguageSwitch')
 const i18n = (await import('@/i18n')).default
 
-function renderSwitch() {
+function renderSwitch(className = '') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const result = render(
     <QueryClientProvider client={queryClient}>
-      <LanguageSwitch />
+      <LanguageSwitch className={className} />
     </QueryClientProvider>,
   )
   return {
@@ -34,7 +34,7 @@ function renderSwitch() {
     rerender: () =>
       result.rerender(
         <QueryClientProvider client={queryClient}>
-          <LanguageSwitch />
+          <LanguageSwitch className={className} />
         </QueryClientProvider>,
       ),
   }
@@ -58,6 +58,14 @@ beforeEach(async () => {
 })
 
 describe('LanguageSwitch loading and signed-out states', () => {
+  test('accepts shell layout classes without changing the control semantics', () => {
+    useSession.mockReturnValue({ data: undefined, isLoading: true })
+    renderSwitch('w-full sm:w-auto')
+
+    expect(screen.getByTestId('language-switch')).toHaveClass('w-full', 'sm:w-auto')
+    expect(screen.getByLabelText(/language/i)).toBeInTheDocument()
+  })
+
   test('while the session resolves it still works, in memory only', async () => {
     useSession.mockReturnValue({ data: undefined, isLoading: true })
     renderSwitch()

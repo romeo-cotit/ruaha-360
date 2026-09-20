@@ -27,6 +27,7 @@ describe('PageHeader', () => {
     expect(screen.getByRole('heading', { name: 'Production by crop and window' })).toBeInTheDocument()
     expect(screen.getByText('Read the records behind this figure.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
+    expect(screen.getByTestId('page-header-actions')).toHaveClass('w-full', 'md:w-auto')
     expect(screen.getByRole('link', { name: /Back to the Tower/ })).toHaveAttribute('href', '/ops/tower')
     expect(screen.getByRole('link', { name: 'Control Tower' })).toHaveAttribute('href', '/ops/tower')
     expect(screen.getByText('Production').closest('li')).toHaveAttribute('aria-current', 'page')
@@ -38,5 +39,20 @@ describe('PageHeader', () => {
     expect(screen.getByRole('heading', { name: 'Request pipeline' })).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Back/ })).not.toBeInTheDocument()
+  })
+
+  test('stacks navigation and actions for a phone-sized viewport', () => {
+    render(
+      <PageHeader
+        title="Buyer demand"
+        backTo="/ops"
+        breadcrumbs={[{ label: 'Operations', to: '/ops' }, { label: 'Buyer demand' }]}
+        actions={<button type="button">Create demand</button>}
+      />,
+    )
+
+    expect(screen.getByTestId('page-header')).toHaveClass('min-w-0')
+    expect(screen.getByTestId('page-header-actions')).toHaveClass('w-full', 'flex-col')
+    expect(screen.getByRole('listitem', { current: 'page' })).toHaveTextContent('Buyer demand')
   })
 })
