@@ -239,13 +239,9 @@ for (const width of [320, 375, 768, 1024, 1440] as const) {
  * The other half of the tab-bar problem, and the half no unit test can see.
  *
  * `RootLayout` pads `main` clear of the fixed bar, which is enough for content
- * that flows. The register screen's submit bar does not flow — it is
- * `position: sticky; bottom: 0`, so it pins to the VIEWPORT and the padding
- * below it is irrelevant. The 64px bar sat directly on top of the only
- * Register button in the product, on the surface whose users are all on
- * phones. Nothing caught it: the unit test reads `main`'s class, and every e2e
- * run is 1280 wide, where the same button clears the bar by hundreds of
- * pixels.
+ * that flows. The register submit bar must flow too: when it was sticky it
+ * covered the final confidence choice on a phone. The same padding then keeps
+ * both the final field and Register button clear of the fixed tab bar.
  *
  * So the claim is the one that matters to a thumb — a tap at the middle of the
  * control reaches the control — rather than anything about classes.
@@ -278,7 +274,28 @@ test.describe('the officer surface on a phone', () => {
 
     expect(
       await tapReaches(page, 'register-submit'),
-      'the sticky submit bar is behind the fixed tab bar',
+      'the submit bar is behind the fixed tab bar',
+    ).toBe(true)
+  })
+
+  test('the submit bar does not cover the last confidence choice', async ({ page }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    const confidence = page.getByTestId('register-confidence').locator('label').last()
+    await confidence.scrollIntoViewIfNeeded()
+
+    const [choice, submitBar, viewport] = await Promise.all([
+      confidence.boundingBox(),
+      page.getByTestId('register-submit-bar').boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ])
+
+    expect(choice).not.toBeNull()
+    expect(submitBar).not.toBeNull()
+    expect(
+      submitBar!.y >= choice!.y + choice!.height || submitBar!.y >= viewport,
+      'the submit bar covers the final confidence choice',
     ).toBe(true)
   })
 

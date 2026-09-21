@@ -35,3 +35,23 @@ export function isVisibleInViewport(element: Element | null): element is Element
 
   return rect.right > left && rect.left < left + width && rect.bottom > top && rect.top < top + height
 }
+
+/**
+ * Put a tour target in the middle of the page's visible viewport.
+ *
+ * `scrollIntoView` is normally sufficient, but WebKit can decline to move the
+ * document for a control inside a sticky container. Follow it with an explicit
+ * document scroll calculated from the target's real screen position. Browsers
+ * clamp the requested value at the page bounds, so this is also safe near the
+ * top and bottom of a screen.
+ */
+export function scrollTourTargetIntoView(target: Element): void {
+  target.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
+
+  const rect = target.getBoundingClientRect()
+  const viewportHeight = window.visualViewport?.height || window.innerHeight
+  const currentTop = window.scrollY || document.documentElement.scrollTop
+  const nextTop = Math.max(0, Math.round(currentTop + rect.top - (viewportHeight - rect.height) / 2))
+
+  window.scrollTo({ top: nextTop, behavior: 'auto' })
+}

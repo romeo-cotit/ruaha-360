@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { isVisibleInViewport } from '@/app/tour/tourVisibility'
+import { isVisibleInViewport, scrollTourTargetIntoView } from '@/app/tour/tourVisibility'
 
 /**
  * Prepare one tour target before Joyride is allowed to mount its overlay.
@@ -61,7 +61,7 @@ export function useTourTarget(
 
       if (target !== prepared) {
         prepared = target
-        target.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
+        scrollTourTargetIntoView(target)
       }
 
       // The automatic scroll is synchronous, but defer the geometry read until

@@ -6,6 +6,7 @@ import { useTourTarget } from '@/app/tour/useTourTarget'
 const SELECTOR = '[data-testid="target"]'
 const visible = new DOMRect(20, 100, 200, 48)
 const offscreen = new DOMRect(20, 2_000, 200, 48)
+let scrollTo = vi.fn()
 
 const settle = () =>
   act(async () => {
@@ -25,11 +26,14 @@ function addTarget(rect: DOMRect = visible) {
 describe('preparing a tour target', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0, writable: true })
     Object.defineProperty(Element.prototype, 'scrollIntoView', {
       configurable: true,
       value: vi.fn(),
       writable: true,
     })
+    scrollTo = vi.fn()
+    Object.defineProperty(window, 'scrollTo', { configurable: true, value: scrollTo, writable: true })
   })
 
   afterEach(() => {
@@ -52,6 +56,7 @@ describe('preparing a tour target', () => {
       block: 'center',
       inline: 'nearest',
     })
+    expect(scrollTo).toHaveBeenCalled()
     expect(result.current).toBe(true)
     expect(onMissing).not.toHaveBeenCalled()
   })
@@ -104,6 +109,25 @@ describe('preparing a tour target', () => {
 
     expect(onMissing).toHaveBeenCalledOnce()
     expect(result.current).toBe(false)
+  })
+
+  test('uses an explicit document scroll when element scrolling does not move WebKit', async () => {
+    const target = addTarget()
+    target.getBoundingClientRect = vi.fn(() =>
+      window.scrollY === 0 ? new DOMRect(20, 2_000, 200, 48) : visible,
+    )
+    scrollTo.mockImplementation(({ top }: ScrollToOptions) => {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: top ?? 0, writable: true })
+    })
+
+    const { result } = renderHook(() =>
+      useTourTarget('officer:3', SELECTOR, true, vi.fn(), 10_000),
+    )
+    await settle()
+
+    expect(target.scrollIntoView).toHaveBeenCalledOnce()
+    expect(scrollTo).toHaveBeenCalledWith({ top: expect.any(Number), behavior: 'auto' })
+    expect(result.current).toBe(true)
   })
 
   test('a new step is unready until its own target is positioned', async () => {

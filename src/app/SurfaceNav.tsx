@@ -93,11 +93,9 @@ export function SurfaceNav({ layout, items }: { layout: NavLayout; items: NavIte
  * The bottom bar, and the one number anything else pinned to the bottom of the
  * viewport needs.
  *
- * The bar is `position: fixed`, so `main`'s bottom padding keeps FLOWING
- * content clear of it but does nothing for a `position: sticky` element — the
- * register screen's submit bar — which is positioned against the viewport and
- * sat straight behind this. So the bar publishes its own height as
- * `--tab-bar-height` on the root, and the sticky bar offsets by it.
+ * The bar is `position: fixed`, so flowing content needs bottom padding to
+ * remain clear of it. `main` owns that padding; Register's submit bar stays in
+ * normal flow so it cannot crop the final confidence option on a phone.
  *
  * Measured, not written down: a tab is `min-height: 60px` and renders at 63
  * with an icon above a label, and a Kiswahili label is allowed to wrap and

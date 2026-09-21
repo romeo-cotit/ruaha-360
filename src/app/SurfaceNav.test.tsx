@@ -91,10 +91,8 @@ describe('SurfaceNav touch targets', () => {
 })
 
 /**
- * The bar is `position: fixed`, so anything else pinned to the bottom of the
- * viewport — the register screen's sticky submit bar — has to know how tall it
- * is. `main`'s padding cannot help there: a sticky element is positioned
- * against the viewport, not against its scrolling ancestor's padding box.
+ * The bar is `position: fixed`, so `main` needs to reserve space above it for
+ * a mobile form footer and the final fields before that footer.
  *
  * The height is measured rather than written down. A tab is `min-height: 60px`
  * and the real one renders at 63 with an icon above a label, and a Kiswahili

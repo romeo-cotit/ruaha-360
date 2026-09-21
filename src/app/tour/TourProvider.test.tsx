@@ -50,6 +50,7 @@ beforeEach(() => {
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
     new DOMRect(100, 100, 160, 48),
   )
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   localStorage.clear()
   navigate.mockClear()
   pathname = '/officer'
