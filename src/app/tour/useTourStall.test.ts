@@ -19,14 +19,20 @@ const settle = () =>
   })
 
 const bubble = '<div data-testid="tour-tooltip"></div>'
+let bubbleRect = new DOMRect(20, 20, 240, 160)
 
 describe('a tour that stops drawing', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+    bubbleRect = new DOMRect(20, 20, 240, 160)
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(() => bubbleRect)
     vi.useFakeTimers({ shouldAdvanceTime: true })
   })
 
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
 
   test('ends, once, after the deadline', async () => {
     const onStall = vi.fn()
@@ -79,6 +85,35 @@ describe('a tour that stops drawing', () => {
     await act(async () => {
       document.body.innerHTML = ''
       await Promise.resolve()
+      vi.advanceTimersByTime(10_000)
+      await Promise.resolve()
+    })
+
+    expect(onStall).toHaveBeenCalledTimes(1)
+  })
+
+  test('an off-screen bubble is a stall even though it exists', async () => {
+    const onStall = vi.fn()
+    bubbleRect = new DOMRect(20, window.innerHeight + 500, 240, 160)
+    document.body.innerHTML = bubble
+    renderHook(() => useTourStall(true, onStall, 10_000))
+    await settle()
+
+    await act(async () => {
+      vi.advanceTimersByTime(10_000)
+      await Promise.resolve()
+    })
+
+    expect(onStall).toHaveBeenCalledTimes(1)
+  })
+
+  test('a visually hidden bubble is a stall even though it has geometry', async () => {
+    const onStall = vi.fn()
+    document.body.innerHTML = '<div style="opacity: 0" data-testid="tour-tooltip"></div>'
+    renderHook(() => useTourStall(true, onStall, 10_000))
+    await settle()
+
+    await act(async () => {
       vi.advanceTimersByTime(10_000)
       await Promise.resolve()
     })

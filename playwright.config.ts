@@ -39,7 +39,10 @@ export default defineConfig({
     storageState: TOURS_ALREADY_SEEN,
   },
   webServer: {
-    command: 'pnpm dev',
+    // Tour positioning has failed only after bundling before. Exercise the
+    // artifact Netlify serves rather than letting the development server give
+    // production-only lifecycle bugs a pass.
+    command: 'pnpm build && pnpm preview --host 127.0.0.1 --port 5173',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },

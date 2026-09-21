@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { TOURS } from '../src/app/tour/tourSteps'
+
 /**
  * The guided tour, from the only angle that proves anything: a real first
  * visit, in a real browser, with the spotlight actually cut.
@@ -69,7 +71,20 @@ const overlay = (page: Page) => page.locator('.react-joyride__overlay')
  * briefly has no target and "target not found" was wired to advance. A test
  * that only checked the end would have called that a pass.
  */
-async function walkToTheEnd(page: Page, stops = 6) {
+async function assertStepInViewport(page: Page, role: Role, stop: number, stops: number) {
+  const tooltip = page.getByTestId('tour-tooltip')
+  const target = page.getByTestId(TOURS[role][stop - 1].testId)
+
+  await expect(page.getByTestId('tour-progress')).toHaveText(`Step ${stop} of ${stops}`, {
+    timeout: 20_000,
+  })
+  await expect(tooltip).toBeVisible()
+  await expect(tooltip).toBeInViewport()
+  await expect(target).toBeVisible()
+  await expect(target).toBeInViewport()
+}
+
+async function walkToTheEnd(page: Page, role: Role, stops = 6) {
   // A stop on another screen has to wait for a route change and the read
   // behind it, and the bubble is not drawn while the library waits for its
   // target. The suite's default 10s is the same number the tour itself gives a
@@ -79,14 +94,14 @@ async function walkToTheEnd(page: Page, stops = 6) {
   const wait = { timeout: 20_000 }
 
   for (let stop = 1; stop < stops; stop += 1) {
-    await expect(page.getByTestId('tour-progress')).toHaveText(`Step ${stop} of ${stops}`, wait)
+    await assertStepInViewport(page, role, stop, stops)
     await expect(page.getByTestId('tour-next')).toHaveText('Next')
     await page.getByTestId('tour-next').click()
   }
 
-  await expect(page.getByTestId('tour-progress')).toHaveText(`Step ${stops} of ${stops}`, wait)
+  await assertStepInViewport(page, role, stops, stops)
   // The last stop finishes rather than promising more.
-  await expect(page.getByTestId('tour-next')).toHaveText('Done')
+  await expect(page.getByTestId('tour-next')).toHaveText('Done', wait)
   await expect(page.getByTestId('tour-skip')).toHaveCount(0)
 }
 
@@ -131,7 +146,7 @@ for (const role of ['officer', 'ops', 'farmer'] as const) {
       // Nothing behind the first stop, so no Back to offer.
       await expect(page.getByTestId('tour-back')).toHaveCount(0)
 
-      await walkToTheEnd(page)
+      await walkToTheEnd(page, role)
       await expect(page).toHaveURL(WHO[role].lastRoute)
 
       await page.getByTestId('tour-next').click()
@@ -148,7 +163,7 @@ for (const role of ['officer', 'ops', 'farmer'] as const) {
 
     test('and having been taken, it is remembered across a reload', async ({ page }) => {
       await signIn(page, role)
-      await walkToTheEnd(page)
+      await walkToTheEnd(page, role)
       await page.getByTestId('tour-next').click()
       await expect(overlay(page)).toHaveCount(0)
 
@@ -199,6 +214,30 @@ test.describe('crossing between screens', () => {
 
     await expect(page).toHaveURL(/\/ops\/requests/)
     await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 6')
+  })
+})
+
+test.describe('mobile target positioning', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('the officer tour brings the submit stop into view after step 3', async ({ page }) => {
+    await signIn(page, 'officer')
+    await assertStepInViewport(page, 'officer', 1, 6)
+
+    await page.getByTestId('tour-next').click()
+    await assertStepInViewport(page, 'officer', 2, 6)
+    await page.getByTestId('tour-next').click()
+    await assertStepInViewport(page, 'officer', 3, 6)
+
+    await page.getByTestId('tour-next').click()
+    await assertStepInViewport(page, 'officer', 4, 6)
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+
+    // The visible control itself remains actionable; this advances to People
+    // rather than leaving an off-screen bubble behind a blocking overlay.
+    await page.getByTestId('tour-next').click()
+    await assertStepInViewport(page, 'officer', 5, 6)
+    await expect(page).toHaveURL(/\/officer\/people/)
   })
 })
 

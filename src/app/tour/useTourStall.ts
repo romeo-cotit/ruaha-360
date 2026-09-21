@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 
+import { isVisibleInViewport } from '@/app/tour/tourVisibility'
+
 /**
  * A tour that is running but drawing nothing has stopped being a tour.
  *
@@ -35,7 +37,7 @@ export function useTourStall(active: boolean, onStall: () => void, ms = 10_000):
     let timer: ReturnType<typeof setTimeout> | undefined
 
     const evaluate = () => {
-      const drawing = document.querySelector('[data-testid="tour-tooltip"]') !== null
+      const drawing = isVisibleInViewport(document.querySelector('[data-testid="tour-tooltip"]'))
       if (drawing) {
         clearTimeout(timer)
         timer = undefined
@@ -46,12 +48,26 @@ export function useTourStall(active: boolean, onStall: () => void, ms = 10_000):
     }
 
     const observer = new MutationObserver(evaluate)
-    observer.observe(document.body, { childList: true, subtree: true })
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class', 'hidden', 'style'],
+      childList: true,
+      subtree: true,
+    })
+    const visualViewport = window.visualViewport
+    window.addEventListener('scroll', evaluate, true)
+    window.addEventListener('resize', evaluate)
+    visualViewport?.addEventListener('scroll', evaluate)
+    visualViewport?.addEventListener('resize', evaluate)
     // Asynchronously, so no state settles inside the effect's own turn.
     queueMicrotask(evaluate)
 
     return () => {
       observer.disconnect()
+      window.removeEventListener('scroll', evaluate, true)
+      window.removeEventListener('resize', evaluate)
+      visualViewport?.removeEventListener('scroll', evaluate)
+      visualViewport?.removeEventListener('resize', evaluate)
       clearTimeout(timer)
     }
   }, [active, ms])

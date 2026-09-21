@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 // The router's navigate returns a promise; the tour ends the tour if it
 // rejects, so the stub has to be one.
@@ -42,6 +42,14 @@ await import('@/i18n')
 const OFFICER = '80000000-0000-4000-8000-000000000003'
 
 beforeEach(() => {
+  Object.defineProperty(Element.prototype, 'scrollIntoView', {
+    configurable: true,
+    value: vi.fn(),
+    writable: true,
+  })
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+    new DOMRect(100, 100, 160, 48),
+  )
   localStorage.clear()
   navigate.mockClear()
   pathname = '/officer'
@@ -50,6 +58,8 @@ beforeEach(() => {
   // provider that is no longer on the page.
   joyride = {}
 })
+
+afterEach(() => vi.restoreAllMocks())
 
 /**
  * Stands in for the app underneath the tour.
@@ -297,8 +307,7 @@ describe('ending the tour', () => {
    * every route crossing produces — it is not the claim "this element is not
    * coming". Advancing on it raced the farmer tour from stop 1 to stop 5 with
    * nobody touching it; ending on it strands a tour whose screen is merely
-   * still loading. `useStepTarget` owns that decision, with a deadline, and
-   * `useStepTarget.test.ts` holds it.
+   * still loading. `useTourTarget` owns that decision, with a deadline.
    */
   test('the library saying "target not found" is not taken as the end', async () => {
     renderTour()
@@ -341,9 +350,9 @@ describe('crossing to another screen', () => {
   })
 
   /**
-   * A crossing moves the tour on; it does not end it. Ending is the only thing
-   * that unmounts the library, so staying mounted is what distinguishes "on
-   * the way" from "over".
+   * A crossing moves the tour on; it does not end it. Joyride itself is kept
+   * unmounted while the route and target are being prepared, so its overlay
+   * cannot block a screen it is not ready to explain.
    */
   test('and moves on without ending, while the router is still moving', async () => {
     renderTour()
@@ -353,8 +362,8 @@ describe('crossing to another screen', () => {
     emit({ action: 'next', type: 'step:after' })
     await settle()
 
-    expect(mounted()).toBe(true)
-    expect(joyride.stepIndex).toBe(2)
+    expect(mounted()).toBe(false)
+    expect(navigate).toHaveBeenLastCalledWith({ to: '/officer/register' })
   })
 
   test('then runs again once that screen is the screen we are on', async () => {
@@ -398,11 +407,17 @@ describe('when the library steps itself', () => {
   beforeEach(() => localStorage.clear())
 
   test('the announced stop is followed rather than argued with', async () => {
-    renderTour()
+    const view = renderTour()
     await settle()
     expect(joyride.stepIndex).toBe(0)
 
     emit({ action: 'next', index: 3, type: 'step:before' })
+    await settle()
+
+    expect(mounted()).toBe(false)
+    expect(navigate).toHaveBeenLastCalledWith({ to: '/officer/register' })
+
+    arriveAt('/officer/register', view)
     await settle()
 
     expect(joyride.stepIndex).toBe(3)

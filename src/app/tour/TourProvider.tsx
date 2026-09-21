@@ -9,6 +9,7 @@ import { TourTooltip } from '@/app/tour/TourTooltip'
 import { TOURS } from '@/app/tour/tourSteps'
 import { hasSeenTour, markTourSeen } from '@/app/tour/tourState'
 import { useTourStall } from '@/app/tour/useTourStall'
+import { useTourTarget } from '@/app/tour/useTourTarget'
 
 /**
  * The guided tour, one per surface.
@@ -78,18 +79,6 @@ export function TourProvider({
   }, [who, surface, userId])
 
   /**
-   * Running means: the tour is active, we are standing on the screen this stop
-   * lives on, AND the element it points at is really there.
-   *
-   * All three, because the first two are not enough. The router changes
-   * `pathname` before the screen it names has mounted, and several of these
-   * screens render their content only once a read returns — and Joyride
-   * reports a missing target the moment it looks. Waiting for the URL alone
-   * left a window in which the library was hunting for an element that could
-   * not exist yet, which on a slow connection ended the tour on its own.
-   * `useStepTarget` waits for the element and, if it never comes, says so.
-   */
-  /**
    * Which stop we are on, readable from an event handler.
    *
    * Deliberately NOT the `index` the library reports. Joyride moves its own
@@ -102,19 +91,6 @@ export function TourProvider({
   useEffect(() => {
     at.current = stepIndex
   }, [stepIndex])
-
-  /**
-   * The backstop: a tour that is running but drawing nothing is over.
-   *
-   * Deliberately not "is this stop's element there". That question was asked
-   * first and missed the failure that reached users — on a production build
-   * the library began scrolling to stop four, never reported finishing, and
-   * never drew, with the stop's own element present the whole time. Watching
-   * what the user can see catches every way it can stall, including the ones
-   * not yet met, and `stop()` unmounts the library with its portal and its
-   * overlay together.
-   */
-  useTourStall(active, stop)
 
   /**
    * The route follows the stop, declaratively.
@@ -131,6 +107,21 @@ export function TourProvider({
     if (!wanted || wanted === pathname) return
     void navigate({ to: wanted })
   }, [wanted, pathname, navigate])
+
+  /**
+   * Joyride's own animated scroll has stalled in a production bundle, so it
+   * remains disabled. Prepare every target ourselves instead: wait for its
+   * route and content, instant-scroll it into view, and only then let the
+   * library mount the sheet that blocks the page.
+   */
+  const currentStep = active ? tour[stepIndex] : undefined
+  const selector = currentStep ? `[data-testid="${currentStep.testId}"]` : null
+  const targetKey = currentStep ? `${who}:${stepIndex}:${currentStep.testId}` : null
+  const targetReady = useTourTarget(targetKey, selector, wanted === pathname, stop)
+  const drawing = active && targetReady
+
+  /** A mounted tour whose bubble is not genuinely visible is allowed to fail safe. */
+  useTourStall(drawing, stop)
 
   const goTo = useCallback(
     (index: number) => {
@@ -169,7 +160,7 @@ export function TourProvider({
        * the farmer tour from stop one to stop five with nobody touching it,
        * and ending on it strands a tour whose screen was merely still loading.
        *
-       * `useStepTarget` answers the real question: it waits for the element and
+       * `useTourTarget` answers the real question: it waits for the element and
        * says so if it never arrives. One source for that decision, and it is
        * ours.
        */
@@ -223,22 +214,18 @@ export function TourProvider({
     <TourContext.Provider value={controls}>
       {children}
       {/*
-        Mounted for exactly as long as the tour is active, which makes "the
-        overlay cannot outlive the tour" a fact about the tree rather than a
-        promise about state: `TourRenderer` removes its portal on unmount, and
+        Mounted only while an active stop is ready to draw, which makes "the
+        overlay cannot outlive a usable tour" a fact about the tree rather than
+        a promise about state: `TourRenderer` removes its portal on unmount, and
         the portal is what holds the sheet that swallows clicks.
       */}
-      {active && (
+      {drawing && (
         <Joyride
+          key={targetKey}
           steps={steps}
-          // Running for as long as the tour is active, and paused never.
-          // Pausing across a screen change was tried twice and measured worse
-          // both times: the library's own resume is where the ops tour kept
-          // stranding itself between Demand and the Tower. Its brief wait for
-          // a target — overlay up, no bubble — is a flicker; the bug being
-          // fixed is that same state lasting forever, and the deadline above
-          // is what bounds it.
-          run={active}
+          // The renderer is mounted only after its target has been positioned,
+          // so it never needs to pause behind a blocking overlay.
+          run
           stepIndex={stepIndex}
           onEvent={onEvent}
           continuous
@@ -257,16 +244,12 @@ export function TourProvider({
             // The library does not scroll. It waits for its own scroll to
             // report finished before it draws, and on a production build that
             // report did not always arrive: the tour sat behind its overlay
-            // with no bubble, permanently. Nothing here needs scrolling to a
-            // stop badly enough to risk that — and an animated scroll is
-            // against this design anyway.
+            // with no bubble, permanently. `useTourTarget` does the necessary
+            // instant positioning before this renderer is mounted instead.
             skipScroll: true,
-            // A tour that crosses screens asks for a stop whose element the
-            // router has not mounted yet. Waiting for it is the whole reason
-            // this can navigate and advance in one move; without it the stop
-            // is reported missing and stepped over the moment it is reached.
-            // Matched to the deadline above, so the library and this component
-            // give a missing stop the same amount of rope.
+            // Target preparation already waits before mounting. Keep the
+            // library's matching deadline as a second defence if a prepared
+            // element is replaced while Joyride is starting.
             targetWaitTimeout: 10_000,
             // No beacon. A tour that starts by asking you to find a pulsing
             // dot has added a puzzle before its first sentence — and a pulse
