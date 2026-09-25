@@ -25,6 +25,13 @@ async function signInAsOfficer(page: Page) {
   await expect(page).toHaveURL(/\/officer$/)
 }
 
+/** The PATCH that stores a language choice on app_user.locale. */
+function localeSaved(page: Page) {
+  return page.waitForResponse(
+    (r) => r.url().includes('/rest/v1/app_user') && r.request().method() === 'PATCH',
+  )
+}
+
 async function fillRegistration(page: Page, family: string) {
   await page.getByTestId('register-given-name').fill('Test')
   await page.getByTestId('register-family-name').fill(family)
@@ -149,14 +156,20 @@ test.describe('/officer/register', () => {
     await expect(page.getByRole('option', { name: CROP.MAIZE.sw, exact: true })).toBeVisible()
     await page.keyboard.press('Escape')
 
+    // Each switch is awaited on its PATCH to app_user, not on the control
+    // looking idle: the officer's seeded locale must be restored before the
+    // context closes, or every later test signs in as the wrong language.
+    const toEnglish = localeSaved(page)
     await chooseSelect(page, 'language-switch', 'Kiingereza')
+    expect((await toEnglish).ok()).toBe(true)
     await page.getByTestId('register-crop').click()
     await expect(page.getByRole('option', { name: CROP.MAIZE.en, exact: true })).toBeVisible()
     await page.keyboard.press('Escape')
 
     // Leave the seeded locale as it was found.
+    const toSwahili = localeSaved(page)
     await chooseSelect(page, 'language-switch', 'Kiswahili')
-    await expect(page.getByTestId('language-switch')).toBeEnabled()
+    expect((await toSwahili).ok()).toBe(true)
   })
 
   /**

@@ -145,7 +145,8 @@ test.describe('gaps shell.spec.ts does not cover', () => {
       ['Verify', '/officer/verify'],
     ] as const) {
       await tabs.getByRole('link', { name: label }).click()
-      await expect(page).toHaveURL(new RegExp(`${path}$`))
+      // Register adds ?draft=<id> on arrival, so the path may carry a query.
+      await expect(page).toHaveURL(new RegExp(`${path}(\\?|$)`))
     }
   })
 

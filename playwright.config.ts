@@ -32,7 +32,7 @@ export default defineConfig({
   globalTeardown: './e2e/global-teardown.ts',
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     // A fresh context is a first visit, and a first visit opens the guided
     // tour over the whole screen. Every spec but `tour.spec.ts` starts with
     // the tours already taken.

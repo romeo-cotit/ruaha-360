@@ -15,6 +15,13 @@ import { chooseSelect } from './support/select'
  */
 const PASSWORD = 'demo1234'
 
+/** The PATCH that stores the choice on app_user.locale. */
+function localeSaved(page: import('@playwright/test').Page) {
+  return page.waitForResponse(
+    (r) => r.url().includes('/rest/v1/app_user') && r.request().method() === 'PATCH',
+  )
+}
+
 async function signIn(page: import('@playwright/test').Page, email: string) {
   await page.goto('/login')
   await page.getByTestId('login-email').fill(email)
@@ -45,19 +52,23 @@ test('a language change survives a reload, because it is stored on app_user', as
 
   const select = page.getByTestId('language-switch')
 
+  // Wait for the write itself, not for the switch to look idle. The switch only
+  // disables after changeLanguage re-renders, so "enabled" can hold before the
+  // PATCH is even sent — and a reload then cuts the write. Registered before
+  // the change so the response cannot slip past.
+  const toEnglish = localeSaved(page)
   await chooseSelect(page, 'language-switch', 'Kiingereza')
   await expect(select).toContainText('English')
-  // The switch disables itself while the write is in flight, so being enabled
-  // again is the user-visible signal that it landed. No arbitrary waiting.
-  await expect(select).toBeEnabled()
+  expect((await toEnglish).ok()).toBe(true)
 
   await page.reload()
   await expect(select).toContainText('English')
 
   // Leave the seed as it was found, so the suite is re-runnable.
+  const toSwahili = localeSaved(page)
   await chooseSelect(page, 'language-switch', 'Kiswahili')
   await expect(select).toContainText('Kiswahili')
-  await expect(select).toBeEnabled()
+  expect((await toSwahili).ok()).toBe(true)
   await page.reload()
   await expect(select).toContainText('Kiswahili')
 })
