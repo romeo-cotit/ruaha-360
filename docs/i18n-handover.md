@@ -18,12 +18,12 @@ English is visibly untranslated and a wrong Swahili string is not.
 ## Priority
 
 - **Required** — the farmer and officer surfaces, and the chrome both of
-  them render. 426 strings. CLAUDE.md specifies these ship
+  them render. 429 strings. CLAUDE.md specifies these ship
   complete Swahili.
-- **Optional** — Ops and Tower. 260 strings. These may ship
+- **Optional** — Ops and Tower. 264 strings. These may ship
   English for the demo.
 
-686 strings in total, of which 2 already have Swahili.
+693 strings in total, of which 2 already have Swahili.
 
 ## How to read the table
 
@@ -74,17 +74,20 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `cycleStatus.planned` | Planned |  |  |
 | `demoBanner.detail` | Every figure here is invented. Nothing is a measured Ruaha result. |  |  |
 | `demoBanner.label` | Demo data |  |  |
+| `draft.earlierVersionSaved` | An earlier version of this form was already saved. Open it from the list to check it. |  |  |
 | `draft.notSubmitted` | Not yet submitted |  |  |
 | `draft.storageError` | Could not save this draft on this device. Keep this page open until you submit. |  |  |
 | `empty.noAccessDetail` | You may not have access to these records, or there are none yet. |  |  |
 | `empty.noAccessToThis` | Nothing to show |  |  |
 | `equipment.days` | Days per week |  |  |
+| `equipment.daysDecimals` | Use at most 1 decimal place. |  |  |
 | `equipment.daysRange` | Days per week run from 0 to 7. |  |  |
 | `equipment.estimateBlockedDetail` | Fill in how many, hours per day and days per week, and the estimate appears here. |  | Always labelled an ESTIMATE. Not a measurement, not a commitment. |
 | `equipment.estimateBlockedTitle` | No estimate yet |  | Always labelled an ESTIMATE. Not a measurement, not a commitment. |
 | `equipment.estimateImpossibleDetail` | One of the figures above is outside what is possible, so no estimate is shown for it. Correct it and the estimate returns. |  | Always labelled an ESTIMATE. Not a measurement, not a commitment. |
 | `equipment.estimateImpossibleTitle` | This cannot be estimated |  | Always labelled an ESTIMATE. Not a measurement, not a commitment. |
 | `equipment.hours` | Hours per day |  |  |
+| `equipment.hoursDecimals` | Use at most 2 decimal places. |  |  |
 | `equipment.hoursRange` | Hours per day run from 0 to 24. |  |  |
 | `equipment.indicative` | Indicative |  | Prices are INDICATIVE, never quotations. Must not read as a firm offer. |
 | `equipment.indicativePrice` | Indicative price |  | Prices are INDICATIVE, never quotations. Must not read as a firm offer. |
@@ -527,14 +530,17 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `demand.noneTitle` | No demand recorded yet |  |  |
 | `demand.noSupplyDetail` | No village has available supply of this crop in this window. That is an honest zero, not a missing row. |  |  |
 | `demand.noSupplyTitle` | No matching supply |  |  |
+| `demand.notANumber` | Enter a number. |  |  |
 | `demand.notASale` | An opportunity is not a sale, a delivery or a payment. It records that a village could supply a buyer. |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `demand.notFoundDetail` | It may not exist, or you may not have access to it. |  |  |
 | `demand.notFoundTitle` | Demand not found |  |  |
+| `demand.priceNotANumber` | Enter a number, using a point for decimals (for example 12.5). |  | Prices are INDICATIVE, never quotations. Must not read as a firm offer. |
 | `demand.pricePerKg` | Indicative price per kg |  | Prices are INDICATIVE, never quotations. Must not read as a firm offer. |
 | `demand.qualityNote` | Quality note |  |  |
 | `demand.quantity` | Quantity (kg) |  |  |
 | `demand.required` | This is required. |  |  |
 | `demand.title` | Buyer demand |  |  |
+| `demand.twoDecimals` | Use at most 2 decimal places. |  |  |
 | `demand.window` | Window |  |  |
 | `demand.windowEnd` | Window ends |  |  |
 | `demand.windowStart` | Window starts |  |  |
@@ -561,6 +567,7 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `opportunity.colPlot` | Plot |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.demandQuantity` | Buyer's demand |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.harvestOption` | {{expected}} expected · {{available}} available |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Keep {{expected}} {{available}} |
+| `opportunity.kgDecimals` | Use at most 2 decimal places. |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.kgMoreThanZero` | A contribution has to be more than zero. |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.kgNotANumber` | Enter a number. |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.kgRequired` | Enter how many kilograms. |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |

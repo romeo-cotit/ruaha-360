@@ -34,7 +34,7 @@ pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
 pnpm db:types       # regenerate src/lib/db.types.ts — commit it
-pnpm db:rls         # the 78 policy assertions
+pnpm db:rls         # the 92 policy assertions
 ```
 
 `db:types` is the exception: it goes through the Management API with
@@ -78,7 +78,7 @@ migration's statements: the files and the database cannot drift silently.
 pnpm db:rls
 ```
 
-78 assertions over the policies (measured 25 Sep 2026): `rls_test.sql`, which
+92 assertions over the policies (measured 25 Sep 2026): `rls_test.sql`, which
 includes `mvp_security_test.sql` for the protected-write, provenance and market
 guards. Every block runs in a rolled-back transaction, and `assert_raises`
 checks the SQLSTATE, so an unrelated error cannot count as a security pass.

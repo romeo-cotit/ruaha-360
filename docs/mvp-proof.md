@@ -9,14 +9,14 @@ end of this page.
 
 | check | command | result |
 |---|---|---|
-| migration history | `pnpm db:list` | 11 local = 11 remote, through `20260925090001`; on-disk statements identical to recorded ones |
+| migration history | `pnpm db:list` | 12 local = 12 remote, through `20260925120001`; on-disk statements identical to recorded ones |
 | generated types | `pnpm db:types` | regenerated; byte-identical to committed `src/lib/db.types.ts` |
-| RLS / DB contract | `pnpm db:rls` | **78 / 78 pass** (60 before this pass, 18 added) |
+| RLS / DB contract | `pnpm db:rls` | **92 / 92 pass**, before and after E2E cleanup (60 at start of 25 Sep, 18 + 14 added) |
 | typecheck | `pnpm typecheck` | pass |
 | lint | `pnpm lint` | pass |
-| unit | `pnpm test` | **2162 / 2162** in 103 files |
+| unit | `pnpm test` | **2233 / 2233** in 105 files, both with `.env` and with it removed (CI parity) |
 | build | `pnpm build` | pass |
-| browser | `pnpm e2e` | final full run: 209 passed, 4 skipped by design (people nav smoke runs at one width), 1 flaky, 1 failed. The failure (`person-detail` edit: cycle season edited but never displayed) was fixed and `person-detail.spec.ts` re-run **11 / 11**. The flaky test is `language.spec.ts` "survives a reload": the first custom-select click did not register, the retry passed; locales verified back at seed values. Journey: **pass** (steps 1–9) |
+| browser | `pnpm e2e` | final full run: **211 passed, 0 failed, 0 flaky**, 4 skipped by design (people nav smoke runs at one width). `language`, `register`, `nav` specs then run 3× with `--retries=0`: **36 / 36 each time**. Journey: **pass** (steps 1–9) |
 | seeded figures | asserted by `rls_test.sql` §8 and `journey.spec.ts` | 12,000 / 6,400 / 5,600 kg · 62.2% · 10.800 kW · 489.200 kW, before and after cleanup |
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, unit and build
@@ -111,11 +111,37 @@ officer-edit coverage reported earlier is per-feature, not whole-app.
   CI artifacts (`playwright-proof-<sha>`, `rls-proof-<sha>`) once secrets are
   set. Base commit `62adbb2`; all changes are uncommitted.
 
+## Second pass — confirmed bugs fixed (25 Sep)
+
+CI's `check` job failed on `f7d2ecd`; three read-only investigations, then
+three implementation agents and an independent review. Only defects confirmed
+by code or library source were fixed.
+
+| bug | fix | test |
+|---|---|---|
+| 3 unit files crashed without `.env` (CI) | `vitest.config.ts` `test.env` placeholders on a closed port + `VITE_DATA_MODE`; `isDemoData` moved to `src/lib/dataMode.ts`; missing session mock | full suite with `.env` removed |
+| language E2E reloaded before the save was sent (failed at `language.spec.ts:55`, after reload) | specs wait for the `app_user` PATCH; `trace: 'retain-on-failure'` | 3× no-retry reruns |
+| nav E2E expected `/officer/register$`, but register adds `?draft=` | regex allows a query | 3× no-retry reruns |
+| crop-cycle measure switch could never save | `buildEditPayload` nulls the non-matching measures; every caller passes the measure | `officerEdit.test.ts`, `useOfficerEdit.test.tsx` |
+| draft not cleared if the screen unmounted mid-save (`mutate` callbacks skip without listeners, `mutationObserver.js:76`) | `mutateAsync` + `finishDraftWhenSaved` | per-form unmount tests |
+| retry after an uncertain save reported success for different values | `recoverInsert` compares submitted vs stored; mismatch → `EarlierVersionSavedError`, draft cleared, lists refreshed | `recoverInsert.test.ts`, `recoverInsert.hooks.test.tsx` |
+| DB silently rounded extra decimals (would also make retries mismatch); a comma price was saved as no price | decimal limits per column scale; price must be a number | schema + `DemandListScreen` tests |
+| early keystrokes replaced the whole stored draft | merged over the restored draft | `usePersistentForm.test.tsx` |
+| an abandoned officer draft came back over newer server data | draft carries the record's `captured_at`; a different version is discarded | `usePersistentForm`, dialog and screen tests |
+| staff-scope rewrite missed `app_staff_households()`, `app_staff_opportunities()` and `fm_read` (any staff read every `farm_manager` row) | migration `20260925120001_staff_scope_followup` | 14 new RLS assertions, each shown failing before the migration |
+
+Refuted and not changed: a stored-locale race in `LanguageSwitch`, Base UI
+dropping fast clicks, forms rendering before the session loads.
+Known and accepted: officer drafts written before this change carry no version
+and are discarded once; the earlier-version message is translated when raised.
+New English strings needing Swahili review are in `docs/i18n-handover.md`
+(429 required).
+
 ## External deferrals — owner and state
 
 | item | owner | state |
 |---|---|---|
-| Native Kiswahili for 426 required strings (`docs/i18n-handover.md`); DB reference labels (5 crops, 4 categories, 5 equipment) carry Swahili awaiting review | native reviewer | **pending**; placeholders/plurals validated by `validateSwahili` |
+| Native Kiswahili for 429 required strings (`docs/i18n-handover.md`); DB reference labels (5 crops, 4 categories, 5 equipment) carry Swahili awaiting review | native reviewer | **pending**; placeholders/plurals validated by `validateSwahili` |
 | Scope alignment with Plan v2 (exclusions and compressed roles in `CLAUDE.md`) | product owner | **pending** confirmation |
 | Handset/connectivity validation, real-data consent (research A, B), finance classification (C), meter provider, season/grade/confidence taxonomies (S22) | field / legal / product | deferred |
 | GitHub secrets for CI browser + RLS jobs | repository owner | required; jobs fail visibly until set |
