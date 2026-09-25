@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { withProvenance } from '@/lib/provenance'
+import { recoverInsert } from '@/lib/recoverInsert'
 import { useTranslation } from 'react-i18next'
 
 import { FARMER_ACTION_TARGET, type FarmerAction } from '@/features/ops/transitions'
@@ -12,7 +14,7 @@ type EstimateRow = Database['public']['Tables']['energy_estimate']['Row']
 
 const SELECT = `id, village_id, person_id, farm_id, equipment_id, quantity, hours_per_day,
   days_per_week, purpose, status, submitted_at, decided_at, decision_note,
-  source, verification, confidence, captured_at,
+  source, verification, confidence, captured_at, captured_by,
   equipment ( id, name_en, name_sw, rated_power_kw, indicative_price, currency ),
   energy_estimate ( id, rated_power_kw, quantity, hours_per_day, days_per_week,
     est_power_kw, est_kwh_per_day, est_kwh_per_week, method, computed_at )`
@@ -96,6 +98,8 @@ export function useRequest(requestId: string) {
 }
 
 export interface NewRequest {
+  id?: string
+  actorId: string
   villageId: string
   personId: string
   equipmentId: string
@@ -121,7 +125,8 @@ export function useSubmitRequest() {
     mutationFn: async (input: NewRequest) => {
       const { data, error } = await supabase
         .from('pue_request')
-        .insert({
+        .insert(withProvenance({
+          id: input.id,
           village_id: input.villageId,
           person_id: input.personId,
           equipment_id: input.equipmentId,
@@ -129,13 +134,13 @@ export function useSubmitRequest() {
           hours_per_day: input.hoursPerDay,
           days_per_week: input.daysPerWeek,
           purpose: input.purpose || null,
-          status: 'submitted',
-        })
+          status: 'submitted' as const,
+        }, 'farmer_reported', input.actorId))
         .select('id')
         .single()
 
       // Guard messages are written to be read by humans; surfaced verbatim.
-      if (error) throw new Error(error.message)
+      if (error) return recoverInsert('pue_request', input.id, error)
       return data
     },
     onSuccess: async (_data, input) => {

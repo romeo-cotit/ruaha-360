@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 
@@ -37,7 +37,7 @@ describe('shared shadcn primitives', () => {
 
     const trigger = screen.getByRole('combobox', { name: 'Village' })
     await user.click(trigger)
-    expect(screen.getByRole('option', { name: 'Ilundo' })).toBeVisible()
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Ilundo' })).toBeVisible())
     await user.keyboard('{ArrowDown}{Enter}')
 
     expect(onValueChange).toHaveBeenCalledWith('ilundo', expect.anything())

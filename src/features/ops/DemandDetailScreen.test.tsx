@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useDemand = vi.fn()
 const useDemandMatches = vi.fn()
-const useVillageSupply = vi.fn()
 const mutate = vi.fn()
 const useCreateOpportunity = vi.fn()
 
@@ -20,7 +19,6 @@ vi.mock('@/app/scope', () => ({
 vi.mock('@/features/ops/useDemand', () => ({
   useDemand: () => useDemand(),
   useDemandMatches: () => useDemandMatches(),
-  useVillageSupply: () => useVillageSupply(),
   useCreateOpportunity: () => useCreateOpportunity(),
 }))
 
@@ -39,12 +37,10 @@ const baseQuery = () => ({ isLoading: false, error: null, demand, refetch: vi.fn
 beforeEach(() => {
   useDemand.mockReset()
   useDemandMatches.mockReset()
-  useVillageSupply.mockReset()
   useCreateOpportunity.mockReset()
   mutate.mockReset()
   useDemand.mockReturnValue(baseQuery())
   useDemandMatches.mockReturnValue({ isLoading: false, error: null, data: [] })
-  useVillageSupply.mockReturnValue({ isLoading: false, error: null, data: [] })
   useCreateOpportunity.mockReturnValue({ isPending: false, isError: false, mutate, reset: vi.fn() })
 })
 
@@ -67,7 +63,7 @@ describe('DemandDetailScreen', () => {
     useDemandMatches.mockReturnValue({
       isLoading: false,
       error: null,
-      data: [{ village_id: 'v1', available_kg: 5600, coverable_kg: 5600, coverage_pct: 62.2, opportunity_id: null, opportunity_status: null }],
+      data: [{ village_id: 'v1', available_kg: 5600, committed_kg: 6400, coverable_kg: 5600, coverage_pct: 62.2, opportunity_id: null, opportunity_status: null }],
     })
     const user = userEvent.setup()
     render(<DemandDetailScreen />)
@@ -77,7 +73,7 @@ describe('DemandDetailScreen', () => {
     expect(screen.getByRole('link', { name: /Back/ })).toHaveAttribute('href', '/ops/demand')
     expect(screen.getByTestId('match-row-v1')).toHaveTextContent('Ilundo')
     await user.click(screen.getByTestId('create-opportunity'))
-    expect(mutate).toHaveBeenCalledWith({ villageId: 'v1', cropId: 'c1', note: 'E2E-opportunity' })
+    expect(mutate).toHaveBeenCalledWith({ villageId: 'v1', cropId: 'c1' })
   })
 
   test('states an empty supply result instead of hiding the demand', () => {

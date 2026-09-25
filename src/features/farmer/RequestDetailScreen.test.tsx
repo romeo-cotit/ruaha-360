@@ -6,6 +6,8 @@ const useRequest = vi.fn()
 const mutate = vi.fn()
 const transitionState = { isPending: false, error: null as Error | null }
 
+const actorName = vi.fn((_id: string | null | undefined): string | undefined => undefined)
+vi.mock('@/lib/actorNames', () => ({ useActorName: (id: string | null | undefined) => actorName(id) }))
 vi.mock('@/features/farmer/useRequests', () => ({
   useRequest: () => useRequest(),
   useFarmerTransition: () => ({ mutate, ...transitionState }),
@@ -26,6 +28,11 @@ beforeEach(() => {
 
 const request = (over: Record<string, unknown> = {}) => ({
   id: 'r1',
+  source: 'farmer_reported',
+  verification: 'unverified',
+  confidence: null,
+  captured_at: '2026-09-09T12:00:00Z',
+  captured_by: null,
   village_id: 'v1',
   status: 'draft',
   quantity: 1,
@@ -165,5 +172,25 @@ describe('RequestDetailScreen states', () => {
 
     expect(screen.getByTestId('empty-state')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+describe('RequestDetailScreen provenance', () => {
+  const ACTOR = '80000000-0000-4000-8000-000000000005'
+
+  test('the badge names who captured the request, never their raw id', () => {
+    actorName.mockImplementation((id) => (id === ACTOR ? 'Neema Mwakalinga' : undefined))
+    useRequest.mockReturnValue({ isLoading: false, error: null, request: request({ captured_by: ACTOR }) })
+    render(<RequestDetailScreen />)
+    const badge = screen.getAllByTestId('provenance-badge')[0]
+    expect(badge.getAttribute('title')).toContain('Neema Mwakalinga')
+    expect(badge.getAttribute('title')).not.toContain(ACTOR)
+  })
+
+  test('an actor the caller may not see is omitted, not shown as an id', () => {
+    actorName.mockReturnValue(undefined)
+    useRequest.mockReturnValue({ isLoading: false, error: null, request: request({ captured_by: ACTOR }) })
+    render(<RequestDetailScreen />)
+    expect(screen.getAllByTestId('provenance-badge')[0].getAttribute('title')).not.toContain(ACTOR)
   })
 })

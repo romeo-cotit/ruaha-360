@@ -13,7 +13,7 @@ type EstimateRow = Database['public']['Tables']['energy_estimate']['Row']
 
 const SELECT = `id, village_id, person_id, farm_id, equipment_id, quantity, hours_per_day,
   days_per_week, purpose, status, submitted_at, decided_at, decision_note,
-  source, verification, confidence, captured_at,
+  source, verification, confidence, captured_at, captured_by,
   person ( id, given_name, family_name ),
   village ( id, name ),
   farm ( id, label ),

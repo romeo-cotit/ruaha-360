@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -7,9 +8,13 @@ import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import { railColour } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
 import { VerificationMark } from '@/components/marks'
-import { countUnverified, type Provenance } from '@/features/officer/personDetail'
+import { countUnverified, type PersonDetail, type Provenance } from '@/features/officer/personDetail'
 import { usePersonDetail, useVerify } from '@/features/officer/usePersonDetail'
 import { VerifyButton } from '@/features/officer/VerifyButton'
+import { OfficerEditDialog, type EditField } from '@/features/officer/OfficerEditDialog'
+import { useCrops } from '@/features/officer/useCrops'
+import { useOfficerEdit } from '@/features/officer/useOfficerEdit'
+import type { CropMeasure, EditContext, EditableTable, EditValues } from '@/features/officer/officerEdit'
 import { formatArea, formatKg, formatPlainDate } from '@/lib/format'
 
 const route = getRouteApi('/_officer/officer/people/$personId')
@@ -26,6 +31,9 @@ export function PersonDetailScreen() {
   const { t } = useTranslation()
   const query = usePersonDetail(personId)
   const verify = useVerify(personId, query.data?.person.village_id)
+  const crops = useCrops()
+  const [editing, setEditing] = useState<EditState | null>(null)
+  const edit = useOfficerEdit(editing?.measure)
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
@@ -45,6 +53,19 @@ export function PersonDetailScreen() {
   const verifying = (table: string, id: string) =>
     verify.isPending && verify.variables?.table === table && verify.variables?.id === id
 
+  const openEdit = (state: EditState) => {
+    edit.reset()
+    setEditing(state)
+  }
+
+  const saveEdit = (values: EditValues) => {
+    /* c8 ignore next -- the dialog is only mounted while editing is non-null. */
+    if (!editing) return
+    // mutateAsync, so a failed save rejects: the dialog keeps its draft and
+    // clears it only after the server confirmed.
+    return edit.mutateAsync({ table: editing.table, id: editing.id, values, context: editing.context })
+  }
+
   return (
     <section className="flex w-full flex-col gap-[18px]" data-testid="person-detail">
       <header className="flex flex-col gap-2.5">
@@ -56,10 +77,14 @@ export function PersonDetailScreen() {
           <VerifyButton
             table="person"
             id={detail.person.id}
+            recordLabel={`${detail.person.given_name} ${detail.person.family_name}`}
             verification={detail.person.verification}
-            onVerify={verify.mutate}
+            onVerify={verify.mutateAsync}
             pending={verifying('person', detail.person.id)}
           />
+          <button type="button" data-testid="edit-person" onClick={() => openEdit(personEdit(detail.person))} style={EDIT_BUTTON}>
+            {t('officerEdit.action')}
+          </button>
         </div>
         <p
           data-testid="person-outstanding"
@@ -93,12 +118,14 @@ export function PersonDetailScreen() {
               <Row
                 title={h.label}
                 record={h}
+                edit={<button type="button" data-testid={`edit-household-${h.id}`} onClick={() => openEdit(householdEdit(h, detail.person.village_id, personId))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button>}
                 action={
                   <VerifyButton
                     table="household"
                     id={h.id}
+                    recordLabel={h.label}
                     verification={h.verification}
-                    onVerify={verify.mutate}
+                    onVerify={verify.mutateAsync}
                     pending={verifying('household', h.id)}
                   />
                 }
@@ -121,12 +148,14 @@ export function PersonDetailScreen() {
               <Row
                 title={farm.label}
                 record={farm}
+                edit={<button type="button" data-testid={`edit-farm-${farm.id}`} onClick={() => openEdit(farmEdit(farm, detail.person.village_id, personId))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button>}
                 action={
                   <VerifyButton
                     table="farm"
                     id={farm.id}
+                    recordLabel={farm.label}
                     verification={farm.verification}
-                    onVerify={verify.mutate}
+                    onVerify={verify.mutateAsync}
                     pending={verifying('farm', farm.id)}
                   />
                 }
@@ -142,12 +171,14 @@ export function PersonDetailScreen() {
                   <Row
                     title={`${plot.label} · ${formatArea(plot.area_ha, 'hectare')}`}
                     record={plot}
+                    edit={<button type="button" data-testid={`edit-plot-${plot.id}`} onClick={() => openEdit(plotEdit(plot, detail.person.village_id, personId, farm.id))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button>}
                     action={
                       <VerifyButton
                         table="plot"
                         id={plot.id}
+                        recordLabel={plot.label}
                         verification={plot.verification}
-                        onVerify={verify.mutate}
+                      onVerify={verify.mutateAsync}
                         pending={verifying('plot', plot.id)}
                       />
                     }
@@ -161,14 +192,16 @@ export function PersonDetailScreen() {
                       style={{ borderLeft: `3px solid ${railColour(cycle.verification)}` }}
                     >
                       <Row
-                        title={cycle.crop_name}
+                        title={cycle.season_label ? `${cycle.crop_name} · ${cycle.season_label}` : cycle.crop_name}
                         record={cycle}
+                        edit={<button type="button" data-testid={`edit-cycle-${cycle.id}`} onClick={() => openEdit(cycleEdit(cycle, detail.person.village_id, personId, farm.id, crops.crops))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button>}
                         action={
                           <VerifyButton
                             table="crop_cycle"
                             id={cycle.id}
+                            recordLabel={cycle.crop_name}
                             verification={cycle.verification}
-                            onVerify={verify.mutate}
+                          onVerify={verify.mutateAsync}
                             pending={verifying('crop_cycle', cycle.id)}
                           />
                         }
@@ -185,17 +218,19 @@ export function PersonDetailScreen() {
                           className="ml-1 pl-3.5"
                           style={{ borderLeft: `3px solid ${railColour(h.verification)}` }}
                         >
-                          <Row
+                              <Row
                             title={`${t(`person.${h.kind}`)} ${formatKg(h.quantity_kg)}${
                               h.is_current ? '' : ` (${t('person.superseded')})`
                             }`}
-                            record={h}
-                            action={
-                              <VerifyButton
-                                table="harvest_report"
-                                id={h.id}
+                                record={h}
+                                edit={h.is_current ? <button type="button" data-testid={`edit-harvest-${h.id}`} onClick={() => openEdit(harvestEdit(h, detail.person.village_id, personId, farm.id, cycle.id))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button> : undefined}
+                                action={
+                                  <VerifyButton
+                                    table="harvest_report"
+                                    id={h.id}
+                                    recordLabel={`${h.kind} ${formatKg(h.quantity_kg)}`}
                                 verification={h.verification}
-                                onVerify={verify.mutate}
+                                onVerify={verify.mutateAsync}
                                 pending={verifying('harvest_report', h.id)}
                               />
                             }
@@ -210,6 +245,22 @@ export function PersonDetailScreen() {
           ))
         )}
       </Section>
+      {editing && (
+        <OfficerEditDialog
+          table={editing.table}
+          recordId={editing.id}
+          title={editing.title}
+          fields={editing.fields}
+          initialValues={editing.initialValues}
+          measure={editing.measure}
+          measureByCrop={editing.measureByCrop}
+          pending={edit.isPending}
+          error={edit.error}
+          onSave={saveEdit}
+          onComplete={() => setEditing(null)}
+          onCancel={() => { edit.reset(); setEditing(null) }}
+        />
+      )}
     </section>
   )
 }
@@ -234,10 +285,12 @@ function Badge({ record }: { record: Provenance }) {
 function Row({
   title,
   record,
+  edit,
   action,
 }: {
   title: string
   record: Provenance
+  edit?: React.ReactNode
   action?: React.ReactNode
 }) {
   return (
@@ -253,9 +306,136 @@ function Row({
           capturedAt={record.captured_at}
         />
       </span>
+      {edit}
       {action}
     </div>
   )
+}
+
+interface EditState {
+  table: EditableTable
+  id: string
+  title: string
+  fields: EditField[]
+  initialValues: EditValues
+  context: EditContext
+  measure?: 'area' | 'tree_count' | 'unit_count'
+  measureByCrop?: Readonly<Record<string, CropMeasure>>
+}
+
+const harvestConfidenceField: EditField = {
+  name: 'confidence',
+  label: 'officerEdit.fields.confidence',
+  options: [
+    { value: 'low', label: 'confidence.low' },
+    { value: 'medium', label: 'confidence.medium' },
+    { value: 'high', label: 'confidence.high' },
+  ],
+}
+
+const EDIT_BUTTON: React.CSSProperties = {
+  minHeight: 40,
+  border: '1px solid var(--rule-2)',
+  borderRadius: 'var(--radius-control)',
+  background: 'var(--paper)',
+  padding: '0 12px',
+  color: 'var(--primary-ink)',
+  fontWeight: 600,
+}
+
+function personEdit(person: PersonDetail['person']): EditState {
+  return {
+    table: 'person', id: person.id, title: 'officerEdit.titles.person',
+    fields: [
+      { name: 'given_name', label: 'officerEdit.fields.given_name', required: true },
+      { name: 'family_name', label: 'officerEdit.fields.family_name', required: true },
+      { name: 'phone', label: 'officerEdit.fields.phone' },
+    ],
+    initialValues: { given_name: person.given_name, family_name: person.family_name, phone: person.phone ?? '' },
+    context: { villageId: person.village_id, personId: person.id },
+  }
+}
+
+function householdEdit(household: PersonDetail['households'][number], villageId: string, personId: string): EditState {
+  return {
+    table: 'household', id: household.id, title: 'officerEdit.titles.household',
+    fields: [{ name: 'label', label: 'officerEdit.fields.household_label', required: true }],
+    initialValues: { label: household.label },
+    context: { villageId, personId },
+  }
+}
+
+function farmEdit(farm: PersonDetail['farms'][number], villageId: string, personId: string): EditState {
+  return {
+    table: 'farm', id: farm.id, title: 'officerEdit.titles.farm',
+    fields: [
+      { name: 'label', label: 'officerEdit.fields.farm_label', required: true },
+      { name: 'latitude', label: 'officerEdit.fields.latitude', type: 'number', step: 'any' },
+      { name: 'longitude', label: 'officerEdit.fields.longitude', type: 'number', step: 'any' },
+    ],
+    initialValues: { label: farm.label, latitude: farm.latitude?.toString() ?? '', longitude: farm.longitude?.toString() ?? '' },
+    context: { villageId, personId },
+  }
+}
+
+function plotEdit(plot: PersonDetail['farms'][number]['plots'][number], villageId: string, personId: string, farmId: string): EditState {
+  return {
+    table: 'plot', id: plot.id, title: 'officerEdit.titles.plot',
+    fields: [
+      { name: 'label', label: 'officerEdit.fields.plot_label', required: true },
+      { name: 'area_ha', label: 'officerEdit.fields.plot_area_ha', type: 'number', step: 'any' },
+      { name: 'latitude', label: 'officerEdit.fields.latitude', type: 'number', step: 'any' },
+      { name: 'longitude', label: 'officerEdit.fields.longitude', type: 'number', step: 'any' },
+    ],
+    initialValues: { label: plot.label, area_ha: plot.area_ha?.toString() ?? '', latitude: plot.latitude?.toString() ?? '', longitude: plot.longitude?.toString() ?? '' },
+    context: { villageId, personId, farmId },
+  }
+}
+
+function cycleEdit(
+  cycle: PersonDetail['farms'][number]['plots'][number]['cycles'][number],
+  villageId: string,
+  personId: string,
+  farmId: string,
+  crops: Array<{ id: string; name: string; measured_by: 'area' | 'tree_count' | 'unit_count' }>,
+): EditState {
+  const measure = crops.find((crop) => crop.id === cycle.crop_id)?.measured_by
+  return {
+    table: 'crop_cycle', id: cycle.id, title: 'officerEdit.titles.crop_cycle', measure,
+    fields: [
+      { name: 'crop_id', label: 'officerEdit.fields.crop_id', options: crops.map((crop) => ({ value: crop.id, label: crop.name })) },
+      { name: 'season_label', label: 'officerEdit.fields.season_label' },
+      { name: 'area_ha', label: 'officerEdit.fields.cycle_area_ha', type: 'number' as const, step: 'any' },
+      { name: 'tree_count', label: 'officerEdit.fields.tree_count', type: 'number' as const, step: '1' },
+      { name: 'unit_count', label: 'officerEdit.fields.unit_count', type: 'number' as const, step: '1' },
+      { name: 'planted_on', label: 'officerEdit.fields.planted_on', type: 'date' },
+      { name: 'harvest_start', label: 'officerEdit.fields.harvest_start', type: 'date' },
+      { name: 'harvest_end', label: 'officerEdit.fields.harvest_end', type: 'date' },
+      { name: 'status', label: 'officerEdit.fields.status', options: ['planned', 'growing', 'harvested', 'abandoned'].map((value) => ({ value, label: `cycleStatus.${value}` })) },
+    ],
+    initialValues: { crop_id: cycle.crop_id, season_label: cycle.season_label ?? '', area_ha: cycle.area_ha?.toString() ?? '', tree_count: cycle.tree_count?.toString() ?? '', unit_count: cycle.unit_count?.toString() ?? '', planted_on: cycle.planted_on ?? '', harvest_start: cycle.harvest_start ?? '', harvest_end: cycle.harvest_end ?? '', status: cycle.status },
+    context: { villageId, personId, farmId, cycleId: cycle.id },
+    measureByCrop: Object.fromEntries(crops.map((crop) => [crop.id, crop.measured_by])),
+  }
+}
+
+function harvestEdit(
+  harvest: PersonDetail['farms'][number]['plots'][number]['cycles'][number]['harvests'][number],
+  villageId: string,
+  personId: string,
+  farmId: string,
+  cycleId: string,
+): EditState {
+  return {
+    table: 'harvest_report', id: harvest.id, title: 'officerEdit.titles.harvest_report',
+    fields: [
+      { name: 'quantity_kg', label: 'officerEdit.fields.quantity_kg', type: 'number', step: 'any', required: true },
+      { name: 'reported_for', label: 'officerEdit.fields.reported_for', type: 'date' },
+      harvestConfidenceField,
+    ],
+    initialValues: { quantity_kg: harvest.quantity_kg.toString(), reported_for: harvest.reported_for ?? '', confidence: harvest.confidence ?? 'medium' },
+    context: { villageId, personId, farmId, cycleId, harvestKind: harvest.kind },
+  }
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

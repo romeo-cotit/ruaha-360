@@ -17,6 +17,12 @@ export type Surface = 'required' | 'optional'
 
 export function SURFACE_OF(key: string): Surface
 
+/**
+ * Problems in reviewed Swahili: unknown keys, changed interpolation
+ * placeholders, and a plural variant missing its pair. Empty when clean.
+ */
+export function validateSwahili(en: unknown, sw: unknown): string[]
+
 export interface HandoverRow {
   key: string
   surface: Surface

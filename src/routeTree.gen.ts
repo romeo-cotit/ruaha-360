@@ -47,6 +47,7 @@ import { Route as OpsOpsTowerIndexRouteImport } from './routes/_ops/ops.tower.in
 import { Route as OpsOpsTowerEnergyRouteImport } from './routes/_ops/ops.tower.energy'
 import { Route as OpsOpsTowerMarketRouteImport } from './routes/_ops/ops.tower.market'
 import { Route as OpsOpsTowerProductionRouteImport } from './routes/_ops/ops.tower.production'
+import { Route as OpsOpsTowerQualityRouteImport } from './routes/_ops/ops.tower.quality'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -243,6 +244,11 @@ const OpsOpsTowerProductionRoute = OpsOpsTowerProductionRouteImport.update({
   path: '/production',
   getParentRoute: () => OpsOpsTowerRoute,
 } as any)
+const OpsOpsTowerQualityRoute = OpsOpsTowerQualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
+  getParentRoute: () => OpsOpsTowerRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/ops/tower/energy': typeof OpsOpsTowerEnergyRoute
   '/ops/tower/market': typeof OpsOpsTowerMarketRoute
   '/ops/tower/production': typeof OpsOpsTowerProductionRoute
+  '/ops/tower/quality': typeof OpsOpsTowerQualityRoute
   '/farm/equipment/': typeof FarmerFarmEquipmentIndexRoute
   '/farm/requests/': typeof FarmerFarmRequestsIndexRoute
   '/officer/people/': typeof OfficerOfficerPeopleIndexRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/ops/tower/energy': typeof OpsOpsTowerEnergyRoute
   '/ops/tower/market': typeof OpsOpsTowerMarketRoute
   '/ops/tower/production': typeof OpsOpsTowerProductionRoute
+  '/ops/tower/quality': typeof OpsOpsTowerQualityRoute
   '/farm/equipment': typeof FarmerFarmEquipmentIndexRoute
   '/farm/requests': typeof FarmerFarmRequestsIndexRoute
   '/officer/people': typeof OfficerOfficerPeopleIndexRoute
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/_ops/ops/tower/energy': typeof OpsOpsTowerEnergyRoute
   '/_ops/ops/tower/market': typeof OpsOpsTowerMarketRoute
   '/_ops/ops/tower/production': typeof OpsOpsTowerProductionRoute
+  '/_ops/ops/tower/quality': typeof OpsOpsTowerQualityRoute
   '/_farmer/farm/equipment/': typeof FarmerFarmEquipmentIndexRoute
   '/_farmer/farm/requests/': typeof FarmerFarmRequestsIndexRoute
   '/_officer/officer/people/': typeof OfficerOfficerPeopleIndexRoute
@@ -387,6 +396,7 @@ export interface FileRouteTypes {
     | '/ops/tower/energy'
     | '/ops/tower/market'
     | '/ops/tower/production'
+    | '/ops/tower/quality'
     | '/farm/equipment/'
     | '/farm/requests/'
     | '/officer/people/'
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/ops/tower/energy'
     | '/ops/tower/market'
     | '/ops/tower/production'
+    | '/ops/tower/quality'
     | '/farm/equipment'
     | '/farm/requests'
     | '/officer/people'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '/_ops/ops/tower/energy'
     | '/_ops/ops/tower/market'
     | '/_ops/ops/tower/production'
+    | '/_ops/ops/tower/quality'
     | '/_farmer/farm/equipment/'
     | '/_farmer/farm/requests/'
     | '/_officer/officer/people/'
@@ -746,6 +758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpsOpsTowerProductionRouteImport
       parentRoute: typeof OpsOpsTowerRoute
     }
+    '/_ops/ops/tower/quality': {
+      id: '/_ops/ops/tower/quality'
+      path: '/quality'
+      fullPath: '/ops/tower/quality'
+      preLoaderRoute: typeof OpsOpsTowerQualityRouteImport
+      parentRoute: typeof OpsOpsTowerRoute
+    }
   }
 }
 
@@ -823,6 +842,7 @@ interface OpsOpsTowerRouteChildren {
   OpsOpsTowerEnergyRoute: typeof OpsOpsTowerEnergyRoute
   OpsOpsTowerMarketRoute: typeof OpsOpsTowerMarketRoute
   OpsOpsTowerProductionRoute: typeof OpsOpsTowerProductionRoute
+  OpsOpsTowerQualityRoute: typeof OpsOpsTowerQualityRoute
   OpsOpsTowerIndexRoute: typeof OpsOpsTowerIndexRoute
 }
 
@@ -830,6 +850,7 @@ const OpsOpsTowerRouteChildren: OpsOpsTowerRouteChildren = {
   OpsOpsTowerEnergyRoute: OpsOpsTowerEnergyRoute,
   OpsOpsTowerMarketRoute: OpsOpsTowerMarketRoute,
   OpsOpsTowerProductionRoute: OpsOpsTowerProductionRoute,
+  OpsOpsTowerQualityRoute: OpsOpsTowerQualityRoute,
   OpsOpsTowerIndexRoute: OpsOpsTowerIndexRoute,
 }
 

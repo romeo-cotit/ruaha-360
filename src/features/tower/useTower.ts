@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { localisedName, type LocalisedNames } from '@/lib/names'
 import { queryKeys } from '@/lib/queryKeys'
 import type { Database } from '@/lib/db.types'
+import type { QualityMetric } from '@/features/tower/towerSearch'
 
 type Enums = Database['public']['Enums']
 
@@ -173,6 +174,87 @@ export function useTowerQuality(villageId: string | undefined) {
       return data
     },
   })
+}
+
+export interface QualityRecord {
+  id: string
+  label: string
+  detail: string
+  qualifies: boolean
+  kind: 'person' | 'farm' | 'cycle'
+}
+
+/** Uses the same village, soft-delete and numerator predicates as the SQL view. */
+export function useTowerQualityRows(villageId: string | undefined, metric: QualityMetric) {
+  const language = useLanguage()
+  const query = useQuery({
+    queryKey: [...queryKeys.tower.quality(villageId ?? ''), 'rows', metric, language],
+    enabled: Boolean(villageId),
+    queryFn: async () => {
+      if (metric === 'persons') {
+        const { data, error } = await supabase
+          .from('person')
+          .select('id, given_name, family_name, verification')
+          .eq('village_id', villageId!)
+          .is('deleted_at', null)
+          .order('given_name')
+        if (error) throw new Error(error.message)
+        return (data ?? []).map((row) => ({
+          id: row.id,
+          label: `${row.given_name} ${row.family_name}`,
+          detail: row.verification,
+          qualifies: row.verification === 'verified',
+          kind: 'person' as const,
+        }))
+      }
+      if (metric === 'farms') {
+        const { data, error } = await supabase
+          .from('farm')
+          .select('id, label, latitude, longitude')
+          .eq('village_id', villageId!)
+          .is('deleted_at', null)
+          .order('label')
+        if (error) throw new Error(error.message)
+        return (data ?? []).map((row) => ({
+          id: row.id,
+          label: row.label,
+          detail: row.latitude === null ? '' : `${row.latitude}, ${row.longitude ?? '—'}`,
+          qualifies: row.latitude !== null,
+          kind: 'farm' as const,
+        }))
+      }
+      const { data, error } = await supabase
+        .from('crop_cycle')
+        .select(`id, season_label, crop (name_en, name_sw),
+          harvest_report!harvest_report_crop_cycle_id_fkey (id, kind, is_current, deleted_at)`)
+        .eq('village_id', villageId!)
+        .is('deleted_at', null)
+        .order('harvest_start')
+      if (error) throw new Error(error.message)
+      return (data ?? []).map((row) => {
+        const raw = row as unknown as {
+          id: string
+          season_label: string | null
+          crop: LocalisedNames | null
+          harvest_report: Array<{
+            kind: string
+            is_current: boolean
+            deleted_at: string | null
+          }>
+        }
+        return {
+          id: raw.id,
+          label: localisedName(raw.crop, language) || raw.season_label || raw.id,
+          detail: raw.season_label ?? '',
+          qualifies: raw.harvest_report.some(
+            (report) => report.kind === 'expected' && report.is_current && report.deleted_at === null,
+          ),
+          kind: 'cycle' as const,
+        }
+      })
+    },
+  })
+  return query
 }
 
 /** The requests behind the energy figures, for the drill-down. */

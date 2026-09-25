@@ -23,7 +23,13 @@ export interface FarmDetail extends Provenance {
   village_id: string
   latitude: number | null
   longitude: number | null
-  plots: Array<Provenance & { id: string; label: string; area_ha: number | null }>
+  plots: Array<Provenance & {
+    id: string
+    label: string
+    area_ha: number | null
+    latitude: number | null
+    longitude: number | null
+  }>
 }
 
 export interface CycleHarvest extends Provenance {
@@ -37,6 +43,7 @@ export interface CycleHarvest extends Provenance {
 /** What the query caches: both names, no language chosen yet. */
 export interface CycleRow extends Provenance {
   id: string
+  crop_id: string
   village_id: string
   /** Both columns, so the language can be chosen at render — QA #31. */
   crop: LocalisedNames | null
@@ -55,11 +62,10 @@ export interface CycleRow extends Provenance {
 const PROVENANCE = 'source, verification, confidence, captured_at'
 
 /**
- * Farm detail — spec 5.5, READ-ONLY for the demo.
+ * Farm detail — spec 5.5, with section-level officer corrections.
  *
- * Add-plot and GpsCapture are deferred: the screen exists first because the
- * Tower's production drill links here, and a headline that dead-ends on a
- * placeholder breaks spec §8.2's traceability claim.
+ * Edits are handled by the shared officer edit RPC; this module stays focused
+ * on the provenance graph read used by the detail screen.
  *
  * The plot embed names its foreign key. village_id is denormalised down
  * farm → plot and held true by a composite FK, so the pair has two
@@ -74,7 +80,7 @@ export async function fetchFarmDetail(farmId: string): Promise<FarmDetail | null
     .from('farm')
     .select(
       `id, label, village_id, latitude, longitude, ${PROVENANCE},
-       plot!plot_farm_id_fkey ( id, label, area_ha, ${PROVENANCE} )`,
+       plot!plot_farm_id_fkey ( id, label, area_ha, latitude, longitude, ${PROVENANCE} )`,
     )
     .eq('id', farmId)
     .is('deleted_at', null)
@@ -98,12 +104,11 @@ export function useFarmDetail(farmId: string) {
 }
 
 /**
- * Crop cycle detail with its harvest series — spec 5.6, READ-ONLY.
+ * Crop cycle detail with its harvest series — spec 5.6.
  *
  * A harvest figure is a SERIES, not a value (business-rules §6): superseded
  * rows stay auditable and are shown, labelled, beside the current one. Adding
- * a revision goes through `app_supersede_harvest` and is deferred with the
- * other officer writes.
+ * a revision goes through `app_supersede_harvest`; old rows remain visible.
  */
 export async function fetchCycleDetail(cycleId: string): Promise<CycleRow | null> {
   // QA #3: a malformed route param must reach the same "not found" state as a
@@ -113,7 +118,7 @@ export async function fetchCycleDetail(cycleId: string): Promise<CycleRow | null
   const { data, error } = await supabase
     .from('crop_cycle')
     .select(
-      `id, village_id, season_label, status, area_ha, tree_count, unit_count,
+      `id, village_id, crop_id, season_label, status, area_ha, tree_count, unit_count,
        planted_on, harvest_start, harvest_end, ${PROVENANCE},
        crop ( name_en, name_sw ),
        plot!crop_cycle_plot_id_fkey ( label ),

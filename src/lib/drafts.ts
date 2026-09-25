@@ -31,6 +31,16 @@ export function draftKey(form: string, clientRef: string): string {
 const DB_NAME = 'ruaha360'
 const STORE_NAME = 'drafts'
 
+// One queue per key across mounted forms. A clear waits for older writes and
+// subsequent saves cannot overtake it, including when a dialog remounts.
+const pending = new Map<string, Promise<unknown>>()
+export function queueDraft<T>(key: string, work: () => Promise<T>): Promise<T> {
+  const next = (pending.get(key) ?? Promise.resolve()).catch(() => {}).then(work)
+  pending.set(key, next)
+  void next.finally(() => { if (pending.get(key) === next) pending.delete(key) }).catch(() => {})
+  return next
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1)
@@ -47,8 +57,10 @@ function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequ
   return openDb().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
-        const request = run(db.transaction(STORE_NAME, mode).objectStore(STORE_NAME))
-        request.onsuccess = () => resolve(request.result)
+        const transaction = db.transaction(STORE_NAME, mode)
+        const request = run(transaction.objectStore(STORE_NAME))
+        transaction.oncomplete = () => { db.close(); resolve(request.result) }
+        transaction.onabort = () => { db.close(); reject(transaction.error ?? new Error('IndexedDB transaction aborted')) }
         request.onerror = () => reject(request.error ?? new Error('IndexedDB request failed'))
       }),
   )
@@ -104,6 +116,7 @@ export interface Draft<T> {
   /** Call only after the server has confirmed the write. */
   clear: () => Promise<void>
   status: DraftStatus
+  storageError: boolean
 }
 
 /**
@@ -125,6 +138,8 @@ export function useDraft<T>(
   isValid?: (value: unknown) => value is T,
 ): Draft<T> {
   const storeRef = useRef(store)
+  const [storageError, setStorageError] = useState(false)
+  const cleared = useRef<string | null>(null)
   // Initialised from the first render's guard, then kept current in an effect
   // — writing a ref during render is what `react-hooks/refs` forbids, and the
   // initial value is already right on mount, which is when the restore runs.
@@ -172,23 +187,25 @@ export function useDraft<T>(
 
   const save = useCallback(
     async (value: T) => {
+      if (cleared.current === key) return
       // Stays 'dirty': it only reached local storage. An unsaved write must
       // look unsaved, so this is never reported as saved.
       setState({ key, draft: value, status: 'dirty' })
-      await safeSet(storeRef.current, key, value)
+      const saved = await queueDraft(key, () => safeSet(storeRef.current, key, value))
+      setStorageError(!saved)
     },
     [key],
   )
 
   const clear = useCallback(async () => {
+    cleared.current = key
     try {
-      await storeRef.current.clear(key)
+      await queueDraft(key, () => storeRef.current.clear(key))
     } catch {
-      // Nothing to do: the server write already succeeded, which is what
-      // matters. A stale local draft is cleaned up on the next restore.
+      setStorageError(true)
     }
     setState({ key, draft: undefined, status: 'saved' })
   }, [key])
 
-  return { draft: state.draft, save, clear, status: state.status }
+  return { draft: state.draft, save, clear, status: state.status, storageError }
 }

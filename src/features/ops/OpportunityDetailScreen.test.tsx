@@ -13,6 +13,8 @@ vi.mock('@/features/ops/useOpportunity', () => ({
   useAttachSupply: () => useAttachSupply(),
   useOpportunityStatus: () => useOpportunityStatus(),
 }))
+// No signed-in owner: the draft is in-memory only, so the form is ready at once.
+vi.mock('@/app/session', () => ({ useSession: () => ({ data: undefined }) }))
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ opportunityId: 'o1' }) }),
   Link: ({ children }: { children: React.ReactNode }) => <a href="#x">{children}</a>,
@@ -463,6 +465,7 @@ describe('the contribution has to be a contribution', () => {
     // The second argument is the per-call `onSettled` that releases the
     // in-flight latch, so the payload is asserted on its own.
     expect(attachMutate.mock.calls[0][0]).toEqual({
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       harvestReportId: 'h9',
       cropCycleId: 'cy9',
       contributedKg: 1600,

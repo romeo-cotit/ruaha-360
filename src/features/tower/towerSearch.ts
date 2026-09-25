@@ -12,3 +12,15 @@ export function validateVillageSearch(search: Record<string, unknown>): { villag
   const village = search.village
   return typeof village === 'string' && UUID.test(village) ? { village } : {}
 }
+
+export const QUALITY_METRICS = ['persons', 'farms', 'cycles'] as const
+export type QualityMetric = (typeof QUALITY_METRICS)[number]
+
+export function validateQualitySearch(search: Record<string, unknown>): {
+  village?: string
+  metric: QualityMetric
+} {
+  const { village } = validateVillageSearch(search)
+  const metric = QUALITY_METRICS.find((item) => item === search.metric) ?? 'persons'
+  return { village, metric }
+}

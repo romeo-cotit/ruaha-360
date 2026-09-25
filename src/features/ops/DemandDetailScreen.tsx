@@ -15,7 +15,6 @@ import {
   useCreateOpportunity,
   useDemand,
   useDemandMatches,
-  useVillageSupply,
 } from '@/features/ops/useDemand'
 import { formatKg, formatMoney, formatPercent, formatPlainDate } from '@/lib/format'
 
@@ -37,11 +36,10 @@ export function DemandDetailScreen() {
   const { t } = useTranslation()
   const demandQuery = useDemand(demandId)
   const matchQuery = useDemandMatches(demandId)
-  const supplyQuery = useVillageSupply(demandQuery.demand?.crop_id)
   const scope = useScopeNames()
   const createOpportunity = useCreateOpportunity(demandId)
 
-  const error = demandQuery.error ?? matchQuery.error ?? supplyQuery.error
+  const error = demandQuery.error ?? matchQuery.error
   if (error) return <ErrorState error={error} onRetry={() => void demandQuery.refetch()} />
 
   if (demandQuery.isLoading) {
@@ -59,12 +57,6 @@ export function DemandDetailScreen() {
   const matches = matchQuery.data ?? []
   const villageName = (id: string | null) =>
     (id ? scope.data?.villages[id] : undefined) ?? id ?? '—'
-
-  // committed_kg for the village, from the view that summed it.
-  const committedFor = (villageId: string | null) =>
-    (supplyQuery.data ?? [])
-      .filter((s) => s.village_id === villageId)
-      .reduce<number | null>((sum, s) => (sum ?? 0) + (s.committed_kg ?? 0), null)
 
   return (
     <section className="flex w-full flex-col gap-[18px]" data-testid="demand-detail">
@@ -155,7 +147,6 @@ export function DemandDetailScreen() {
                               createOpportunity.mutate({
                                 villageId: match.village_id!,
                                 cropId: demand.crop_id,
-                                note: 'E2E-opportunity',
                               })
                             }
                             className="disabled:opacity-60"
@@ -200,7 +191,7 @@ export function DemandDetailScreen() {
                   label={villageName(match.village_id)}
                   demandKg={demand.quantity_kg}
                   availableKg={match.available_kg}
-                  committedKg={supplyQuery.isLoading ? null : committedFor(match.village_id)}
+                  committedKg={match.committed_kg}
                   coveragePct={match.coverage_pct}
                 />
               </div>

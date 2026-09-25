@@ -6,9 +6,11 @@ import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '@/components/controlStyles'
 import { Card, Loading, ProductNote } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
+import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import { useFarmerTransition, useRequest } from '@/features/farmer/useRequests'
 import { farmerActions } from '@/features/ops/transitions'
 import { formatKw, formatKwh, formatTimestamp } from '@/lib/format'
+import { useActorName } from '@/lib/actorNames'
 
 const route = getRouteApi('/_farmer/farm/requests/$requestId')
 
@@ -28,6 +30,8 @@ export function RequestDetailScreen() {
   const { requestId } = route.useParams()
   const { t } = useTranslation()
   const query = useRequest(requestId)
+  // A name, never the raw id: resolved through the scoped provenance lookup.
+  const capturedBy = useActorName(query.request?.captured_by)
   const transition = useFarmerTransition(requestId, query.request?.village_id ?? undefined)
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
@@ -53,6 +57,7 @@ export function RequestDetailScreen() {
           <h1 className="type-screen-title">{request.equipment_name}</h1>
           <StatusPill kind="request" status={request.status} />
         </div>
+        <ProvenanceBadge source={request.source} verification={request.verification} confidence={request.confidence} capturedAt={request.captured_at} capturedBy={capturedBy} />
         {request.purpose && (
           <p style={{ fontSize: 15, color: 'var(--ink-2)' }}>{request.purpose}</p>
         )}

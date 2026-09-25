@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/db.types'
+import { recoverInsert } from '@/lib/recoverInsert'
 
 type Enums = Database['public']['Enums']
 
@@ -51,6 +52,7 @@ export function useBuyers() {
 }
 
 export interface NewBuyer {
+  id?: string
   project_id: string
   name: string
   channel: Enums['buyer_channel']
@@ -71,7 +73,7 @@ export function useCreateBuyer() {
   return useMutation({
     mutationFn: async (buyer: NewBuyer) => {
       const { error } = await supabase.from('buyer').insert(buyer)
-      if (error) throw new Error(error.message)
+      if (error) await recoverInsert('buyer', buyer.id, error)
     },
     onSuccess: async () => {
       // The demand form's buyer picker reads the same rows.

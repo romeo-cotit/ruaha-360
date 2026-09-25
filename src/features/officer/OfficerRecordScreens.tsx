@@ -1,4 +1,5 @@
 import { getRouteApi } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EmptyState } from '@/components/EmptyState'
@@ -7,17 +8,18 @@ import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import { railColour } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
 import { useCycleDetail, useFarmDetail } from '@/features/officer/useOfficerRecords'
+import { RecordEditAction } from '@/features/officer/RecordEditAction'
+import { useCrops } from '@/features/officer/useCrops'
+import { VerifyButton } from '@/features/officer/VerifyButton'
+import { useVerifyFromQueue } from '@/features/officer/useVerifyQueue'
 import { formatArea, formatKg, formatPlainDate } from '@/lib/format'
 
 const farmRoute = getRouteApi('/_officer/officer/farms/$farmId')
 const cycleRoute = getRouteApi('/_officer/officer/cycles/$cycleId')
 
 /**
- * Both screens are READ-ONLY for the demo. Spec 5.5 and 5.6 describe write
- * surfaces — add plot, GPS capture, harvest supersede — and those are deferred
- * deliberately. These exist now because the Tower's production drill links
- * here, and spec §8.2 makes a headline that cannot be traced a headline that
- * does not belong on the screen.
+ * Officer detail screens keep the full provenance graph visible while exposing
+ * small, section-level correction forms. Server RPCs remain authoritative.
  */
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
@@ -41,10 +43,57 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
+function farmFields() {
+  return [
+    { name: 'label', label: 'officerEdit.fields.farm_label', required: true },
+    { name: 'latitude', label: 'officerEdit.fields.latitude', type: 'number' as const, step: 'any' },
+    { name: 'longitude', label: 'officerEdit.fields.longitude', type: 'number' as const, step: 'any' },
+  ]
+}
+
+function plotFields() {
+  return [
+    { name: 'label', label: 'officerEdit.fields.plot_label', required: true },
+    { name: 'area_ha', label: 'officerEdit.fields.plot_area_ha', type: 'number' as const, step: 'any' },
+    { name: 'latitude', label: 'officerEdit.fields.latitude', type: 'number' as const, step: 'any' },
+    { name: 'longitude', label: 'officerEdit.fields.longitude', type: 'number' as const, step: 'any' },
+  ]
+}
+
+function cycleFields(crops: Array<{ id: string; name: string; measured_by: 'area' | 'tree_count' | 'unit_count' }>) {
+  return [
+    { name: 'crop_id', label: 'officerEdit.fields.crop_id', options: crops.map((crop) => ({ value: crop.id, label: crop.name })) },
+    { name: 'season_label', label: 'officerEdit.fields.season_label' },
+    { name: 'area_ha', label: 'officerEdit.fields.cycle_area_ha', type: 'number' as const, step: 'any' },
+    { name: 'tree_count', label: 'officerEdit.fields.tree_count', type: 'number' as const, step: '1' },
+    { name: 'unit_count', label: 'officerEdit.fields.unit_count', type: 'number' as const, step: '1' },
+    { name: 'planted_on', label: 'officerEdit.fields.planted_on', type: 'date' as const },
+    { name: 'harvest_start', label: 'officerEdit.fields.harvest_start', type: 'date' as const },
+    { name: 'harvest_end', label: 'officerEdit.fields.harvest_end', type: 'date' as const },
+    { name: 'status', label: 'officerEdit.fields.status', options: ['planned', 'growing', 'harvested', 'abandoned'].map((value) => ({ value, label: `cycleStatus.${value}` })) },
+  ]
+}
+
+function harvestFields() {
+  return [
+    { name: 'quantity_kg', label: 'officerEdit.fields.quantity_kg', type: 'number' as const, step: 'any', required: true },
+    { name: 'reported_for', label: 'officerEdit.fields.reported_for', type: 'date' as const },
+    { name: 'confidence', label: 'officerEdit.fields.confidence', options: [{ value: 'low', label: 'confidence.low' }, { value: 'medium', label: 'confidence.medium' }, { value: 'high', label: 'confidence.high' }] },
+  ]
+}
+
 export function OfficerFarmScreen() {
   const { t } = useTranslation()
   const { farmId } = farmRoute.useParams()
+  const { plot: focusedPlot } = farmRoute.useSearch()
   const query = useFarmDetail(farmId)
+  const verify = useVerifyFromQueue()
+
+  useEffect(() => {
+    if (!focusedPlot) return
+    const element = document.querySelector(`[data-record-id="${focusedPlot}"]`)
+    element?.scrollIntoView?.({ block: 'center' })
+  }, [focusedPlot, query.data?.plots])
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
@@ -70,6 +119,22 @@ export function OfficerFarmScreen() {
           verification={farm.verification}
           confidence={farm.confidence ?? undefined}
           capturedAt={farm.captured_at}
+        />
+        <VerifyButton
+          table="farm"
+          id={farm.id}
+          recordLabel={farm.label}
+          verification={farm.verification}
+          pending={verify.isPending && verify.variables?.table === 'farm' && verify.variables?.id === farm.id}
+          onVerify={(target) => verify.mutateAsync(target)}
+        />
+        <RecordEditAction
+          table="farm"
+          id={farm.id}
+          title="officerEdit.titles.farm"
+          fields={farmFields()}
+          initialValues={{ label: farm.label, latitude: farm.latitude?.toString() ?? '', longitude: farm.longitude?.toString() ?? '' }}
+          context={{ villageId: farm.village_id, farmId: farm.id }}
         />
       </header>
 
@@ -97,12 +162,15 @@ export function OfficerFarmScreen() {
               <li
                 key={plot.id}
                 data-testid="farm-plot"
+                data-record-id={plot.id}
+                data-focused={focusedPlot === plot.id ? 'true' : 'false'}
                 className="flex flex-col gap-2 p-4"
                 style={{
                   border: '1px solid var(--rule)',
                   borderLeft: `3px solid ${railColour(plot.verification)}`,
                   borderRadius: 'var(--radius-card)',
                   background: 'var(--paper)',
+                  ...(focusedPlot === plot.id ? { outline: '2px solid var(--primary)' } : {}),
                 }}
               >
                 <p className="flex flex-wrap items-baseline gap-2.5">
@@ -118,6 +186,24 @@ export function OfficerFarmScreen() {
                   confidence={plot.confidence ?? undefined}
                   capturedAt={plot.captured_at}
                 />
+                <div className="flex flex-wrap gap-2.5">
+                  <VerifyButton
+                    table="plot"
+                    id={plot.id}
+                    recordLabel={plot.label}
+                    verification={plot.verification}
+                    pending={verify.isPending && verify.variables?.table === 'plot' && verify.variables?.id === plot.id}
+                    onVerify={(target) => verify.mutateAsync(target)}
+                  />
+                  <RecordEditAction
+                    table="plot"
+                    id={plot.id}
+                    title="officerEdit.titles.plot"
+                    fields={plotFields()}
+                    initialValues={{ label: plot.label, area_ha: plot.area_ha?.toString() ?? '', latitude: plot.latitude?.toString() ?? '', longitude: plot.longitude?.toString() ?? '' }}
+                    context={{ villageId: farm.village_id, farmId: farm.id }}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -130,7 +216,16 @@ export function OfficerFarmScreen() {
 export function OfficerCycleScreen() {
   const { t } = useTranslation()
   const { cycleId } = cycleRoute.useParams()
+  const { harvest: focusedHarvest } = cycleRoute.useSearch()
   const query = useCycleDetail(cycleId)
+  const crops = useCrops()
+  const verify = useVerifyFromQueue()
+
+  useEffect(() => {
+    if (!focusedHarvest) return
+    const element = document.querySelector(`[data-record-id="${focusedHarvest}"]`)
+    element?.scrollIntoView?.({ block: 'center' })
+  }, [focusedHarvest, query.cycle?.harvests])
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
@@ -172,6 +267,24 @@ export function OfficerCycleScreen() {
           confidence={cycle.confidence ?? undefined}
           capturedAt={cycle.captured_at}
         />
+        <VerifyButton
+          table="crop_cycle"
+          id={cycle.id}
+          recordLabel={cycle.crop_name}
+          verification={cycle.verification}
+          pending={verify.isPending && verify.variables?.table === 'crop_cycle' && verify.variables?.id === cycle.id}
+          onVerify={(target) => verify.mutateAsync(target)}
+        />
+        <RecordEditAction
+          table="crop_cycle"
+          id={cycle.id}
+          title="officerEdit.titles.crop_cycle"
+          fields={cycleFields(crops.crops)}
+          initialValues={{ crop_id: cycle.crop_id, season_label: cycle.season_label ?? '', area_ha: cycle.area_ha?.toString() ?? '', tree_count: cycle.tree_count?.toString() ?? '', unit_count: cycle.unit_count?.toString() ?? '', planted_on: cycle.planted_on ?? '', harvest_start: cycle.harvest_start ?? '', harvest_end: cycle.harvest_end ?? '', status: cycle.status }}
+          measure={crops.crops.find((crop) => crop.id === cycle.crop_id)?.measured_by}
+          measureByCrop={Object.fromEntries(crops.crops.map((crop) => [crop.id, crop.measured_by]))}
+          context={{ villageId: cycle.village_id, cycleId: cycle.id }}
+        />
       </header>
 
       <div className="flex flex-wrap gap-2.5">
@@ -207,6 +320,8 @@ export function OfficerCycleScreen() {
                 key={h.id}
                 data-testid="cycle-harvest"
                 data-current={h.is_current}
+                data-record-id={h.id}
+                data-focused={focusedHarvest === h.id ? 'true' : 'false'}
                 className="flex flex-col gap-2 p-4"
                 style={{
                   /*
@@ -219,6 +334,7 @@ export function OfficerCycleScreen() {
                     : '1px solid var(--rule-2)',
                   borderRadius: 'var(--radius-card)',
                   background: h.is_current ? 'var(--paper)' : 'var(--hatch), var(--sand-2)',
+                  ...(focusedHarvest === h.id ? { outline: '2px solid var(--primary)' } : {}),
                 }}
               >
                 <p className="flex flex-wrap items-baseline gap-2.5">
@@ -257,6 +373,26 @@ export function OfficerCycleScreen() {
                   confidence={h.confidence ?? undefined}
                   capturedAt={h.captured_at}
                 />
+                <div className="flex flex-wrap gap-2.5">
+                  <VerifyButton
+                    table="harvest_report"
+                    id={h.id}
+                    recordLabel={`${h.kind} ${formatKg(h.quantity_kg)}`}
+                    verification={h.verification}
+                    pending={verify.isPending && verify.variables?.table === 'harvest_report' && verify.variables?.id === h.id}
+                    onVerify={(target) => verify.mutateAsync(target)}
+                  />
+                  {h.is_current && (
+                    <RecordEditAction
+                      table="harvest_report"
+                      id={h.id}
+                      title="officerEdit.titles.harvest_report"
+                      fields={harvestFields()}
+                      initialValues={{ quantity_kg: h.quantity_kg.toString(), reported_for: h.reported_for ?? '', confidence: h.confidence ?? 'medium' }}
+                      context={{ villageId: cycle.village_id, cycleId: cycle.id, harvestKind: h.kind }}
+                    />
+                  )}
+                </div>
               </li>
             ))}
           </ul>

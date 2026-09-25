@@ -9,6 +9,7 @@ import { Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import {
   requiresDecisionNote,
   reviewerActions,
@@ -16,6 +17,7 @@ import {
 } from '@/features/ops/transitions'
 import { useOpsRequest, useReviewAction, useVillageEnergy } from '@/features/ops/useOpsRequests'
 import { formatKw, formatKwh, formatTimestamp } from '@/lib/format'
+import { useActorName } from '@/lib/actorNames'
 
 const route = getRouteApi('/_ops/ops/requests/$requestId')
 
@@ -31,6 +33,8 @@ export function OpsRequestReviewScreen() {
   const { requestId } = route.useParams()
   const { t } = useTranslation()
   const query = useOpsRequest(requestId)
+  // A name, never the raw id: resolved through the scoped provenance lookup.
+  const capturedBy = useActorName(query.request?.captured_by)
   const energy = useVillageEnergy(query.request?.village_id)
   const review = useReviewAction(requestId, query.request?.village_id)
 
@@ -72,6 +76,7 @@ export function OpsRequestReviewScreen() {
         breadcrumbs={[{ label: t('nav.requests'), to: '/ops/requests' }, { label: request.equipment_name }]}
       />
       <header className="flex flex-col gap-2.5">
+        <ProvenanceBadge source={request.source} verification={request.verification} confidence={request.confidence} capturedAt={request.captured_at} capturedBy={capturedBy} />
         <dl className="grid gap-x-5 gap-y-1.5 sm:grid-cols-2">
           <Row label={t('ops.applicant')} value={request.applicant} />
           <Row label={t('ops.village')} value={request.village_name} />

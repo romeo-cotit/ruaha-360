@@ -1,17 +1,25 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useVerifyQueue = vi.fn()
 const mutate = vi.fn()
 const verifyState = { isPending: false, error: null as Error | null }
+const scopeState: { data: { villages: Record<string, string>; projects: Record<string, string> } | undefined } = {
+  data: { villages: { v1: 'Ilundo' }, projects: {} },
+}
 
 vi.mock('@/features/officer/useVerifyQueue', () => ({
   useVerifyQueue: () => useVerifyQueue(),
-  useVerifyFromQueue: () => ({ mutate, ...verifyState }),
+  useVerifyFromQueue: () => ({ mutate, mutateAsync: mutate, ...verifyState }),
 }))
 vi.mock('@/app/scope', () => ({
-  useScopeNames: () => ({ data: { villages: { v1: 'Ilundo' }, projects: {} } }),
+  useScopeNames: () => scopeState,
+}))
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string; [key: string]: unknown }) => (
+    <a href={to} {...props}>{children}</a>
+  ),
 }))
 
 const { VerifyQueueScreen } = await import('@/features/officer/VerifyQueueScreen')
@@ -22,6 +30,7 @@ beforeEach(() => {
   mutate.mockReset()
   verifyState.isPending = false
   verifyState.error = null
+  scopeState.data = { villages: { v1: 'Ilundo' }, projects: {} }
 })
 
 const row = (over: Record<string, unknown> = {}) => ({
@@ -46,7 +55,7 @@ describe('VerifyQueueScreen states', () => {
     expect(screen.queryByTestId('empty-state')).not.toBeInTheDocument()
   })
 
-  test('an error is an error, offering retry', () => {
+  test('an error is an error, offering retry', async () => {
     useVerifyQueue.mockReturnValue({
       isLoading: false,
       error: new Error('could not reach the database'),
@@ -56,6 +65,7 @@ describe('VerifyQueueScreen states', () => {
     render(<VerifyQueueScreen />)
 
     expect(screen.getByTestId('error-state')).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByTestId('error-retry'))
   })
 
   // Nothing outstanding is good news and gets a real message. It must never
@@ -101,13 +111,48 @@ describe('VerifyQueueScreen content', () => {
     expect(screen.getByTestId('verify-person-p2')).toBeInTheDocument()
   })
 
+  test('renders every supported parent route and plain text when parent is missing', () => {
+    useVerifyQueue.mockReturnValue({
+      isLoading: false,
+      error: null,
+      data: [
+        row({ table: 'plot', id: 'pl1', farm_id: 'f1' }),
+        row({ table: 'harvest_report', id: 'h1', crop_cycle_id: 'c1' }),
+        row({ table: 'plot', id: 'pl2', village_id: 'v2' }),
+        row({ table: 'harvest_report', id: 'h2', village_id: 'v2' }),
+      ],
+    })
+    render(<VerifyQueueScreen />)
+    expect(screen.getAllByTestId('verify-record-link')).toHaveLength(2)
+    expect(screen.getAllByTestId('verify-queue-row')).toHaveLength(4)
+  })
+
+  test('undefined query data becomes an empty state and null confidence is safe', () => {
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: undefined })
+    render(<VerifyQueueScreen />)
+    expect(screen.getByTestId('empty-state')).toBeInTheDocument()
+
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [row({ confidence: null })] })
+    render(<VerifyQueueScreen />)
+    expect(screen.getByTestId('verify-queue-row')).toBeInTheDocument()
+  })
+
+  test('falls back to the raw village ID when scope names are unavailable', () => {
+    scopeState.data = undefined
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [row()] })
+    render(<VerifyQueueScreen />)
+    expect(screen.getByTestId('verify-queue-row')).toHaveTextContent('v1')
+  })
+
   test('verifying one record sends only that record', async () => {
     useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [row()] })
     render(<VerifyQueueScreen />)
 
     await userEvent.click(screen.getByTestId('verify-person-p1'))
+    expect(mutate).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByTestId('confirm-dialog-confirm'))
 
-    expect(mutate).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
     expect(mutate).toHaveBeenCalledWith({ table: 'person', id: 'p1' })
   })
 

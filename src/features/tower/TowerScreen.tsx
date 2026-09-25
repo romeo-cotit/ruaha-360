@@ -1,4 +1,4 @@
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
 import {
   Banknote,
   BatteryCharging,
@@ -382,7 +382,7 @@ export function TowerScreen() {
             icon={<ClipboardList aria-hidden {...MARK} />}
             basis="280px"
             drillTo="/ops/requests"
-            drillSearch={{}}
+            drillSearch={{ village }}
             loading={pipeline.isLoading}
           >
             {pipeline.isLoading ? (
@@ -401,7 +401,11 @@ export function TowerScreen() {
                         borderBottom: '1px solid var(--rule)',
                       }}
                     >
-                      <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+                      <Link
+                        to="/ops/requests"
+                        search={{ village, status: (row.status ?? 'draft') as RequestStatus }}
+                        className="inline-flex min-w-0 flex-wrap items-center gap-2 text-primary-ink underline-offset-2 hover:underline"
+                      >
                         <StatusPill
                           kind="request"
                           status={(row.status ?? 'draft') as RequestStatus}
@@ -409,7 +413,7 @@ export function TowerScreen() {
                         <span className="tabular type-note" style={{ color: 'var(--ink-3)' }}>
                           {t('tower.requestCount', { count: row.request_count ?? 0 })}
                         </span>
-                      </span>
+                      </Link>
                       <span className="tabular font-semibold" style={{ fontSize: 15 }}>
                         {formatMoney(row.indicative_value, row.currency ?? 'TZS')}
                       </span>
@@ -427,13 +431,15 @@ export function TowerScreen() {
             )}
           </TowerTile>
 
-          {/* ── Data quality · smallest, sunken, and no drill ─────────── */}
+          {/* ── Data quality · smallest, sunken, traceable counts ─────── */}
           <TowerTile
             id="quality"
             title={t('tower.quality')}
             icon={<CircleMark />}
             basis="230px"
             sunken
+            drillTo="/ops/tower/quality"
+            drillSearch={{ village, metric: 'persons' }}
             loading={quality.isLoading}
           >
             {quality.isLoading ? (
@@ -443,27 +449,33 @@ export function TowerScreen() {
             ) : (
               <>
                 <div className="flex flex-col gap-3.5">
-                  <RatioMeter
-                    label={t('tower.personsVerified')}
-                    icon={<Users aria-hidden {...MARK} />}
-                    count={quality.data.persons_verified ?? 0}
-                    total={quality.data.persons ?? 0}
-                  />
-                  <RatioMeter
-                    label={t('tower.farmsWithGps')}
-                    icon={<MapPin aria-hidden {...MARK} />}
-                    count={quality.data.farms_with_gps ?? 0}
-                    total={quality.data.farms ?? 0}
-                  />
-                  <RatioMeter
-                    label={t('tower.cyclesWithEstimate')}
-                    icon={<Sprout aria-hidden {...MARK} />}
-                    count={quality.data.cycles_with_estimate ?? 0}
-                    total={quality.data.cycles ?? 0}
-                  />
+                  <Link to="/ops/tower/quality" search={{ village, metric: 'persons' }}>
+                    <RatioMeter
+                      label={t('tower.personsVerified')}
+                      icon={<Users aria-hidden {...MARK} />}
+                      count={quality.data.persons_verified ?? 0}
+                      total={quality.data.persons ?? 0}
+                    />
+                  </Link>
+                  <Link to="/ops/tower/quality" search={{ village, metric: 'farms' }}>
+                    <RatioMeter
+                      label={t('tower.farmsWithGps')}
+                      icon={<MapPin aria-hidden {...MARK} />}
+                      count={quality.data.farms_with_gps ?? 0}
+                      total={quality.data.farms ?? 0}
+                    />
+                  </Link>
+                  <Link to="/ops/tower/quality" search={{ village, metric: 'cycles' }}>
+                    <RatioMeter
+                      label={t('tower.cyclesWithEstimate')}
+                      icon={<Sprout aria-hidden {...MARK} />}
+                      count={quality.data.cycles_with_estimate ?? 0}
+                      total={quality.data.cycles ?? 0}
+                    />
+                  </Link>
                 </div>
                 <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
-                  {t('tower.qualityNote')} {t('tower.qualityNoDrill')}
+                  {t('tower.qualityNote')}
                 </p>
               </>
             )}

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link, getRouteApi } from '@tanstack/react-router'
-import { useForm, useWatch } from 'react-hook-form'
+import { useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 
@@ -15,6 +15,8 @@ import { useEquipmentItem } from '@/features/farmer/useEquipment'
 import { requestSchema, type RequestForm } from '@/features/farmer/requestSchema'
 import { useSubmitRequest } from '@/features/farmer/useRequests'
 import { formatKw, formatMoney } from '@/lib/format'
+import { usePersistentForm } from '@/lib/usePersistentForm'
+import { FormDraftStatus } from '@/components/FormDraftStatus'
 
 const route = getRouteApi('/_farmer/farm/equipment/$equipmentId')
 
@@ -44,16 +46,12 @@ export function EquipmentDetailScreen() {
   const query = useEquipmentItem(equipmentId)
   const submit = useSubmitRequest()
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<RequestForm, unknown, RequestForm>({
-    defaultValues: EMPTY,
-    resolver: zodResolver(requestSchema),
-  })
+  const draft = usePersistentForm<RequestForm>('equipment-request', equipmentId, EMPTY, zodResolver(requestSchema))
+  const { handleSubmit, control, reset, formState: { errors, isSubmitting } } = draft
+  const [quantity, setQuantity] = draft.field('quantity')
+  const [hoursPerDay, setHoursPerDay] = draft.field('hours_per_day')
+  const [daysPerWeek, setDaysPerWeek] = draft.field('days_per_week')
+  const [purpose, setPurpose] = draft.field('purpose')
 
   const item = query.item
 
@@ -63,14 +61,14 @@ export function EquipmentDetailScreen() {
   // set-state-in-effect to explain away.
   const prefilled = useRef(false)
   useEffect(() => {
-    if (prefilled.current || !item) return
+    if (prefilled.current || !item || !draft.ready) return
     prefilled.current = true
-    reset({
+    if (!draft.dirty) reset({
       ...EMPTY,
       hours_per_day: item.typical_hours_per_day === null ? '' : String(item.typical_hours_per_day),
       days_per_week: item.typical_days_per_week === null ? '' : String(item.typical_days_per_week),
     })
-  }, [item, reset])
+  }, [item, reset, draft.ready, draft.dirty])
 
   // Subscribed so the estimate recalculates live, and so it can be withheld
   // while the assumptions behind it are not possible. `useWatch` rather than
@@ -141,8 +139,11 @@ export function EquipmentDetailScreen() {
    * not — validation is asynchronous, so the mutation has not begun on the
    * tick a second submit arrives. The button below is disabled on both.
    */
-  const onSubmit = handleSubmit((form) =>
+  const onSubmit = handleSubmit((form) => {
+    if (!draft.ready) return
     submit.mutate({
+      id: draft.clientRef,
+      actorId: session.data!.userId,
       villageId: villageId!,
       personId: personId!,
       equipmentId: item.id,
@@ -150,8 +151,8 @@ export function EquipmentDetailScreen() {
       hoursPerDay: Number(form.hours_per_day),
       daysPerWeek: Number(form.days_per_week),
       purpose: form.purpose,
-    }),
-  )
+    }, { onSuccess: () => void draft.finish() })
+  })
 
   /** One message per reason. The schema's `message` holds an i18n key. */
   const err = (name: keyof RequestForm) => {
@@ -206,6 +207,7 @@ export function EquipmentDetailScreen() {
       </h2>
 
       <form className="flex flex-col gap-4" noValidate onSubmit={onSubmit}>
+        <FormDraftStatus dirty={draft.dirty} storageError={draft.storageError} />
         <div className="flex flex-col gap-3">
           <NumberField label={t('equipment.quantity')} testId="request-quantity">
             <input
@@ -217,7 +219,8 @@ export function EquipmentDetailScreen() {
               {...(errors.quantity
                 ? { 'aria-invalid': true as const, 'aria-describedby': 'request-quantity-error' }
                 : {})}
-              {...register('quantity')}
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
             />
           </NumberField>
           {err('quantity')}
@@ -232,7 +235,8 @@ export function EquipmentDetailScreen() {
               {...(errors.hours_per_day
                 ? { 'aria-invalid': true as const, 'aria-describedby': 'request-hours-error' }
                 : {})}
-              {...register('hours_per_day')}
+              value={hoursPerDay}
+              onChange={(event) => setHoursPerDay(event.target.value)}
             />
           </NumberField>
           {err('hours_per_day')}
@@ -247,7 +251,8 @@ export function EquipmentDetailScreen() {
               {...(errors.days_per_week
                 ? { 'aria-invalid': true as const, 'aria-describedby': 'request-days-error' }
                 : {})}
-              {...register('days_per_week')}
+              value={daysPerWeek}
+              onChange={(event) => setDaysPerWeek(event.target.value)}
             />
           </NumberField>
           {err('days_per_week')}
@@ -266,7 +271,8 @@ export function EquipmentDetailScreen() {
               rows={2}
               className={inputClass}
               style={{ ...inputStyle, fontVariantNumeric: 'normal' }}
-              {...register('purpose')}
+              value={purpose}
+              onChange={(event) => setPurpose(event.target.value)}
             />
           </div>
         </div>
@@ -307,7 +313,7 @@ export function EquipmentDetailScreen() {
         <button
           type="submit"
           data-testid="request-submit"
-          disabled={submit.isPending || isSubmitting || !canRequest}
+          disabled={!draft.ready || submit.isPending || isSubmitting || !canRequest}
           className="w-full font-semibold disabled:opacity-60"
           style={{
             minHeight: 52,

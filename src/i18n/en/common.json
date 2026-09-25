@@ -103,7 +103,8 @@
     "optional": "optional"
   },
   "draft": {
-    "notSubmitted": "Not yet submitted"
+    "notSubmitted": "Not yet submitted",
+    "storageError": "Could not save this draft on this device. Keep this page open until you submit."
   },
   "register": {
     "title": "Register a farmer",
@@ -207,6 +208,49 @@
     "window": "Harvest window",
     "unverifiedCount_one": "{{count}} record still needs verifying",
     "unverifiedCount_other": "{{count}} records still need verifying"
+  },
+  "verifyDialog": {
+    "title": "Verify this record?",
+    "detail": "You are confirming {{record}}. Your name will be attached, and this action cannot be undone.",
+    "confirm": "Verify record",
+    "cancel": "Cancel"
+  },
+  "officerEdit": {
+    "action": "Edit",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "fields": {
+      "given_name": "First name",
+      "family_name": "Family name",
+      "phone": "Phone",
+      "household_label": "Household name",
+      "farm_label": "Farm name",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "plot_label": "Plot name",
+      "plot_area_ha": "Plot area (ha)",
+      "crop_id": "Crop",
+      "season_label": "Season",
+      "cycle_area_ha": "Planted area (ha)",
+      "tree_count": "Number of trees",
+      "unit_count": "Number of units",
+      "planted_on": "Planted on",
+      "harvest_start": "Harvest window starts",
+      "harvest_end": "Harvest window ends",
+      "status": "Status",
+      "quantity_kg": "Quantity (kg)",
+      "reported_for": "Reported for",
+      "confidence": "Confidence"
+    },
+    "titles": {
+      "person": "Edit farmer details",
+      "household": "Edit household details",
+      "farm": "Edit farm details",
+      "plot": "Edit plot details",
+      "crop_cycle": "Edit crop cycle",
+      "harvest_report": "Correct harvest figure"
+    }
   },
   "estimate": {
     "title": "Energy estimate",
@@ -466,7 +510,12 @@
     "marketNote": "Open demand against supply that is still available.",
     "quality": "Data quality",
     "qualityNote": "How much of what has been recorded has been checked.",
-    "qualityNoDrill": "This tile has no drill link, because it counts records rather than reporting a figure.",
+    "qualityDrill": "Records behind data quality",
+    "qualityMetrics": "Data quality measures",
+    "qualityRecord": "Record",
+    "qualityState": "In measure",
+    "qualityCounted": "Counted",
+    "qualityMissing": "Not counted",
     "expected": "Expected",
     "actual": "Actual",
     "expectedWeightFor": "Expected weight, {{crop}} · {{window}}",

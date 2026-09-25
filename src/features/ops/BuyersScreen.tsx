@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import { useSession } from '@/app/session'
 import { activeMemberships } from '@/app/membership'
@@ -12,6 +14,8 @@ import { PageHeader } from '@/components/PageHeader'
 import { TableSurface } from '@/components/TableSurface'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
+import { FormDraftStatus } from '@/components/FormDraftStatus'
+import { usePersistentForm } from '@/lib/usePersistentForm'
 import {
   BUYER_CHANNELS,
   useBuyers,
@@ -32,15 +36,15 @@ export function BuyersScreen() {
   const create = useCreateBuyer()
   const { data: session } = useSession()
 
-  const [name, setName] = useState('')
-  const [channel, setChannel] = useState<Buyer['channel']>('direct')
-  const [contactNote, setContactNote] = useState('')
-  const [nameError, setNameError] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
 
   // Ops and admin hold whole-project scope, so the membership names the
   // project a new buyer belongs to.
   const projectId = activeMemberships(session?.memberships ?? [])[0]?.project_id
+  const draft = usePersistentForm('buyer-create', projectId ?? 'project', BUYER_DEFAULTS, zodResolver(buyerSchema))
+  const [name, setName] = draft.field('name')
+  const [channel, setChannel] = draft.field('channel')
+  const [contactNote, setContactNote] = draft.field('contact_note')
 
   const columns = useMemo(() => {
     const col = createColumnHelper<Buyer>()
@@ -61,31 +65,21 @@ export function BuyersScreen() {
     ]
   }, [t])
 
-  const submit = () => {
-    // The only client-side check is that a required field was filled. Every
-    // rule the database owns — the unique (project_id, name) constraint, and
-    // whether this caller manages the project — is left to it.
-    if (!name.trim() || !projectId) {
-      setNameError(true)
-      return
-    }
-    setNameError(false)
+  const submit = draft.handleSubmit(() => {
+    if (!projectId || !draft.ready) return
     create.mutate(
       {
+        id: draft.clientRef,
         project_id: projectId,
         name: name.trim(),
         channel,
         contact_note: contactNote.trim() || null,
       },
       {
-        onSuccess: () => {
-          setName('')
-          setContactNote('')
-          setChannel('direct')
-        },
+        onSuccess: () => void draft.finish(),
       },
     )
-  }
+  })
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
@@ -146,6 +140,8 @@ export function BuyersScreen() {
             </Button>
           </div>
 
+        <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
+        <FormDraftStatus dirty={draft.dirty} storageError={draft.storageError} />
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <label className="flex min-w-0 flex-col gap-1.5" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
             <span className="block type-note" style={{ color: 'var(--ink-2)' }}>{t('buyers.colName')}</span>
@@ -155,7 +151,7 @@ export function BuyersScreen() {
               onChange={(e) => setName(e.target.value)}
               className="w-full" style={CONTROL}
             />
-            {nameError && (
+            {draft.formState.errors.name && (
               <span data-testid="buyer-name-error" className="block type-note font-medium" style={{ color: 'var(--flag-ink)' }}>
                 {t('buyers.nameRequired')}
               </span>
@@ -194,15 +190,23 @@ export function BuyersScreen() {
         {create.error && <ErrorState error={create.error} />}
 
         <Button
+          type="submit"
           data-testid="buyer-create-submit"
-          disabled={create.isPending}
-          onClick={submit}
+          disabled={!draft.ready || create.isPending}
           className="w-fit"
         >
           {create.isPending ? t('buyers.creating') : t('buyers.create')}
         </Button>
+        </form>
         </section>
       )}
     </section>
   )
 }
+
+const buyerSchema = z.object({
+  name: z.string().trim().min(1),
+  channel: z.enum(['direct', 'afm', 'other']),
+  contact_note: z.string(),
+})
+const BUYER_DEFAULTS: z.infer<typeof buyerSchema> = { name: '', channel: 'direct', contact_note: '' }

@@ -44,7 +44,6 @@ const OPTIONAL_NAMESPACES = new Set([
   'demand',
   'demandStatus',
   'opportunity',
-  'opportunityStatus',
   'buyers',
   'villages',
   'catalogue',
@@ -54,6 +53,22 @@ const OPTIONAL_NAMESPACES = new Set([
 
 export function SURFACE_OF(key) {
   return OPTIONAL_NAMESPACES.has(key.split('.')[0]) ? 'optional' : 'required'
+}
+
+/** Reviewed copy must preserve interpolation and plural variants. */
+export function validateSwahili(en, sw) {
+  const english = flatten(en)
+  const translated = flatten(sw)
+  const problems = []
+  for (const [key, value] of Object.entries(translated)) {
+    if (!(key in english)) { problems.push(`${key}: unknown key`); continue }
+    const expected = placeholdersIn(english[key]).sort()
+    const actual = placeholdersIn(value).sort()
+    if (JSON.stringify(expected) !== JSON.stringify(actual)) problems.push(`${key}: interpolation placeholders differ`)
+    if (key.endsWith('_one') && translated[`${key.slice(0,-4)}_other`] === undefined) problems.push(`${key}: plural _other missing`)
+    if (key.endsWith('_other') && translated[`${key.slice(0,-6)}_one`] === undefined) problems.push(`${key}: plural _one missing`)
+  }
+  return problems
 }
 
 /**
@@ -211,7 +226,11 @@ if (process.argv[1] && process.argv[1].endsWith('i18n-handover.mjs')) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const read = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
 
-  const rows = buildHandover(read('src/i18n/en/common.json'), read('src/i18n/sw/common.json'))
+  const en = read('src/i18n/en/common.json')
+  const sw = read('src/i18n/sw/common.json')
+  const problems = validateSwahili(en, sw)
+  if (problems.length) throw new Error(problems.join('\n'))
+  const rows = buildHandover(en, sw)
   const out = resolve(root, 'docs/i18n-handover.md')
   writeFileSync(
     out,

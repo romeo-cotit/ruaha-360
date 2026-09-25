@@ -60,7 +60,8 @@ if (missing.length > 0) {
 
 const user = encodeURIComponent(env.SUPABASE_DB_USER)
 const password = encodeURIComponent(env.SUPABASE_DB_PASSWORD)
-const port = env.SUPABASE_DB_PORT ?? '5432'
+// An unset CI secret arrives as an empty string, not undefined.
+const port = env.SUPABASE_DB_PORT || '5432'
 
 process.stdout.write(
   `postgresql://${user}:${password}@${env.SUPABASE_DB_HOST}:${port}/postgres`,

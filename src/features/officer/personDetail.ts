@@ -41,6 +41,8 @@ export interface PersonDetail {
           id: string
           label: string
           area_ha: number | null
+          latitude: number | null
+          longitude: number | null
           cycles: Array<
             Provenance & {
               id: string

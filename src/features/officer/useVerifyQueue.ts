@@ -26,6 +26,8 @@ export interface QueueRow {
   verification: Enums['verification_status']
   confidence: Enums['confidence_level'] | null
   captured_at: string
+  farm_id?: string
+  crop_cycle_id?: string
 }
 
 /**
@@ -65,7 +67,7 @@ export async function fetchVerifyQueue(): Promise<QueueRow[]> {
       .is('deleted_at', null),
     supabase
       .from('plot')
-      .select(`id, label, ${PROVENANCE}`)
+      .select(`id, farm_id, label, ${PROVENANCE}`)
       .in('verification', OUTSTANDING)
       .is('deleted_at', null),
     supabase
@@ -75,7 +77,7 @@ export async function fetchVerifyQueue(): Promise<QueueRow[]> {
       .is('deleted_at', null),
     supabase
       .from('harvest_report')
-      .select(`id, kind, quantity_kg, is_current, ${PROVENANCE}`)
+      .select(`id, crop_cycle_id, kind, quantity_kg, is_current, ${PROVENANCE}`)
       .in('verification', OUTSTANDING)
       .is('deleted_at', null),
   ])
@@ -103,6 +105,8 @@ export async function fetchVerifyQueue(): Promise<QueueRow[]> {
       verification: raw.verification as QueueRow['verification'],
       confidence: (raw.confidence ?? null) as QueueRow['confidence'],
       captured_at: raw.captured_at as string,
+      farm_id: raw.farm_id as string | undefined,
+      crop_cycle_id: raw.crop_cycle_id as string | undefined,
     })
 
   for (const p of persons.data ?? []) {
@@ -181,6 +185,8 @@ export function useVerifyFromQueue() {
         queryClient.invalidateQueries({ queryKey: queryKeys.person(variables.id) }),
         queryClient.invalidateQueries({ queryKey: ['people'] }),
         queryClient.invalidateQueries({ queryKey: ['farm'] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.farms('mine') }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.farmerOpportunities() }),
         // Data quality is a Tower figure and moves the moment a record is
         // verified (business-rules §5 invalidation map).
         queryClient.invalidateQueries({

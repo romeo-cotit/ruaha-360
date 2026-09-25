@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import { DrillLink } from '@/components/DrillLink'
 import { EmptyState } from '@/components/EmptyState'
@@ -11,6 +12,7 @@ import { Loading, ProductNote, TableCard } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { FormDraftStatus } from '@/components/FormDraftStatus'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { supplySchema } from '@/features/ops/supplySchema'
 import {
@@ -26,6 +28,7 @@ import {
   useOpportunityStatus,
 } from '@/features/ops/useOpportunity'
 import { formatKg, formatPlainDate } from '@/lib/format'
+import { usePersistentForm } from '@/lib/usePersistentForm'
 
 const route = getRouteApi('/_ops/ops/opportunities/$opportunityId')
 
@@ -66,8 +69,9 @@ export function OpportunityDetailScreen() {
     opportunity?.buyer_demand_id ?? undefined,
   )
 
-  const [harvestId, setHarvestId] = useState('')
-  const [kg, setKg] = useState('')
+  const draft = usePersistentForm('opportunity-supply', opportunityId, SUPPLY_DEFAULTS, zodResolver(supplySchema))
+  const [harvestId, setHarvestId] = draft.field('harvest_report_id')
+  const [kg, setKg] = draft.field('contributed_kg')
   /** Field errors from `supplySchema`, as i18n keys. */
   const [attachErrors, setAttachErrors] = useState<Record<string, string>>({})
   /**
@@ -106,7 +110,7 @@ export function OpportunityDetailScreen() {
    * it as written. So a figure past `available_kg` is sent on purpose.
    */
   function attachSupply() {
-    if (attachInFlight.current || attach.isPending) return
+    if (attachInFlight.current || attach.isPending || !draft.ready) return
 
     const parsed = supplySchema.safeParse({ harvest_report_id: harvestId, contributed_kg: kg })
     if (!parsed.success) {
@@ -123,11 +127,12 @@ export function OpportunityDetailScreen() {
     attachInFlight.current = true
     attach.mutate(
       {
+        id: draft.clientRef,
         harvestReportId: parsed.data.harvest_report_id,
         cropCycleId: row?.crop_cycle_id ?? '',
         contributedKg: Number(parsed.data.contributed_kg),
       },
-      { onSettled: () => (attachInFlight.current = false) },
+      { onSuccess: () => void draft.finish(), onSettled: () => (attachInFlight.current = false) },
     )
   }
 
@@ -400,6 +405,7 @@ export function OpportunityDetailScreen() {
               attachSupply()
             }}
           >
+            <FormDraftStatus dirty={draft.dirty} storageError={draft.storageError} />
             <div className="flex flex-col gap-1.5">
               <label className="block" htmlFor="attach-harvest" style={LABEL}>
                 {t('opportunity.attachHarvest')}
@@ -460,7 +466,7 @@ export function OpportunityDetailScreen() {
               data-testid="attach-submit"
               // Enabled while incomplete, deliberately: a dead button gives
               // no reason, and the reason is the point.
-              disabled={attach.isPending}
+              disabled={!draft.ready || attach.isPending}
               className="w-fit disabled:opacity-60"
               style={BUTTON_PRIMARY}
             >
@@ -472,6 +478,8 @@ export function OpportunityDetailScreen() {
     </section>
   )
 }
+
+const SUPPLY_DEFAULTS = { harvest_report_id: '', contributed_kg: '' }
 
 /**
  * One of the two quantities, in a card of its own. Only the offered total is

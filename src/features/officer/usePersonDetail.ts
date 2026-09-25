@@ -63,7 +63,7 @@ export async function fetchPersonDetail(personId: string): Promise<PersonDetail 
         // PostgREST refuses to guess: "more than one relationship was found".
         // The simple id FK is the one to traverse.
         `id, label, latitude, longitude, source, verification, confidence, captured_at, captured_by, verified_by, verified_at,
-         plot!plot_farm_id_fkey ( id, label, area_ha, source, verification, confidence, captured_at, captured_by, verified_by, verified_at,
+         plot!plot_farm_id_fkey ( id, label, area_ha, latitude, longitude, source, verification, confidence, captured_at, captured_by, verified_by, verified_at,
            crop_cycle!crop_cycle_plot_id_fkey ( id, crop_id, season_label, area_ha, tree_count, unit_count, planted_on, harvest_start, harvest_end, status,
              source, verification, confidence, captured_at, captured_by, verified_by, verified_at,
              crop ( name_en, name_sw ),
@@ -166,9 +166,11 @@ export function useVerify(personId: string, villageId: string | undefined) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.person(personId) })
       if (villageId) {
-        await queryClient.invalidateQueries({ queryKey: queryKeys.people(villageId) })
-        await queryClient.invalidateQueries({ queryKey: queryKeys.farms(villageId) })
-        await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(villageId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.people(villageId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.farms(villageId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.farms('mine') })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.farmerOpportunities() })
+      await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(villageId) })
       }
     },
   })

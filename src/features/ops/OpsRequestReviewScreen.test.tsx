@@ -7,6 +7,8 @@ const useVillageEnergy = vi.fn()
 const mutate = vi.fn()
 const useReviewAction = vi.fn()
 
+const actorName = vi.fn((_id: string | null | undefined): string | undefined => undefined)
+vi.mock('@/lib/actorNames', () => ({ useActorName: (id: string | null | undefined) => actorName(id) }))
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ requestId: 'r1' }) }),
   Link: ({ children, to, ...props }: { children: React.ReactNode; to?: string } & Record<string, unknown>) => (
@@ -23,6 +25,8 @@ const { OpsRequestReviewScreen } = await import('@/features/ops/OpsRequestReview
 await import('@/i18n')
 
 const request = {
+  source: 'farmer_reported', verification: 'unverified', confidence: null,
+  captured_at: '2026-09-09T12:00:00Z', captured_by: null,
   id: 'r1', village_id: 'v1', applicant: 'Baraka Mgeni', village_name: 'Ilundo', farm_label: 'Kipande',
   equipment_name: 'Grain dryer', purpose: 'Dry maize', status: 'under_review', submitted_at: '2026-09-09T12:00:00Z',
   decision_note: null, decided_at: null,

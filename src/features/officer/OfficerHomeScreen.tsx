@@ -125,7 +125,7 @@ export function OfficerHomeScreen() {
                 fontSize: 15,
               }}
             >
-              {t('officerHome.openVerifyQueue')} test
+              {t('officerHome.openVerifyQueue')}
             </Link>
           </>
         )}

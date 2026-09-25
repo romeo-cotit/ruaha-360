@@ -5,6 +5,7 @@ import {
   buildHandover,
   flatten,
   renderHandover,
+  validateSwahili,
 } from '../../scripts/i18n-handover.mjs'
 
 const en = {
@@ -50,10 +51,26 @@ describe('which surface a key belongs to', () => {
     expect(SURFACE_OF('buyers.title')).toBe('optional')
   })
 
+  test('opportunity status appears on farmer surface', () => {
+    expect(SURFACE_OF('opportunityStatus.proposed')).toBe('required')
+  })
+
   // An unrecognised namespace is REQUIRED, not optional: a new farmer-facing
   // namespace must not slip out of the reviewer's list by being forgotten here.
   test('an unknown namespace is assumed to block the demo', () => {
     expect(SURFACE_OF('somethingNew.title')).toBe('required')
+  })
+})
+
+describe('Swahili review checks', () => {
+  test('rejects changed placeholders and half-translated plurals', () => {
+    expect(validateSwahili(
+      { count_one: '{{count}} item', count_other: '{{count}} items' },
+      { count_one: 'Kitu {{value}}' },
+    )).toEqual([
+      'count_one: interpolation placeholders differ',
+      'count_one: plural _other missing',
+    ])
   })
 })
 

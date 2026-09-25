@@ -149,6 +149,8 @@ describe('BuyersScreen create', () => {
 
     expect(mutate).toHaveBeenCalledTimes(1)
     expect(mutate.mock.calls[0][0]).toEqual({
+      // The draft's clientRef, so an uncertain response reconciles by id.
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       project_id: '20000000-0000-4000-8000-000000000001',
       name: 'Mbeya Millers',
       channel: 'afm',

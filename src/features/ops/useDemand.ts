@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { supabase } from '@/lib/supabase'
+import { recoverInsert } from '@/lib/recoverInsert'
 import { isUuid } from '@/lib/ids'
 import { localisedName } from '@/lib/names'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
@@ -140,6 +141,7 @@ export function useDemandFormOptions() {
 }
 
 export interface NewDemand {
+  id?: string
   projectId: string
   buyerId: string
   cropId: string
@@ -167,6 +169,7 @@ export function useCreateDemand() {
       const { data, error } = await supabase
         .from('buyer_demand')
         .insert({
+          id: input.id,
           project_id: input.projectId,
           buyer_id: input.buyerId,
           crop_id: input.cropId,
@@ -180,7 +183,7 @@ export function useCreateDemand() {
         .select('id')
         .single()
 
-      if (error) throw new Error(error.message)
+      if (error) return recoverInsert('buyer_demand', input.id, error)
       return data
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.demands('all') }),

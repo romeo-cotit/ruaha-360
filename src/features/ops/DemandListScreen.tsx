@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -13,6 +15,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
 import { TableSurface } from '@/components/TableSurface'
 import { Button } from '@/components/ui/button'
+import { FormDraftStatus } from '@/components/FormDraftStatus'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import {
   useCreateDemand,
@@ -21,6 +24,8 @@ import {
   type Demand,
 } from '@/features/ops/useDemand'
 import { formatKg, formatMoney, formatPlainDate } from '@/lib/format'
+import { usePersistentForm } from '@/lib/usePersistentForm'
+import { useSession } from '@/app/session'
 
 /** Spec 7.6 — the order book, plus a create form. */
 export function DemandListScreen() {
@@ -29,15 +34,18 @@ export function DemandListScreen() {
   const query = useDemands()
   const options = useDemandFormOptions()
   const create = useCreateDemand()
+  const session = useSession()
+  const projectScope = session.data?.memberships.find(m => m.role === 'ops' || m.role === 'admin')?.project_id ?? 'project'
+  const draft = usePersistentForm('demand-create', projectScope, DEMAND_DEFAULTS, zodResolver(demandSchema))
 
-  const [buyerId, setBuyerId] = useState('')
-  const [cropId, setCropId] = useState('')
-  const [quantity, setQuantity] = useState('')
-  const [windowStart, setWindowStart] = useState('')
-  const [windowEnd, setWindowEnd] = useState('')
-  const [deliveryPoint, setDeliveryPoint] = useState('')
-  const [pricePerKg, setPricePerKg] = useState('')
-  const [qualityNote, setQualityNote] = useState('')
+  const [buyerId, setBuyerId] = draft.field('buyerId')
+  const [cropId, setCropId] = draft.field('cropId')
+  const [quantity, setQuantity] = draft.field('quantity')
+  const [windowStart, setWindowStart] = draft.field('windowStart')
+  const [windowEnd, setWindowEnd] = draft.field('windowEnd')
+  const [deliveryPoint, setDeliveryPoint] = draft.field('deliveryPoint')
+  const [pricePerKg, setPricePerKg] = draft.field('pricePerKg')
+  const [qualityNote, setQualityNote] = draft.field('qualityNote')
   const [touched, setTouched] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   /**
@@ -100,7 +108,7 @@ export function DemandListScreen() {
   }
 
   const submit = () => {
-    if (inFlight.current || create.isPending) return
+    if (inFlight.current || create.isPending || !draft.ready) return
     setTouched(true)
     if (buyerId === '' || cropId === '' || quantity === '' || Number(quantity) <= 0) return
     if (!projectId) return
@@ -108,6 +116,7 @@ export function DemandListScreen() {
     inFlight.current = true
     create.mutate(
       {
+        id: draft.clientRef,
         projectId,
         buyerId,
         cropId,
@@ -118,7 +127,7 @@ export function DemandListScreen() {
         pricePerKg,
         qualityNote,
       },
-      { onSettled: () => (inFlight.current = false) },
+      { onSuccess: () => void draft.finish(), onSettled: () => (inFlight.current = false) },
     )
   }
 
@@ -178,6 +187,7 @@ export function DemandListScreen() {
               submit()
             }}
           >
+        <FormDraftStatus dirty={draft.dirty} storageError={draft.storageError} />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Field label={t('demand.buyer')} id="demand-buyer" error={missing.buyer ? t('demand.required') : undefined} errorTestId="demand-buyer-error">
             <Select value={buyerId} onValueChange={(value) => setBuyerId(value ?? '')}>
@@ -239,7 +249,7 @@ export function DemandListScreen() {
             <Button
               type="submit"
               data-testid="demand-create-submit"
-              disabled={create.isPending}
+              disabled={!draft.ready || create.isPending}
               className="w-fit"
             >
               {create.isPending ? t('demand.creating') : t('demand.create')}
@@ -264,6 +274,15 @@ export function DemandListScreen() {
       )}
     </section>
   )
+}
+
+const demandSchema = z.object({
+  buyerId: z.string(), cropId: z.string(), quantity: z.string(), windowStart: z.string(),
+  windowEnd: z.string(), deliveryPoint: z.string(), pricePerKg: z.string(), qualityNote: z.string(),
+})
+const DEMAND_DEFAULTS = {
+  buyerId: '', cropId: '', quantity: '', windowStart: '', windowEnd: '',
+  deliveryPoint: '', pricePerKg: '', qualityNote: '',
 }
 
 const input = 'w-full'

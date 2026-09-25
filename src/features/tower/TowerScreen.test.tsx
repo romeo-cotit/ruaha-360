@@ -163,11 +163,11 @@ describe('the Control Tower keeps planted area honest', () => {
 })
 
 describe('the data quality tile', () => {
-  // It counts records rather than reporting a figure, so there is nothing for a
-  // drill link to lead to.
-  test('has no drill link, because it has no figure to trace', () => {
+  test('links every quality measure to its contributing records', () => {
     render(<TowerScreen />)
-    expect(screen.getByTestId('tile-quality').querySelector('[data-testid="tile-drill"]')).toBeNull()
+    const tile = screen.getByTestId('tile-quality')
+    expect(tile.querySelector('[data-testid="tile-drill"]')).toBeInTheDocument()
+    expect(tile.querySelectorAll('a')).toHaveLength(4)
   })
 
   test('states every ratio as n of total, never as a bare percentage', () => {

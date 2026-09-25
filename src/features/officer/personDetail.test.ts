@@ -28,7 +28,7 @@ const detail = (): PersonDetail => ({
       id: 'f1', label: 'Shamba la Neema', latitude: null, longitude: null, ...prov('verified'),
       plots: [
         {
-          id: 'pl1', label: 'Kipande cha juu', area_ha: 1.8, ...prov('unverified'),
+          id: 'pl1', label: 'Kipande cha juu', area_ha: 1.8, latitude: null, longitude: null, ...prov('unverified'),
           cycles: [
             {
               id: 'c1', crop_id: 'crop1', crop_name: 'Maize', season_label: 'Msimu 2026 A',

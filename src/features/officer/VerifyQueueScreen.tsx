@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from '@tanstack/react-router'
 
 import { useScopeNames } from '@/app/scope'
 import { EmptyState } from '@/components/EmptyState'
@@ -6,7 +7,8 @@ import { ErrorState } from '@/components/ErrorState'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import { VerificationMark } from '@/components/marks'
 import { VerifyButton } from '@/features/officer/VerifyButton'
-import { useVerifyFromQueue, useVerifyQueue } from '@/features/officer/useVerifyQueue'
+import { useVerifyFromQueue, useVerifyQueue, type QueueRow } from '@/features/officer/useVerifyQueue'
+import { getVerifyTarget } from '@/features/officer/verifyNavigation'
 
 /**
  * Spec 5.7 — the officer's verify queue: records still carrying
@@ -86,10 +88,65 @@ export function VerifyQueueScreen() {
                 ...(index > 0 ? { borderTop: '1px solid var(--rule)' } : {}),
               }}
             >
-              {/* The mark leads. State is legible before any word is read. */}
-              <VerificationMark verification={row.verification} size={20} />
+              {(() => {
+                const target = getVerifyTarget(row)
+                return target ? (
+                <Link
+                  to={target.to as never}
+                  params={target.params as never}
+                  search={target.search as never}
+                  data-testid="verify-record-link"
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  <QueueSummary
+                    row={row}
+                    tableLabel={t(`verifyQueue.table.${row.table}`)}
+                    villageLabel={scope.data?.villages[row.village_id] ?? row.village_id}
+                  />
+                </Link>
+                ) : (
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <QueueSummary
+                    row={row}
+                    tableLabel={t(`verifyQueue.table.${row.table}`)}
+                    villageLabel={scope.data?.villages[row.village_id] ?? row.village_id}
+                  />
+                </div>
+                )
+              })()}
 
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <VerifyButton
+                table={row.table}
+                id={row.id}
+                recordLabel={row.label}
+                verification={row.verification}
+                pending={verify.isPending}
+                onVerify={(target) => verify.mutateAsync(target)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function QueueSummary({
+  row,
+  tableLabel,
+  villageLabel,
+}: {
+  row: QueueRow
+  tableLabel: string
+  villageLabel: string
+}) {
+  return (
+    <>
+      {/* The mark leads. State is legible before any word is read. */}
+      <VerificationMark verification={row.verification} size={20} />
+
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <p className="flex flex-wrap items-center gap-2">
                   <span
                     className="type-note px-2 py-0.5"
@@ -100,31 +157,19 @@ export function VerifyQueueScreen() {
                       color: 'var(--ink-2)',
                     }}
                   >
-                    {t(`verifyQueue.table.${row.table}`)}
+                    {tableLabel}
                   </span>
                   <b style={{ fontSize: 16, fontWeight: 600 }}>{row.label}</b>
                 </p>
                 <ProvenanceBadge
                   compact
-                  recordLabel={scope.data?.villages[row.village_id] ?? row.village_id}
+                  recordLabel={villageLabel}
                   source={row.source}
                   verification={row.verification}
                   confidence={row.confidence ?? undefined}
                   capturedAt={row.captured_at}
                 />
-              </div>
-
-              <VerifyButton
-                  table={row.table}
-                  id={row.id}
-                  verification={row.verification}
-                  pending={verify.isPending}
-                onVerify={(target) => verify.mutate(target)}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+      </div>
+    </>
   )
 }

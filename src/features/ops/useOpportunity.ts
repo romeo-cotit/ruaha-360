@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { isUuid } from '@/lib/ids'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
 import type { Database } from '@/lib/db.types'
+import { recoverInsert } from '@/lib/recoverInsert'
 
 type OpportunityRow = Database['public']['Tables']['opportunity']['Row']
 type AvailableRow = Database['public']['Views']['v_harvest_available']['Row']
@@ -155,17 +156,19 @@ export function useAttachSupply(opportunityId: string, villageId: string | undef
 
   return useMutation({
     mutationFn: async (input: {
+      id?: string
       harvestReportId: string
       cropCycleId: string
       contributedKg: number
     }) => {
       const { error } = await supabase.from('opportunity_supply').insert({
+        id: input.id,
         opportunity_id: opportunityId,
         harvest_report_id: input.harvestReportId,
         crop_cycle_id: input.cropCycleId,
         contributed_kg: input.contributedKg,
       })
-      if (error) throw new Error(error.message)
+      if (error) await recoverInsert('opportunity_supply', input.id, error)
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.opportunity(opportunityId) })
