@@ -22,6 +22,10 @@ async function signInAsOfficer(page: Page) {
   await expect(page).toHaveURL(/\/officer$/)
 }
 
+async function confirmVerification(page: Page) {
+  await page.getByTestId('confirm-dialog-confirm').click()
+}
+
 /** Registers a marked farmer and lands on their detail screen. */
 async function registerAndOpen(page: Page): Promise<string> {
   const family = markedName()
@@ -92,6 +96,7 @@ test.describe('/officer/people/$personId', () => {
     await expect(personBadge).toHaveAttribute('data-verification', 'unverified')
 
     await page.locator('[data-verify-table="person"]').click()
+    await confirmVerification(page)
 
     await expect(personBadge).toHaveAttribute('data-verification', 'verified')
     await expect(page.getByTestId('person-outstanding')).toContainText('5 records still need')
@@ -102,7 +107,83 @@ test.describe('/officer/people/$personId', () => {
     await registerAndOpen(page)
 
     await page.locator('[data-verify-table="person"]').click()
+    await confirmVerification(page)
     await expect(page.locator('[data-verify-table="person"]')).toHaveCount(0)
+  })
+
+  test('edits every current section, resets verification, and persists after reload', async ({ page }) => {
+    await signInAsOfficer(page)
+    await registerAndOpen(page)
+
+    const idFromTestId = async (prefix: string) => {
+      const testId = await page.locator(`[data-testid^="${prefix}-"]`).first().getAttribute('data-testid')
+      expect(testId).toBeTruthy()
+      return testId!.slice(prefix.length + 1)
+    }
+    const householdId = await idFromTestId('household')
+    const farmId = await idFromTestId('farm')
+    const plotId = await idFromTestId('plot')
+    const cycleId = await idFromTestId('cycle')
+    const harvestId = await idFromTestId('harvest')
+
+    // A correction to an already verified record must require fresh review.
+    await page.locator('[data-verify-table="person"]').click()
+    await confirmVerification(page)
+    await expect(page.locator('[data-verify-table="person"]')).toHaveCount(0)
+    await page.getByTestId('edit-person').click()
+    await page.getByTestId('edit-given_name').fill('Corrected')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+    await expect(page.getByTestId('person-detail')).toContainText('Corrected')
+    await expect(page.locator('[data-verify-table="person"]')).toHaveCount(1)
+
+    await page.getByTestId(`edit-household-${householdId}`).click()
+    await page.getByTestId('edit-label').fill('Corrected household')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+
+    await page.getByTestId(`edit-farm-${farmId}`).click()
+    await page.getByTestId('edit-label').fill('Corrected farm')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+
+    await page.getByTestId(`edit-plot-${plotId}`).click()
+    await page.getByTestId('edit-label').fill('Corrected plot')
+    await page.getByTestId('edit-area_ha').fill('2.5')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+
+    await page.getByTestId(`edit-cycle-${cycleId}`).click()
+    await page.getByTestId('edit-season_label').fill('Corrected season')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+
+    await page.getByTestId(`edit-harvest-${harvestId}`).click()
+    await page.getByTestId('edit-quantity_kg').fill('3333')
+    await page.getByTestId('officer-edit-save').click()
+    await expect(page.getByTestId('officer-edit-dialog')).toHaveCount(0)
+
+    await page.reload()
+    await expect(page.getByTestId('person-detail')).toContainText('Corrected household')
+    await expect(page.getByTestId('person-detail')).toContainText('Corrected farm')
+    await expect(page.getByTestId('person-detail')).toContainText('Corrected plot')
+    await expect(page.getByTestId('person-detail')).toContainText('Corrected season')
+    await expect(page.getByTestId('person-detail')).toContainText('3,333.00 kg')
+    await expect(page.getByTestId('person-detail')).toContainText('3,000.00 kg')
+  })
+
+  test('a failed correction keeps entered values and the form actionable', async ({ page }) => {
+    await signInAsOfficer(page)
+    await registerAndOpen(page)
+
+    await page.route('**/rest/v1/rpc/app_update_observed_record', (route) => route.abort('failed'))
+    await page.getByTestId('edit-person').click()
+    await page.getByTestId('edit-given_name').fill('Not saved')
+    await page.getByTestId('officer-edit-save').click()
+
+    await expect(page.getByTestId('officer-edit-error')).toBeVisible()
+    await expect(page.getByTestId('edit-given_name')).toHaveValue('Not saved')
+    await expect(page.getByTestId('officer-edit-save')).toBeEnabled()
   })
 
   test('verifying every record clears the outstanding count', async ({ page }) => {
@@ -113,6 +194,7 @@ test.describe('/officer/people/$personId', () => {
       const next = page.locator('[data-verify-table]').first()
       if ((await next.count()) === 0) break
       await next.click()
+      await confirmVerification(page)
       await expect(page.getByTestId('person-outstanding')).not.toContainText(`${6 - i} records`)
     }
 
@@ -126,6 +208,7 @@ test.describe('/officer/people/$personId', () => {
 
     await page.route('**/rest/v1/rpc/app_verify', (route) => route.abort('failed'))
     await page.locator('[data-verify-table="person"]').click()
+    await confirmVerification(page)
 
     await expect(page.getByTestId('verify-error')).toBeVisible()
     const personBadge = page.getByTestId('person-detail').getByTestId('provenance-badge').first()

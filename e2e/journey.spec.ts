@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { createSyntheticFarmerLogin, sql } from './support/db'
 import { markedName } from './support/marker'
 import { CROP, VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
@@ -26,28 +27,22 @@ import { chooseSelect } from './support/select'
  * chain from the officer's registration to the Tower headline were broken
  * anywhere, these numbers would not move.
  *
- * Two deliberate departures from a literal reading of §11, both forced by the
- * schema rather than chosen:
+ * Step 3 uses a privileged test fixture to link a temporary auth account to
+ * the person registered in step 1. Account creation is outside the product
+ * UI; this fixture proves that the same farmer can sign in and continue.
  *
- *   Step 3 signs in as the SEEDED farmer Neema, not as the person step 1
- *   registered. A registered person is a `person` row; signing in needs an
- *   `auth.users` row linked through `app_user`, and creating accounts is
- *   explicitly out of scope ("Do not build … user admin"). So the farmer
- *   surface is exercised with the farmer who has an account, and the step
- *   additionally asserts that she CANNOT see the farm step 1 created — which
- *   is the stronger claim about the same policy.
- *
- *   Step 7 creates its own buyer demand rather than adding an opportunity to
+ * Step 7 creates its own buyer demand rather than adding an opportunity to
  *   the seeded maize demand. That demand already carries the seeded demo
  *   opportunity, so the screen correctly offers no "create" control on it —
  *   asserted in demand.spec.ts. Step 6 still reads Ilundo coverage from the
  *   seeded demand, as §11 says.
  *
  * Everything this test writes carries the E2E- marker so cleanup removes it:
- * the registration through `family_name`, the request through `purpose`, the
- * demand through `quality_note`. Nothing seeded is verified or decided —
- * `app_verify` has no inverse and approval is terminal, so a decision on a
- * seeded record would permanently degrade the demo.
+ * the registration through `family_name`, the account through its email and
+ * person link, the request through `purpose`, and the demand through
+ * `quality_note`. Nothing seeded is verified or decided — `app_verify` has no
+ * inverse and approval is terminal, so a decision on a seeded record would
+ * permanently degrade the demo.
  */
 const PASSWORD = 'demo1234'
 
@@ -83,7 +78,7 @@ async function signOut(page: Page) {
 }
 
 test.describe('the acceptance journey', () => {
-  // Four sign-ins, ~30 navigations and eleven writes against a remote
+  // Three sign-ins, ~30 navigations and eleven writes against a remote
   // database. The per-step assertions are the real guard; this only stops the
   // whole journey being cut off by the default per-test budget.
   test.describe.configure({ timeout: 300_000 })
@@ -93,6 +88,7 @@ test.describe('the acceptance journey', () => {
     const farmLabel = `${family} farm`
     let personId = ''
     let requestId = ''
+    let farmerEmail = ''
 
     await test.step('1 · officer registers a farmer in one submit', async () => {
       await signIn(page, 'officer.ilundo@demo.ruaha360.test', /\/officer$/)
@@ -146,6 +142,7 @@ test.describe('the acceptance journey', () => {
         const next = page.locator('[data-verify-table]').first()
         if ((await next.count()) === 0) break
         await next.click()
+        await page.getByTestId('confirm-dialog-confirm').click()
         await expect(page.getByTestId('person-outstanding')).not.toContainText(
           `${6 - i} records still need`,
         )
@@ -159,20 +156,28 @@ test.describe('the acceptance journey', () => {
     })
 
     await test.step('3 · the farmer surface shows records with provenance', async () => {
+      const login = createSyntheticFarmerLogin(personId)
+      farmerEmail = login.email
+      // TOURS_ALREADY_SEEN names only seeded accounts. Without this the new
+      // account gets the first-run tour, which takes over the farmer home.
+      await page.evaluate((userId) => {
+        const key = 'ruaha360:tours-seen'
+        const seen = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]
+        localStorage.setItem(key, JSON.stringify([...seen, `farmer:${userId}`]))
+      }, login.userId)
       await signOut(page)
-      await signIn(page, 'neema@demo.ruaha360.test', /\/farm$/)
+      await signIn(page, farmerEmail, /\/farm$/)
       await page.goto('/farm/my-farm')
 
       await expect(page.getByTestId('my-farm')).toBeVisible()
       await expect(page.getByTestId('farm-card')).toHaveCount(1)
-      await expect(page.getByTestId('my-farm')).toContainText('Shamba la Neema')
+      await expect(page.getByTestId('my-farm')).toContainText(farmLabel)
       // Every figure on this screen says where it came from.
       const badges = page.getByTestId('my-farm').getByTestId('provenance-badge')
       expect(await badges.count()).toBeGreaterThan(0)
 
-      // RLS scopes the farmer to app_farms(): the farm step 1 created is not
-      // hers, so it is simply not in the answer.
-      await expect(page.getByTestId('my-farm')).not.toContainText(farmLabel)
+      // The registered farm, not Neema's seeded farm, is behind this login.
+      await expect(page.getByTestId('my-farm')).not.toContainText('Shamba la Neema')
     })
 
     await test.step('4 · the farmer submits a request and the estimate moves', async () => {
@@ -200,6 +205,14 @@ test.describe('the acceptance journey', () => {
       requestId = new URL(page.url()).pathname.split('/').pop() ?? ''
       expect(requestId).toMatch(/^[0-9a-f-]{36}$/)
 
+      const owner = sql(`
+        select r.person_id = '${personId}'::uuid and r.captured_by = u.id
+        from pue_request r join auth.users u on u.email = '${farmerEmail}'
+        where r.id = '${requestId}'::uuid
+      `)
+      if (!owner.ran) throw new Error(`could not check request owner: ${owner.reason}`)
+      expect(owner.out).toBe('t')
+
       // The stored estimate is written by pue_recompute_estimate, not by the
       // client, and must agree with the preview the farmer was shown.
       await expect(page.getByTestId('stored-estimate-kwh-day')).toHaveText('120.000 kWh')
@@ -212,7 +225,7 @@ test.describe('the acceptance journey', () => {
 
       await page.goto('/ops/requests?status=submitted')
       await expect(page.getByTestId('requests-table')).toBeVisible()
-      await expect(page.getByTestId('requests-table')).toContainText('Neema Mwakalinga')
+      await expect(page.getByTestId('requests-table')).toContainText(`Test ${family}`)
 
       // Opened by id rather than by clicking the first row. The table shows
       // applicant, equipment, estimate and status — not the purpose — so a
@@ -348,6 +361,18 @@ test.describe('the acceptance journey', () => {
       // Traced all the way back to the officer who wrote it, still carrying
       // its provenance.
       await expect(page.getByTestId('provenance-badge').first()).toBeVisible()
+    })
+
+    await test.step('9 · the same farmer sees the decision on their request', async () => {
+      await signOut(page)
+      await signIn(page, farmerEmail, /\/farm$/)
+      await page.goto(`/farm/requests/${requestId}`)
+      await expect(page.getByTestId('request-detail')).toBeVisible()
+      await expect(page.getByTestId('request-detail').getByTestId('status-pill')).toHaveAttribute(
+        'data-status',
+        'approved',
+      )
+      await expect(page.getByTestId('request-detail')).toContainText('DEMO approval. Headroom confirmed.')
     })
   })
 })

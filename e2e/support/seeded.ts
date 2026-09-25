@@ -18,7 +18,7 @@ export function assertsSeededFigures() {
   test.beforeAll(() => {
     const result = cleanupE2eRecords()
     if (!result.ran) {
-      console.warn(`[e2e] could not restore seeded state: ${result.reason}`)
+      throw new Error(`[e2e] could not restore seeded state: ${result.reason}`)
     }
   })
 }

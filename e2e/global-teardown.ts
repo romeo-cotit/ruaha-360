@@ -8,6 +8,6 @@ import { cleanupE2eRecords } from './support/db'
 export default function globalTeardown() {
   const result = cleanupE2eRecords()
   if (!result.ran) {
-    console.warn(`[e2e] post-run cleanup skipped: ${result.reason}`)
+    throw new Error(`[e2e] post-run cleanup failed: ${result.reason}`)
   }
 }

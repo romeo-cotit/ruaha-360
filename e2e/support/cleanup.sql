@@ -7,8 +7,31 @@
 
 begin;
 
+-- The suite has privileged DELETE access. Reject a wrong or empty project
+-- before identifying any fixture rows, matching the seed's DEMO safety rail.
+do $$
+begin
+  if not exists (select 1 from project where code like '%-DEMO')
+     or exists (select 1 from project where code not like '%-DEMO') then
+    raise exception 'refusing E2E cleanup: database is not demo-only';
+  end if;
+end $$;
+
 create temporary table _e2e_person on commit drop as
   select id from person where family_name like 'E2E-%';
+
+-- Both conditions are required: never delete an unrelated login merely
+-- because its email resembles a fixture, or a real account linked to a
+-- marked person by mistake. Keep ids before deleting their person rows.
+create temporary table _e2e_auth_user on commit drop as
+  select u.id from auth.users u
+  join app_user a on a.id = u.id
+  where u.email like 'e2e-journey-%@demo.ruaha360.test'
+    and a.person_id in (select id from _e2e_person);
+
+create temporary table _e2e_receipt on commit drop as
+  select client_ref from registration_receipt
+  where result->>'person_id' in (select id::text from _e2e_person);
 
 create temporary table _e2e_household on commit drop as
   select distinct hm.household_id as id
@@ -65,9 +88,38 @@ delete from household_member where household_id in (select id from _e2e_househol
 delete from household where id in (select id from _e2e_household);
 delete from person where id in (select id from _e2e_person);
 
--- idempotency receipts whose registration no longer exists
-delete from registration_receipt
- where result->>'person_id' is not null
-   and not exists (select 1 from person p where p.id = (result->>'person_id')::uuid);
+delete from registration_receipt where client_ref in (select client_ref from _e2e_receipt);
+
+-- Requests and observed rows have been removed, so no provenance FK points
+-- at the synthetic login. Membership is removed before the auth identity.
+delete from membership where user_id in (select id from _e2e_auth_user);
+
+-- Check every current FK to app_user, including future migration additions.
+-- A failed check rolls back this whole cleanup instead of deleting an actor
+-- that remains attached to any record.
+do $$
+declare fk record; still_referenced boolean;
+begin
+  for fk in
+    select c.conrelid::regclass as table_name, a.attname as column_name
+    from pg_constraint c
+    join pg_attribute a on a.attrelid = c.conrelid and a.attnum = c.conkey[1]
+    where c.contype = 'f' and c.confrelid = 'app_user'::regclass
+      and array_length(c.conkey, 1) = 1
+  loop
+    execute format(
+      'select exists (select 1 from %s where %I in (select id from _e2e_auth_user))',
+      fk.table_name, fk.column_name
+    ) into still_referenced;
+    if still_referenced then
+      raise exception 'refusing E2E account cleanup: %.% still references synthetic account',
+        fk.table_name, fk.column_name;
+    end if;
+  end loop;
+end $$;
+
+delete from app_user where id in (select id from _e2e_auth_user);
+delete from auth.identities where user_id in (select id from _e2e_auth_user);
+delete from auth.users where id in (select id from _e2e_auth_user);
 
 commit;

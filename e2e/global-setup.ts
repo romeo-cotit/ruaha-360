@@ -13,6 +13,6 @@ import { cleanupE2eRecords } from './support/db'
 export default function globalSetup() {
   const result = cleanupE2eRecords()
   if (!result.ran) {
-    console.warn(`[e2e] pre-run cleanup skipped: ${result.reason}`)
+    throw new Error(`[e2e] pre-run cleanup failed: ${result.reason}`)
   }
 }
