@@ -2,10 +2,16 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 
-import { OfficerEditDialog } from '@/features/officer/OfficerEditDialog'
-
 // No signed-in owner: the draft is in-memory only, so the form is ready at once.
 vi.mock('@/app/session', () => ({ useSession: () => ({ data: undefined }) }))
+// The real hook, observed, to see which version the draft is keyed against.
+vi.mock('@/lib/usePersistentForm', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/usePersistentForm')>()
+  return { ...actual, usePersistentForm: vi.fn(actual.usePersistentForm) }
+})
+
+const { OfficerEditDialog } = await import('@/features/officer/OfficerEditDialog')
+const { usePersistentForm } = await import('@/lib/usePersistentForm')
 
 const fields = [
   { name: 'given_name', label: 'First name', required: true },
@@ -192,5 +198,17 @@ describe('OfficerEditDialog labels', () => {
     expect(dialog).not.toHaveTextContent('cycleStatus.')
     // A database name is shown as written.
     expect(screen.getByRole('option', { name: 'Mahindi' })).toBeInTheDocument()
+  })
+
+  // An abandoned draft must not resurrect over a record changed since.
+  test('versions the draft by the record it edits', () => {
+    renderForm({ recordId: 'p1', version: '2026-09-10T08:00:00Z' })
+    expect(vi.mocked(usePersistentForm)).toHaveBeenLastCalledWith(
+      'officer-edit',
+      'person:p1',
+      expect.anything(),
+      expect.anything(),
+      { version: '2026-09-10T08:00:00Z' },
+    )
   })
 })

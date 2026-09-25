@@ -24,8 +24,8 @@ vi.mock('@/features/officer/useCrops', () => ({
   useCrops: () => ({ crops, isLoading: false }),
 }))
 vi.mock('@/features/officer/RecordEditAction', () => ({
-  RecordEditAction: ({ table, id }: { table: string; id: string }) => (
-    <button type="button" data-testid={`edit-${table}-${id}`}>Edit</button>
+  RecordEditAction: ({ table, id, version }: { table: string; id: string; version?: string | null }) => (
+    <button type="button" data-testid={`edit-${table}-${id}`} data-version={version ?? ''}>Edit</button>
   ),
 }))
 vi.mock('@tanstack/react-router', () => ({
@@ -318,5 +318,30 @@ describe('OfficerCycleScreen', () => {
     expect(screen.getByTestId('edit-crop_cycle-c1')).toBeInTheDocument()
     expect(screen.getByTestId('edit-harvest_report-h1')).toBeInTheDocument()
     expect(screen.queryByTestId('edit-harvest_report-h2')).not.toBeInTheDocument()
+  })
+
+  // A correction stamps captured_at, so it versions the record: a draft typed
+  // against an older capture is discarded rather than restored over it.
+  test('versions every edit by the record captured_at', () => {
+    useFarmDetail.mockReturnValue({
+      isLoading: false,
+      error: null,
+      data: farm({ captured_at: '2026-09-10T08:00:00Z', plots: [{ ...farm().plots[0], captured_at: '2026-09-11T08:00:00Z' }] }),
+    })
+    useCycleDetail.mockReturnValue({
+      isLoading: false,
+      error: null,
+      cycle: cycle({
+        captured_at: '2026-09-12T08:00:00Z',
+        harvests: [{ ...cycle().harvests[0], captured_at: '2026-09-13T08:00:00Z' }],
+      }),
+    })
+    render(<OfficerFarmScreen />)
+    render(<OfficerCycleScreen />)
+
+    expect(screen.getByTestId('edit-farm-f1')).toHaveAttribute('data-version', '2026-09-10T08:00:00Z')
+    expect(screen.getByTestId('edit-plot-pl1')).toHaveAttribute('data-version', '2026-09-11T08:00:00Z')
+    expect(screen.getByTestId('edit-crop_cycle-c1')).toHaveAttribute('data-version', '2026-09-12T08:00:00Z')
+    expect(screen.getByTestId('edit-harvest_report-h1')).toHaveAttribute('data-version', '2026-09-13T08:00:00Z')
   })
 })

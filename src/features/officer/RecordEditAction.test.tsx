@@ -10,10 +10,17 @@ const editState = { isPending: false, error: null as Error | null }
 vi.mock('@/features/officer/useOfficerEdit', () => ({
   useOfficerEdit: () => ({ mutateAsync: mutate, reset, ...editState }),
 }))
+// No signed-in owner, and no route to the Supabase client in CI without .env.
+vi.mock('@/app/session', () => ({ useSession: () => ({ data: undefined }) }))
+vi.mock('@/lib/usePersistentForm', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/usePersistentForm')>()
+  return { ...actual, usePersistentForm: vi.fn(actual.usePersistentForm) }
+})
 
 const { RecordEditAction } = await import('@/features/officer/RecordEditAction')
+const { usePersistentForm } = await import('@/lib/usePersistentForm')
 
-function renderAction() {
+function renderAction(version?: string) {
   const client = new QueryClient()
   return render(
     <QueryClientProvider client={client}>
@@ -24,6 +31,7 @@ function renderAction() {
         fields={[{ name: 'label', label: 'Farm name' }]}
         initialValues={{ label: 'Old farm' }}
         context={{ villageId: 'v1' }}
+        version={version}
       />
     </QueryClientProvider>,
   )
@@ -54,5 +62,18 @@ describe('RecordEditAction', () => {
     await user.click(screen.getByTestId('officer-edit-cancel'))
     expect(reset).toHaveBeenCalled()
     expect(screen.queryByTestId('officer-edit-dialog')).not.toBeInTheDocument()
+  })
+
+  test('versions the dialog draft by the record', async () => {
+    const user = userEvent.setup()
+    renderAction('2026-09-10T08:00:00Z')
+    await user.click(screen.getByTestId('edit-farm-f1'))
+    expect(vi.mocked(usePersistentForm)).toHaveBeenLastCalledWith(
+      'officer-edit',
+      'farm:f1',
+      expect.anything(),
+      expect.anything(),
+      { version: '2026-09-10T08:00:00Z' },
+    )
   })
 })

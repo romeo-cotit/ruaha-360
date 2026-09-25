@@ -76,7 +76,11 @@ const optionalNumber = (values: EditValues, key: string) => {
   return raw === '' ? null : Number(raw)
 }
 
-export function buildEditPayload(table: Exclude<EditableTable, 'harvest_report'>, values: EditValues) {
+export function buildEditPayload(
+  table: Exclude<EditableTable, 'harvest_report'>,
+  values: EditValues,
+  measure?: CropMeasure,
+) {
   if (table === 'person') {
     return {
       given_name: values.given_name.trim(),
@@ -100,12 +104,15 @@ export function buildEditPayload(table: Exclude<EditableTable, 'harvest_report'>
       longitude: optionalNumber(values, 'longitude'),
     }
   }
+  // The dialog hides the measures a crop does not use but keeps their old
+  // values; the RPC refuses a non-matching measure, so drop them when known.
+  const keeps = (field: CropMeasure) => !measure || measure === field
   return {
     crop_id: values.crop_id,
     season_label: values.season_label?.trim() ?? '',
-    area_ha: optionalNumber(values, 'area_ha'),
-    tree_count: values.tree_count?.trim() ? Number(values.tree_count) : null,
-    unit_count: values.unit_count?.trim() ? Number(values.unit_count) : null,
+    area_ha: keeps('area') ? optionalNumber(values, 'area_ha') : null,
+    tree_count: keeps('tree_count') && values.tree_count?.trim() ? Number(values.tree_count) : null,
+    unit_count: keeps('unit_count') && values.unit_count?.trim() ? Number(values.unit_count) : null,
     planted_on: values.planted_on,
     harvest_start: values.harvest_start,
     harvest_end: values.harvest_end,

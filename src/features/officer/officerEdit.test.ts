@@ -48,6 +48,17 @@ describe('officer edit validation', () => {
     expect(buildEditPayload('crop_cycle', { crop_id: 'c', tree_count: '2', unit_count: '3' })).toMatchObject({ tree_count: 2, unit_count: 3, season_label: '' })
   })
 
+  // The RPC refuses a cycle carrying a measure its crop does not use, so a
+  // cycle switched between crops must drop the hidden, stale measure values.
+  test('a cycle payload keeps only the measure its crop uses', () => {
+    const stale = { crop_id: 'c', area_ha: '2.5', tree_count: '100', unit_count: '7' }
+    expect(buildEditPayload('crop_cycle', stale, 'area')).toMatchObject({ area_ha: 2.5, tree_count: null, unit_count: null })
+    expect(buildEditPayload('crop_cycle', stale, 'tree_count')).toMatchObject({ area_ha: null, tree_count: 100, unit_count: null })
+    expect(buildEditPayload('crop_cycle', stale, 'unit_count')).toMatchObject({ area_ha: null, tree_count: null, unit_count: 7 })
+    expect(buildEditPayload('crop_cycle', stale)).toMatchObject({ area_ha: 2.5, tree_count: 100, unit_count: 7 })
+    expect(buildEditPayload('farm', { label: 'Farm', latitude: '', longitude: '' }, 'tree_count')).toEqual({ label: 'Farm', latitude: null, longitude: null })
+  })
+
   test('returns no validation error for an unknown runtime table', () => {
     expect(validateEdit('unexpected' as never, {})).toBeNull()
   })

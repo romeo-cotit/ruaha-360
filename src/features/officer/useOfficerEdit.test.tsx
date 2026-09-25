@@ -67,6 +67,37 @@ describe('useOfficerEdit', () => {
     expect(rpc).toHaveBeenCalledWith('app_update_observed_record', expect.objectContaining({ p_table: 'crop_cycle', p_id: 'c1' }))
   })
 
+  test('a cycle switched from an area crop to a tree crop sends only the tree count', async () => {
+    rpc.mockReset()
+    rpc.mockResolvedValue({ data: null, error: null })
+    const { result } = renderEdit('area')
+    await result.current.mutateAsync({
+      table: 'crop_cycle',
+      id: 'c1',
+      values: { crop_id: 'tree-crop', area_ha: '2.5', tree_count: '100', unit_count: '' },
+      measure: 'tree_count',
+      context: { villageId: 'v1', cycleId: 'c1' },
+    })
+    expect(rpc).toHaveBeenCalledWith('app_update_observed_record', expect.objectContaining({
+      p_payload: expect.objectContaining({ area_ha: null, tree_count: 100, unit_count: null }),
+    }))
+  })
+
+  test('a cycle falls back to the hook measure when none is selected', async () => {
+    rpc.mockReset()
+    rpc.mockResolvedValue({ data: null, error: null })
+    const { result } = renderEdit('unit_count')
+    await result.current.mutateAsync({
+      table: 'crop_cycle',
+      id: 'c1',
+      values: { crop_id: 'unit-crop', area_ha: '2.5', unit_count: '4' },
+      context: { villageId: 'v1', cycleId: 'c1' },
+    })
+    expect(rpc).toHaveBeenCalledWith('app_update_observed_record', expect.objectContaining({
+      p_payload: expect.objectContaining({ area_ha: null, tree_count: null, unit_count: 4 }),
+    }))
+  })
+
   test('rejects validation, missing harvest context, and server failures', async () => {
     const { result } = renderEdit('area')
     await expect(result.current.mutateAsync({

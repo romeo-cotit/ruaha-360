@@ -39,8 +39,8 @@ vi.mock('@/features/officer/VerifyButton', () => ({
   ),
 }))
 vi.mock('@/features/officer/OfficerEditDialog', () => ({
-  OfficerEditDialog: ({ table, initialValues, onSave, onComplete, onCancel }: { table: string; initialValues: Record<string, string>; onSave: (values: Record<string, string>) => Promise<unknown> | void; onComplete?: () => void; onCancel: () => void }) => (
-    <div data-testid={`screen-edit-${table}`}>
+  OfficerEditDialog: ({ table, version, initialValues, onSave, onComplete, onCancel }: { table: string; version?: string | null; initialValues: Record<string, string>; onSave: (values: Record<string, string>) => Promise<unknown> | void; onComplete?: () => void; onCancel: () => void }) => (
+    <div data-testid={`screen-edit-${table}`} data-version={version ?? ''}>
       <button type="button" data-testid="screen-edit-save" onClick={async () => { try { await onSave(initialValues); onComplete?.() } catch { /* stays open */ } }}>Save</button>
       <button type="button" data-testid="screen-edit-cancel" onClick={onCancel}>Cancel</button>
     </div>
@@ -148,6 +148,25 @@ describe('PersonDetailScreen', () => {
     await user.click(screen.getByTestId('screen-edit-save'))
     expect(editMutate).toHaveBeenCalledTimes(1)
     await waitFor(() => expect(screen.queryByTestId('screen-edit-person')).not.toBeInTheDocument())
+  })
+
+  // The payload drops measures the crop does not use, so the save must name
+  // the measure of the crop currently selected in the dialog.
+  test('a cycle save passes the selected crop measure', async () => {
+    const user = userEvent.setup()
+    render(<PersonDetailScreen />)
+    await user.click(screen.getByTestId('edit-cycle-c-tree'))
+    await user.click(screen.getByTestId('screen-edit-save'))
+    expect(editMutate).toHaveBeenCalledWith(expect.objectContaining({ table: 'crop_cycle', id: 'c-tree', measure: 'tree_count' }))
+  })
+
+  // A draft is discarded when the record changed since it was written, so
+  // the dialog must be told which server version it is editing.
+  test('each edit dialog is given the record captured_at as its draft version', async () => {
+    const user = userEvent.setup()
+    render(<PersonDetailScreen />)
+    await user.click(screen.getByTestId('edit-person'))
+    expect(screen.getByTestId('screen-edit-person')).toHaveAttribute('data-version', '2026-09-20T00:00:00Z')
   })
 
   test('a failed section save stays open', async () => {

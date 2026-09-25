@@ -135,6 +135,7 @@ export function OfficerFarmScreen() {
           fields={farmFields()}
           initialValues={{ label: farm.label, latitude: farm.latitude?.toString() ?? '', longitude: farm.longitude?.toString() ?? '' }}
           context={{ villageId: farm.village_id, farmId: farm.id }}
+          version={farm.captured_at}
         />
       </header>
 
@@ -202,6 +203,7 @@ export function OfficerFarmScreen() {
                     fields={plotFields()}
                     initialValues={{ label: plot.label, area_ha: plot.area_ha?.toString() ?? '', latitude: plot.latitude?.toString() ?? '', longitude: plot.longitude?.toString() ?? '' }}
                     context={{ villageId: farm.village_id, farmId: farm.id }}
+                    version={plot.captured_at}
                   />
                 </div>
               </li>
@@ -284,6 +286,7 @@ export function OfficerCycleScreen() {
           measure={crops.crops.find((crop) => crop.id === cycle.crop_id)?.measured_by}
           measureByCrop={Object.fromEntries(crops.crops.map((crop) => [crop.id, crop.measured_by]))}
           context={{ villageId: cycle.village_id, cycleId: cycle.id }}
+          version={cycle.captured_at}
         />
       </header>
 
@@ -390,6 +393,7 @@ export function OfficerCycleScreen() {
                       fields={harvestFields()}
                       initialValues={{ quantity_kg: h.quantity_kg.toString(), reported_for: h.reported_for ?? '', confidence: h.confidence ?? 'medium' }}
                       context={{ villageId: cycle.village_id, cycleId: cycle.id, harvestKind: h.kind }}
+                      version={h.captured_at}
                     />
                   )}
                 </div>

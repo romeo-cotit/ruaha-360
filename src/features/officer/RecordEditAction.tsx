@@ -15,6 +15,7 @@ export function RecordEditAction({
   context,
   measure,
   measureByCrop,
+  version,
 }: {
   table: EditableTable
   id: string
@@ -24,6 +25,8 @@ export function RecordEditAction({
   context: EditContext
   measure?: Database['public']['Enums']['crop_measure']
   measureByCrop?: Readonly<Record<string, CropMeasure>>
+  /** The record's captured_at; see OfficerEditDialog. */
+  version?: string | null
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -43,6 +46,7 @@ export function RecordEditAction({
           initialValues={initialValues}
           measure={measure}
           measureByCrop={measureByCrop}
+          version={version}
           pending={edit.isPending}
           error={edit.error}
           onSave={(values) => edit.mutateAsync({

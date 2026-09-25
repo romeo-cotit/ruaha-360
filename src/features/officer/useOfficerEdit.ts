@@ -29,7 +29,8 @@ export function useOfficerEdit(measure?: Database['public']['Enums']['crop_measu
       context: EditContext
       measure?: CropMeasure
     }) => {
-      const validationError = validateEdit(table, values, selectedMeasure ?? measure)
+      const activeMeasure = selectedMeasure ?? measure
+      const validationError = validateEdit(table, values, activeMeasure)
       if (validationError) throw new Error(validationError)
 
       if (table === 'harvest_report') {
@@ -49,7 +50,7 @@ export function useOfficerEdit(measure?: Database['public']['Enums']['crop_measu
       const { error } = await supabase.rpc('app_update_observed_record', {
         p_table: table,
         p_id: id,
-        p_payload: buildEditPayload(table, values) as unknown as Json,
+        p_payload: buildEditPayload(table, values, activeMeasure) as unknown as Json,
       })
       if (error) throw new Error(error.message)
     },

@@ -13,7 +13,6 @@ vi.mock('@/lib/supabase', () => ({
       }),
     }),
   },
-  isDemoData: true,
 }))
 
 const { useCycleDetail } = await import('@/features/officer/useOfficerRecords')

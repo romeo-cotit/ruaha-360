@@ -14,7 +14,7 @@ import { VerifyButton } from '@/features/officer/VerifyButton'
 import { OfficerEditDialog, type EditField } from '@/features/officer/OfficerEditDialog'
 import { useCrops } from '@/features/officer/useCrops'
 import { useOfficerEdit } from '@/features/officer/useOfficerEdit'
-import type { CropMeasure, EditContext, EditableTable, EditValues } from '@/features/officer/officerEdit'
+import { selectedEditMeasure, type CropMeasure, type EditContext, type EditableTable, type EditValues } from '@/features/officer/officerEdit'
 import { formatArea, formatKg, formatPlainDate } from '@/lib/format'
 
 const route = getRouteApi('/_officer/officer/people/$personId')
@@ -63,7 +63,13 @@ export function PersonDetailScreen() {
     if (!editing) return
     // mutateAsync, so a failed save rejects: the dialog keeps its draft and
     // clears it only after the server confirmed.
-    return edit.mutateAsync({ table: editing.table, id: editing.id, values, context: editing.context })
+    return edit.mutateAsync({
+      table: editing.table,
+      id: editing.id,
+      values,
+      context: editing.context,
+      measure: selectedEditMeasure(editing.table, values, editing.measureByCrop, editing.measure),
+    })
   }
 
   return (
@@ -249,6 +255,7 @@ export function PersonDetailScreen() {
         <OfficerEditDialog
           table={editing.table}
           recordId={editing.id}
+          version={editing.version}
           title={editing.title}
           fields={editing.fields}
           initialValues={editing.initialValues}
@@ -321,6 +328,8 @@ interface EditState {
   context: EditContext
   measure?: 'area' | 'tree_count' | 'unit_count'
   measureByCrop?: Readonly<Record<string, CropMeasure>>
+  /** The record's captured_at: a draft written against another version is discarded. */
+  version: string | null
 }
 
 const harvestConfidenceField: EditField = {
@@ -345,7 +354,7 @@ const EDIT_BUTTON: React.CSSProperties = {
 
 function personEdit(person: PersonDetail['person']): EditState {
   return {
-    table: 'person', id: person.id, title: 'officerEdit.titles.person',
+    table: 'person', id: person.id, version: person.captured_at, title: 'officerEdit.titles.person',
     fields: [
       { name: 'given_name', label: 'officerEdit.fields.given_name', required: true },
       { name: 'family_name', label: 'officerEdit.fields.family_name', required: true },
@@ -358,7 +367,7 @@ function personEdit(person: PersonDetail['person']): EditState {
 
 function householdEdit(household: PersonDetail['households'][number], villageId: string, personId: string): EditState {
   return {
-    table: 'household', id: household.id, title: 'officerEdit.titles.household',
+    table: 'household', id: household.id, version: household.captured_at, title: 'officerEdit.titles.household',
     fields: [{ name: 'label', label: 'officerEdit.fields.household_label', required: true }],
     initialValues: { label: household.label },
     context: { villageId, personId },
@@ -367,7 +376,7 @@ function householdEdit(household: PersonDetail['households'][number], villageId:
 
 function farmEdit(farm: PersonDetail['farms'][number], villageId: string, personId: string): EditState {
   return {
-    table: 'farm', id: farm.id, title: 'officerEdit.titles.farm',
+    table: 'farm', id: farm.id, version: farm.captured_at, title: 'officerEdit.titles.farm',
     fields: [
       { name: 'label', label: 'officerEdit.fields.farm_label', required: true },
       { name: 'latitude', label: 'officerEdit.fields.latitude', type: 'number', step: 'any' },
@@ -380,7 +389,7 @@ function farmEdit(farm: PersonDetail['farms'][number], villageId: string, person
 
 function plotEdit(plot: PersonDetail['farms'][number]['plots'][number], villageId: string, personId: string, farmId: string): EditState {
   return {
-    table: 'plot', id: plot.id, title: 'officerEdit.titles.plot',
+    table: 'plot', id: plot.id, version: plot.captured_at, title: 'officerEdit.titles.plot',
     fields: [
       { name: 'label', label: 'officerEdit.fields.plot_label', required: true },
       { name: 'area_ha', label: 'officerEdit.fields.plot_area_ha', type: 'number', step: 'any' },
@@ -401,7 +410,7 @@ function cycleEdit(
 ): EditState {
   const measure = crops.find((crop) => crop.id === cycle.crop_id)?.measured_by
   return {
-    table: 'crop_cycle', id: cycle.id, title: 'officerEdit.titles.crop_cycle', measure,
+    table: 'crop_cycle', id: cycle.id, version: cycle.captured_at, title: 'officerEdit.titles.crop_cycle', measure,
     fields: [
       { name: 'crop_id', label: 'officerEdit.fields.crop_id', options: crops.map((crop) => ({ value: crop.id, label: crop.name })) },
       { name: 'season_label', label: 'officerEdit.fields.season_label' },
@@ -427,7 +436,7 @@ function harvestEdit(
   cycleId: string,
 ): EditState {
   return {
-    table: 'harvest_report', id: harvest.id, title: 'officerEdit.titles.harvest_report',
+    table: 'harvest_report', id: harvest.id, version: harvest.captured_at, title: 'officerEdit.titles.harvest_report',
     fields: [
       { name: 'quantity_kg', label: 'officerEdit.fields.quantity_kg', type: 'number', step: 'any', required: true },
       { name: 'reported_for', label: 'officerEdit.fields.reported_for', type: 'date' },

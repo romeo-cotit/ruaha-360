@@ -25,6 +25,7 @@ export function OfficerEditDialog({
   initialValues,
   measure,
   measureByCrop,
+  version,
   pending,
   error,
   onSave,
@@ -38,6 +39,8 @@ export function OfficerEditDialog({
   initialValues: EditValues
   measure?: Database['public']['Enums']['crop_measure']
   measureByCrop?: Readonly<Record<string, CropMeasure>>
+  /** The record's captured_at: a draft typed against an older one is discarded. */
+  version?: string | null
   pending: boolean
   error: Error | null
   onSave: (values: EditValues) => Promise<unknown> | void
@@ -46,7 +49,7 @@ export function OfficerEditDialog({
 }) {
   // Labels and titles are translation keys; option labels may be DB names.
   const { t } = useTranslation()
-  const draft = usePersistentForm<EditValues>('officer-edit', `${table}:${recordId ?? title}`, initialValues, zodResolver(editSchema))
+  const draft = usePersistentForm<EditValues>('officer-edit', `${table}:${recordId ?? title}`, initialValues, zodResolver(editSchema), { version })
   const values = draft.values
   const [validationError, setValidationError] = useState<string | null>(null)
   const activeMeasure = table === 'crop_cycle'
