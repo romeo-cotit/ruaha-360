@@ -9,7 +9,6 @@ const navigate = vi.fn()
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { signInWithPassword: (a: unknown) => signInWithPassword(a) } },
-  isDemoData: true,
 }))
 vi.mock('@/app/session', () => ({
   // The real registry entry, so the cache behaves as it does in the app.

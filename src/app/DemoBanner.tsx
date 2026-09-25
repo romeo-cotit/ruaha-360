@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { isDemoData } from '@/lib/supabase'
+import { isDemoData } from '@/lib/dataMode'
 
 /**
  * Driven by VITE_DATA_MODE, never by a database column: the demo instance and

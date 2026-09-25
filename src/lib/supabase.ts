@@ -27,6 +27,3 @@ export const supabase = createClient<Database>(url, anonKey, {
     autoRefreshToken: true,
   },
 })
-
-/** Drives the demo banner. Never a database column — see CLAUDE.md. */
-export const isDemoData = import.meta.env.VITE_DATA_MODE === 'demo'

@@ -10,7 +10,6 @@ let pathname = '/officer/register'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { from: () => ({ update: (v: unknown) => ({ eq: () => update(v) }) }) },
-  isDemoData: true,
 }))
 vi.mock('@/app/session', () => ({ useSession: () => useSession() }))
 vi.mock('@tanstack/react-router', () => ({

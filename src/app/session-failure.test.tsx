@@ -15,7 +15,6 @@ vi.mock('@/lib/supabase', () => ({
         ? { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) }
         : { select: () => ({ eq: () => ({ is: async () => ({ data: null, error: { message: FAILURE } }) }) }) },
   },
-  isDemoData: true,
 }))
 
 const { routeTree } = await import('@/routeTree.gen')

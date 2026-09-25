@@ -9,7 +9,6 @@ vi.mock('@/lib/supabase', () => ({
     auth: { getSession: () => getSession(), signOut: () => authSignOut() },
     from: (table: string) => from(table),
   },
-  isDemoData: true,
 }))
 
 const { fetchSession, signOut, sessionQuery } = await import('@/app/session')
