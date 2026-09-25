@@ -388,10 +388,10 @@ No visual output. Route-guard convenience only.
 | `/officer` | `officer-home` | Assigned villages, counts (people / farms / requests), outstanding-verification call to action |
 | `/officer/register` | `register-submit` | **The most important screen in the build.** One page, ~20 fields in 5 fieldsets, one submit, one transaction |
 | `/officer/people` | `people-table` | Searchable, filterable by verification status; URL-held |
-| `/officer/people/$personId` | `person-detail` | Person → household → farms → plots → cycles → harvest series, with inline verify actions |
+| `/officer/people/$personId` | `person-detail` | Person → household → farms → plots → cycles → harvest series, with inline verify actions and section-level correction forms |
 | `/officer/farms/$farmId` | `farm-detail` | Farm, GPS point, plots |
 | `/officer/cycles/$cycleId` | `cycle-detail` | Cycle with its harvest series — current figure plus every superseded one, labelled |
-| `/officer/verify` | `verify-queue` | 14 mixed-type records awaiting verification, each with a one-way Verify button |
+| `/officer/verify` | `verify-queue` | 14 mixed-type records awaiting verification; each summary links to contextual detail, while a separate Verify button requires confirmation |
 
 **`/officer/register` deserves specific attention.** It is the longest form in
 the application, used outdoors, one-handed, possibly in sunlight, by someone

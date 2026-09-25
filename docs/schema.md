@@ -10,7 +10,7 @@ Authority: Ruaha 360 Overview Plan v2. Target: MVP demo, 30 September 2026.
 pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
-pnpm db:rls         # the 24 policy assertions
+pnpm db:rls         # the 78 policy assertions
 ```
 
 **Cloud dev project only** — there is no local Supabase and none is wanted.
@@ -37,7 +37,7 @@ than a rewrite.
 | `..._market.sql` | `buyer` `buyer_demand` `opportunity` `opportunity_supply` + commitment guard |
 | `..._views.sql` | seven Control Tower views, all `security_invoker` |
 | `seed.sql` | labelled demo data, two villages, six accounts |
-| `tests/rls_test.sql` | 20+ assertions on the policies |
+| `tests/rls_test.sql` | 78 assertions on the policies, including `tests/mvp_security_test.sql` |
 
 ## Conventions
 

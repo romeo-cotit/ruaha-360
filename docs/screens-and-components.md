@@ -24,9 +24,9 @@ Written to be handed to an implementing agent alongside `schema.md` and the
    Query. No ORM.
 4. **Build tier by tier.** T1 first, all of it, before any T2. The T1 set is
    exactly the acceptance journey and nothing else.
-5. **This document is unvalidated.** The migrations have never been applied.
-   Run `supabase db reset` and `supabase/tests/rls_test.sql` first; if an
-   assertion fails, the schema is wrong and gets fixed before any UI is built.
+5. **Validated against the cloud dev project.** The migrations are applied
+   there and recorded; `pnpm db:rls` must pass before UI work that depends on
+   a policy. There is no local Supabase (see `supabase/README.md`).
 
 ---
 

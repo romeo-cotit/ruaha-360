@@ -1,6 +1,6 @@
 # Swahili handover — Ruaha 360
 
-Generated 2026-09-14 from `src/i18n/en/common.json`. Do not edit by hand;
+Generated 2026-09-25 from `src/i18n/en/common.json`. Do not edit by hand;
 regenerate with `pnpm i18n:handover`.
 
 ## What this is
@@ -18,12 +18,12 @@ English is visibly untranslated and a wrong Swahili string is not.
 ## Priority
 
 - **Required** — the farmer and officer surfaces, and the chrome both of
-  them render. 384 strings. CLAUDE.md specifies these ship
+  them render. 426 strings. CLAUDE.md specifies these ship
   complete Swahili.
 - **Optional** — Ops and Tower. 260 strings. These may ship
   English for the demo.
 
-644 strings in total, of which 2 already have Swahili.
+686 strings in total, of which 2 already have Swahili.
 
 ## How to read the table
 
@@ -45,6 +45,7 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `a11y.skipToContent` | Skip to content |  |  |
 | `capacityBasis.nameplate` | Nameplate |  | Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis. |
 | `capacityBasis.planned` | Planned |  | Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis. |
+| `common.close` | Close |  |  |
 | `common.loading` | Loading… |  |  |
 | `common.no` | No |  |  |
 | `common.optional` | optional |  |  |
@@ -74,6 +75,7 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `demoBanner.detail` | Every figure here is invented. Nothing is a measured Ruaha result. |  |  |
 | `demoBanner.label` | Demo data |  |  |
 | `draft.notSubmitted` | Not yet submitted |  |  |
+| `draft.storageError` | Could not save this draft on this device. Keep this page open until you submit. |  |  |
 | `empty.noAccessDetail` | You may not have access to these records, or there are none yet. |  |  |
 | `empty.noAccessToThis` | Nothing to show |  |  |
 | `equipment.days` | Days per week |  |  |
@@ -225,6 +227,37 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `notFound.detail` | The link may be out of date. |  |  |
 | `notFound.home` | Go to your home screen |  |  |
 | `notFound.title` | That page does not exist |  |  |
+| `officerEdit.action` | Edit |  |  |
+| `officerEdit.cancel` | Cancel |  |  |
+| `officerEdit.fields.confidence` | Confidence |  | Confidence level recorded with a figure. Low / medium / high. |
+| `officerEdit.fields.crop_id` | Crop |  |  |
+| `officerEdit.fields.cycle_area_ha` | Planted area (ha) |  |  |
+| `officerEdit.fields.family_name` | Family name |  |  |
+| `officerEdit.fields.farm_label` | Farm name |  |  |
+| `officerEdit.fields.given_name` | First name |  |  |
+| `officerEdit.fields.harvest_end` | Harvest window ends |  |  |
+| `officerEdit.fields.harvest_start` | Harvest window starts |  |  |
+| `officerEdit.fields.household_label` | Household name |  |  |
+| `officerEdit.fields.latitude` | Latitude |  |  |
+| `officerEdit.fields.longitude` | Longitude |  |  |
+| `officerEdit.fields.phone` | Phone |  |  |
+| `officerEdit.fields.planted_on` | Planted on |  |  |
+| `officerEdit.fields.plot_area_ha` | Plot area (ha) |  |  |
+| `officerEdit.fields.plot_label` | Plot name |  |  |
+| `officerEdit.fields.quantity_kg` | Quantity (kg) |  |  |
+| `officerEdit.fields.reported_for` | Reported for |  |  |
+| `officerEdit.fields.season_label` | Season |  |  |
+| `officerEdit.fields.status` | Status |  |  |
+| `officerEdit.fields.tree_count` | Number of trees |  |  |
+| `officerEdit.fields.unit_count` | Number of units |  |  |
+| `officerEdit.save` | Save changes |  |  |
+| `officerEdit.saving` | Saving… |  |  |
+| `officerEdit.titles.crop_cycle` | Edit crop cycle |  |  |
+| `officerEdit.titles.farm` | Edit farm details |  |  |
+| `officerEdit.titles.harvest_report` | Correct harvest figure |  |  |
+| `officerEdit.titles.household` | Edit household details |  |  |
+| `officerEdit.titles.person` | Edit farmer details |  |  |
+| `officerEdit.titles.plot` | Edit plot details |  |  |
 | `officerHome.farms` | Farms |  |  |
 | `officerHome.nothingOutstanding` | Every record in your villages is verified. |  |  |
 | `officerHome.noVillagesDetail` | Your account is on the project but not yet attached to a village. Ask your programme manager to assign one. |  |  |
@@ -239,6 +272,11 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `officerHome.villageOutstanding_one` | 1 record here still needs verifying |  |  |
 | `officerHome.villageOutstanding_other` | {{count}} records here still need verifying |  | Keep {{count}} |
 | `officerHome.villages` | Assigned villages |  |  |
+| `opportunityStatus.accepted` | Accepted |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunityStatus.declined` | Declined |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunityStatus.lapsed` | Lapsed |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunityStatus.proposed` | Proposed |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunityStatus.shared` | Shared |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `people.allVerifications` | All |  |  |
 | `people.colName` | Name |  |  |
 | `people.colPhone` | Phone |  |  |
@@ -412,6 +450,10 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `verification.pending` | Pending |  | Provenance wording: where a record came from, and who verified it. |
 | `verification.unverified` | Unverified |  | Provenance wording: where a record came from, and who verified it. |
 | `verification.verified` | Verified |  | Provenance wording: where a record came from, and who verified it. |
+| `verifyDialog.cancel` | Cancel |  |  |
+| `verifyDialog.confirm` | Verify record |  |  |
+| `verifyDialog.detail` | You are confirming {{record}}. Your name will be attached, and this action cannot be undone. |  | Keep {{record}} |
+| `verifyDialog.title` | Verify this record? |  |  |
 | `verifyQueue.intro` | Records captured in your villages that nobody has checked yet. Verifying attaches your name to the record. |  |  |
 | `verifyQueue.noneDetail` | Every record in your villages has been checked. |  |  |
 | `verifyQueue.noneTitle` | Nothing waiting to be verified |  |  |
@@ -540,11 +582,6 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `opportunity.releaseYes` | Yes, release the supply |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.supplyLines` | Supply |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.title` | Opportunity |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
-| `opportunityStatus.accepted` | Accepted |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
-| `opportunityStatus.declined` | Declined |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
-| `opportunityStatus.lapsed` | Lapsed |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
-| `opportunityStatus.proposed` | Proposed |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
-| `opportunityStatus.shared` | Shared |  | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `ops.allStatuses` | All statuses |  |  |
 | `ops.allVillages` | All villages |  |  |
 | `ops.applicant` | Applicant |  |  |
@@ -665,8 +702,13 @@ English is visibly untranslated and a wrong Swahili string is not.
 | `tower.pue` | Equipment pipeline |  |  |
 | `tower.pueNote` | Requests by status, with the catalogue value they represent. |  |  |
 | `tower.quality` | Data quality |  |  |
-| `tower.qualityNoDrill` | This tile has no drill link, because it counts records rather than reporting a figure. |  |  |
+| `tower.qualityCounted` | Counted |  |  |
+| `tower.qualityDrill` | Records behind data quality |  |  |
+| `tower.qualityMetrics` | Data quality measures |  |  |
+| `tower.qualityMissing` | Not counted |  |  |
 | `tower.qualityNote` | How much of what has been recorded has been checked. |  |  |
+| `tower.qualityRecord` | Record |  |  |
+| `tower.qualityState` | In measure |  |  |
 | `tower.requestCount_one` | 1 request |  |  |
 | `tower.requestCount_other` | {{count}} requests |  | Keep {{count}} |
 | `tower.requests` | Requests |  |  |

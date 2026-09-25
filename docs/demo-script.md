@@ -37,16 +37,27 @@ tables. This is one transaction, and it is idempotent on a client reference,
 so a retry after a timeout cannot create a second farmer.
 
 Worth showing: type three spaces into First name and submit. It is refused
-inline. The database would have accepted `'   '` as a name, and there is no
-rename screen.
+inline. The database would have accepted `'   '` as a name.
 
 ## 2 · The officer verifies the records
 
 `/officer/verify`. The queue is everything unverified or pending in their
 villages.
 
-**Say why:** verification is one-way and only `app_verify` can do it — no
-screen writes those columns directly. The officer is asserting they saw it.
+Each record summary is a keyboard-accessible link. Person records open the
+farmer detail; farms, plots, crop cycles, and harvest reports open the closest
+contextual detail, with plot or harvest focus when needed. The Verify button
+is a separate control, so tapping it never navigates. It first asks for
+confirmation, then calls `app_verify`; cancellation, Escape, and backdrop taps
+do nothing.
+
+From any detail page, Edit opens a small prefilled section form. Save validates
+again on the server, resets that record to unverified, and returns it to the
+queue. Harvest corrections create a replacement row and retain the old row for
+audit. There is no unverify button because verification is one-way.
+
+**Say why:** only `app_verify` can verify, and only the allowlisted correction
+RPC can edit. The officer is asserting they saw the corrected record.
 
 ## 3 · The farmer sees the same records
 

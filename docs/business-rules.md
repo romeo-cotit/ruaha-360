@@ -213,6 +213,27 @@ Every insert into `person`, `household`, `farm`, `plot`, `crop_cycle`,
 `harvest_report`, `pue_request` goes through it. Retrofitting provenance into
 thirty call sites later is a bad week.
 
+### The database is authoritative (migration `20260925090001_mvp_security`)
+
+The helper keeps call sites honest; it is not the security boundary.
+
+- `person`, `household`, `farm`, `plot`, `crop_cycle`, `harvest_report`,
+  `household_member`, `farm_manager` and `registration_receipt` accept **no
+  direct client writes**. They change only through `app_register_farmer`,
+  `app_update_observed_record`, `app_verify` and `app_supersede_harvest`.
+  Those RPCs run as `ruaha_observed_writer` — `NOLOGIN`, `NOBYPASSRLS`, owns
+  no table — so village-scoped RLS still applies inside them.
+- Registration-created rows carry server provenance (`field_verified`,
+  `captured_by` = the officer); the expected harvest stays `farmer_reported`.
+- `pue_request` and `buyer_demand` inserts are re-stamped by the
+  `stamp_captured_input` trigger: `captured_by = auth.uid()`,
+  `captured_at = now()`, `verification = 'unverified'`, and for requests
+  `source = 'farmer_reported'`. Updates cannot change any of them. A forged
+  value is replaced, not rejected.
+- Relationship rows (`household_member`, `farm_manager`) require both
+  endpoints in the same village. A cross-village join fails with
+  `new row violates row-level security policy`.
+
 Config tables — `country`, `project`, `village`, `crop`, `equipment_category`,
 `equipment`, `buyer`, `village_capacity` — have **no** provenance columns.
 Do not try to set them.
@@ -223,7 +244,7 @@ Do not try to set them.
 |---|---|
 | officer registering or editing a record | `field_verified` |
 | a number the farmer supplied, typed by anyone | `farmer_reported` |
-| a farmer editing their own profile | `farmer_reported` |
+| a farmer editing their own profile | **not in MVP** — farmers are read-only on person and production records |
 | a PUE request | `farmer_reported` (schema default) |
 | an energy estimate | `model_estimated` (trigger sets it) |
 | meter data | `sensor_derived` — **not in MVP, nothing writes this** |
@@ -252,10 +273,36 @@ One entry point, so `verification` can never be set without a verifier.
   shows verification as a distinct, deliberate action with the verifier's name
   attached, never a checkbox inside an edit form.
 - Registration never verifies (§1).
-- `disputed` and `pending` exist in the enum but MVP only moves
-  `unverified → verified`. Do not build a dispute flow.
+- `disputed` and `pending` exist in the enum; verification may move
+  `unverified` or `pending → verified`, while `disputed` rows require
+  correction before verification. Do not build a separate dispute flow.
 - After verifying, invalidate the record's query key **and** the farmer-facing
   key — a farmer's My Farm badge must change without a manual refresh.
+
+---
+
+## 5a · Officer corrections — `app_update_observed_record(...)`
+
+Officers can correct the editable fields on a person, household, farm, plot,
+or crop-cycle detail section. The UI sends only the allowlisted fields; IDs,
+relationships, village scope, provenance, and verification columns remain
+server-controlled.
+
+- The caller must be field staff and the row must be visible in an assigned
+  village through RLS.
+- Required text, GPS ranges, numeric ranges, crop measures, and date windows
+  are validated again by Postgres. Database errors are shown verbatim.
+- A successful correction stamps `source = 'field_verified'`,
+  `captured_by = auth.uid()`, and `captured_at = now()`.
+- A successful correction resets verification to `unverified` and clears
+  `verified_by` / `verified_at`; the officer must verify the corrected record
+  again.
+- Harvest reports are corrected only through `app_supersede_harvest(...)`.
+  The old row remains auditable and the replacement is the single current row.
+
+The officer detail pages expose section-level Edit / Save / Cancel controls.
+Save failure leaves the entered values in place and keeps the form actionable.
+There is no unverify action: verification is deliberately one-way.
 
 ---
 
@@ -349,8 +396,30 @@ Show that message to the user as written. Do not pre-check in the client.
 
 ### Headline consistency
 `opportunity.offered_quantity_kg` is re-summed by `opportunity_resum` on every
-supply change. The client never sets it. The tile and the drill-down cannot
-drift apart.
+supply change. The client never sets it — the column is not in the client's
+insert or update grant. The tile and the drill-down cannot drift apart.
+
+### Who may write, and the status machine
+Only project-level ops or admin (`app_manage_village`) may insert or update an
+opportunity or attach supply; officers keep read access. `opportunity_guard`
+enforces, in Postgres:
+
+```
+insert            → proposed only
+proposed → shared | declined | lapsed
+shared   → accepted | declined | lapsed
+accepted → declined | lapsed
+declined, lapsed  → terminal
+```
+
+`opportunity_supply_guard` locks the opportunity then the harvest row
+(`for update`), so two concurrent attachments to one harvest serialise and the
+second sees the first's commitment. It also requires a current, undeleted
+expected harvest in the opportunity's village, crop and cycle.
+
+`v_demand_match.committed_kg` is the server-side sum of commitments on the
+matching current harvests, once per demand and village over overlapping
+harvest windows. The client does not add it up.
 
 ---
 
@@ -402,6 +471,7 @@ them as bugs to fix, not conditions to handle politely.
 |---|---|
 | `app_register_farmer` | `['people', village]` `['farms', village]` `['tower', *, village]` |
 | `app_verify` | the record key, plus `['tower','quality',village]` and the farmer-facing key |
+| `app_update_observed_record` | the edited record, `['people', village]`, related farm/cycle/harvest keys, `['verifyQueue']`, officer home, Tower quality/production, and farmer-facing records |
 | request insert / update | `['requests', …]` `['request', id]` `['estimate', id]` `['tower','energy',village]` |
 | approve / reject | as above, plus the farmer's `['request', id]` |
 | `app_supersede_harvest` | `['harvest', cycle]` `['tower','production',village]` `['tower','market',village]` |
@@ -438,9 +508,18 @@ sorting a page of already-fetched rows, and the live estimate preview.
 
 ## 12 · Drafts and interrupted saves
 
-- Every multi-field form persists to IndexedDB on change, keyed by form name
-  plus `client_ref`.
-- Restore on mount. Clear only after a confirmed server write.
+- Every multi-field form persists to IndexedDB on change. Registration keys by
+  form name plus `client_ref` (`useDraft`); the equipment request, buyer
+  create, demand create, supply attach and officer correction forms use
+  `usePersistentForm`, keyed `form:<user>:<scope>:<form>` so another account on
+  the same handset never sees the draft.
+- Restore on mount, before submit is enabled. Clear only after a confirmed
+  server write. Local saves are serialised per key, so a save still in flight
+  cannot resurrect a draft that `finish()` cleared.
+- Create forms send their draft's `clientRef` as the row id. After an
+  uncertain response, `recoverInsert` looks that id up: a row that exists is
+  the success; otherwise the original error is shown verbatim.
+- A storage failure is shown (`draft.storageError`), never swallowed.
 - A draft renders an `UnsavedDraftBadge`. **An unsaved write must look
   unsaved.** No success toast for something that only reached local storage.
 - Retry is explicit and user-initiated. No background queue, no replay engine,
@@ -453,6 +532,10 @@ sorting a page of already-fetched rows, and the live estimate preview.
 
 - `useSession()` resolves: auth user → `app_user` → memberships
   (`revoked_at is null`).
+- `app_user` is readable only by its own account, and writable only in
+  `locale` and `display_name`. Provenance names for other actors come from
+  `app_actor_names(ids)`, which returns a name only for actors on records the
+  caller can already see; zero rows means omit the name, never show the id.
 - Active membership determines the landing route and the nav. Held in memory
   and the URL, never in the token.
 - **Route guards are UX.** A farmer who hand-types `/ops/requests` gets the

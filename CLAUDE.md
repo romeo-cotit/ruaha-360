@@ -59,6 +59,21 @@ is gone forever.
 
 Only when every assertion passes does UI work begin.
 
+## Current status — 25 September 2026
+
+- Eleven migrations applied to the cloud dev project; the latest,
+  `20260925090001_mvp_security`, closes direct client writes to observed and
+  relationship tables. Those change only through the four RPCs, which run as
+  the `NOLOGIN`, `NOBYPASSRLS` role `ruaha_observed_writer` so RLS still
+  applies. Farmers are read-only on person and production records.
+- `app_user` is self-read only; provenance names come from `app_actor_names`.
+- Opportunity writes are ops/admin only; its status machine and the supply
+  commitment lock live in Postgres (business-rules §8).
+- `pnpm db:rls` runs 78 assertions. The Playwright journey signs in as the
+  farmer it registered, through a synthetic login created by privileged test
+  setup (`e2e/support/db.ts`) — there is still no account-management UI.
+- Proof and open items: `docs/mvp-proof.md`.
+
 ---
 
 ## Non-negotiables
@@ -123,7 +138,7 @@ pnpm e2e journey        # the acceptance journey alone
 pnpm db:list            # migration history: files vs database
 pnpm db:push            # apply pending migrations (db:push:dry to preview)
 pnpm db:types           # regenerate src/lib/db.types.ts (Management API)
-pnpm db:rls             # the 24 policy assertions
+pnpm db:rls             # the 78 policy assertions
 ```
 
 **No local Supabase.** The cloud dev project is the only database — every
