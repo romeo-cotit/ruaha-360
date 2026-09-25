@@ -1687,6 +1687,7 @@ export type Database = {
           available_kg: number | null
           buyer_demand_id: string | null
           buyer_id: string | null
+          committed_kg: number | null
           coverable_kg: number | null
           coverage_pct: number | null
           crop_id: string | null
@@ -1890,6 +1891,14 @@ export type Database = {
       }
     }
     Functions: {
+      app_actor_id: { Args: never; Returns: string }
+      app_actor_names: {
+        Args: { p_ids: string[] }
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
       app_admins_project: { Args: { p: string }; Returns: boolean }
       app_farms: { Args: never; Returns: string[] }
       app_has_role: {
@@ -1899,12 +1908,18 @@ export type Database = {
       app_household_persons: { Args: never; Returns: string[] }
       app_households: { Args: never; Returns: string[] }
       app_is_staff: { Args: never; Returns: boolean }
+      app_manage_opportunity: {
+        Args: { p_opportunity: string }
+        Returns: boolean
+      }
+      app_manage_village: { Args: { p_village: string }; Returns: boolean }
       app_manages_project: { Args: { p: string }; Returns: boolean }
       app_person_id: { Args: never; Returns: string }
       app_projects: { Args: never; Returns: string[] }
       app_register_farmer: { Args: { payload: Json }; Returns: Json }
       app_staff_households: { Args: never; Returns: string[] }
       app_staff_opportunities: { Args: never; Returns: string[] }
+      app_staff_villages: { Args: never; Returns: string[] }
       app_supersede_harvest: {
         Args: {
           p_confidence?: Database["public"]["Enums"]["confidence_level"]
@@ -1917,11 +1932,23 @@ export type Database = {
         Returns: string
       }
       app_supplied_opportunities: { Args: never; Returns: string[] }
+      app_update_observed_record: {
+        Args: { p_id: string; p_payload: Json; p_table: string }
+        Returns: Json
+      }
       app_verify: {
         Args: { p_id: string; p_table: string }
         Returns: undefined
       }
       app_villages: { Args: never; Returns: string[] }
+      assert_eq: {
+        Args: { actual: number; expected: number; label: string }
+        Returns: undefined
+      }
+      assert_raises: {
+        Args: { label: string; stmt: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "farmer" | "field_officer" | "ops" | "admin"
