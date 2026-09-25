@@ -101,6 +101,26 @@ describe('the numbers have to be possible', () => {
     expect(issues(parse({ quantity: '-2' }))).toContain('quantity:equipment.moreThanZero')
   })
 
+  /**
+   * `hours_per_day numeric(4,2)` and `days_per_week numeric(3,1)` round past
+   * their scale without an error: 2.25 days is stored as 2.3, the farmer is
+   * never told, and the retry reconciliation reports a false "earlier version
+   * saved". So the form refuses what the column would silently change.
+   */
+  test('hours keep at most two decimal places', () => {
+    expect(issues(parse({ hours_per_day: '2.25' }))).toEqual([])
+    expect(issues(parse({ hours_per_day: '2.255' }))).toContain(
+      'hours_per_day:equipment.hoursDecimals',
+    )
+  })
+
+  test('days keep at most one decimal place', () => {
+    expect(issues(parse({ days_per_week: '2.5' }))).toEqual([])
+    expect(issues(parse({ days_per_week: '2.25' }))).toContain(
+      'days_per_week:equipment.daysDecimals',
+    )
+  })
+
   test.each(['quantity', 'hours_per_day', 'days_per_week'] as const)('%s rejects text', (field) => {
     expect(issues(parse({ [field]: 'abc' } as Partial<RequestForm>))).toContain(
       `${field}:equipment.notANumber`,

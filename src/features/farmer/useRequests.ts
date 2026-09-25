@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { withProvenance } from '@/lib/provenance'
 import { recoverInsert } from '@/lib/recoverInsert'
+import { EarlierVersionSavedError } from '@/lib/drafts'
 import { useTranslation } from 'react-i18next'
 
 import { FARMER_ACTION_TARGET, type FarmerAction } from '@/features/ops/transitions'
@@ -121,31 +122,42 @@ export interface NewRequest {
 export function useSubmitRequest() {
   const queryClient = useQueryClient()
 
+  // One list for success and for a recovered earlier save, so they cannot drift.
+  const invalidate = async (villageId: string) => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.requests({}) })
+    await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(villageId) })
+  }
+
   return useMutation({
     mutationFn: async (input: NewRequest) => {
+      // What the farmer chose; a recovered row must hold exactly this.
+      const submitted = {
+        village_id: input.villageId,
+        person_id: input.personId,
+        equipment_id: input.equipmentId,
+        quantity: input.quantity,
+        hours_per_day: input.hoursPerDay,
+        days_per_week: input.daysPerWeek,
+        purpose: input.purpose || null,
+      }
       const { data, error } = await supabase
         .from('pue_request')
         .insert(withProvenance({
           id: input.id,
-          village_id: input.villageId,
-          person_id: input.personId,
-          equipment_id: input.equipmentId,
-          quantity: input.quantity,
-          hours_per_day: input.hoursPerDay,
-          days_per_week: input.daysPerWeek,
-          purpose: input.purpose || null,
+          ...submitted,
           status: 'submitted' as const,
         }, 'farmer_reported', input.actorId))
         .select('id')
         .single()
 
       // Guard messages are written to be read by humans; surfaced verbatim.
-      if (error) return recoverInsert('pue_request', input.id, error)
+      if (error) return recoverInsert('pue_request', input.id, error, submitted)
       return data
     },
-    onSuccess: async (_data, input) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.requests({}) })
-      await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(input.villageId) })
+    onSuccess: (_data, input) => invalidate(input.villageId),
+    // The earlier submission saved: the list the user is sent to must hold it.
+    onError: async (error, input) => {
+      if (error instanceof EarlierVersionSavedError) await invalidate(input.villageId)
     },
   })
 }

@@ -1,38 +1,48 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useBuyers = vi.fn()
-const mutate = vi.fn()
+const mutateAsync = vi.fn()
 const createState = { isPending: false, error: null as Error | null }
 
 vi.mock('@/features/ops/useOpsReference', () => ({
   useBuyers: () => useBuyers(),
-  useCreateBuyer: () => ({ mutate, ...createState }),
+  // No `mutate`: its per-call callbacks are skipped after unmount.
+  useCreateBuyer: () => ({ mutateAsync, ...createState }),
   BUYER_CHANNELS: ['direct', 'afm', 'other'],
 }))
-vi.mock('@/app/session', () => ({
-  useSession: () => ({
-    data: {
-      memberships: [
-        {
-          id: 'm1',
-          role: 'ops',
-          project_id: '20000000-0000-4000-8000-000000000001',
-          village_id: null,
-          revoked_at: null,
-        },
-      ],
-    },
-  }),
-}))
+// No userId by default: the draft stays in memory. One test signs in.
+const session = {
+  data: {
+    userId: undefined as string | undefined,
+    memberships: [
+      {
+        id: 'm1',
+        role: 'ops',
+        project_id: '20000000-0000-4000-8000-000000000001',
+        village_id: null,
+        revoked_at: null,
+      },
+    ],
+  },
+}
+vi.mock('@/app/session', () => ({ useSession: () => session }))
+// In-memory in place of IndexedDB, so a stored draft can be inspected.
+vi.mock('@/lib/drafts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/drafts')>()
+  return { ...actual, indexedDbDraftStore: actual.createMemoryDraftStore() }
+})
 
 const { BuyersScreen } = await import('@/features/ops/BuyersScreen')
+const { indexedDbDraftStore } = await import('@/lib/drafts')
 await import('@/i18n')
 
 beforeEach(() => {
   useBuyers.mockReset()
-  mutate.mockReset()
+  mutateAsync.mockReset()
+  mutateAsync.mockResolvedValue(undefined)
+  session.data.userId = undefined
   createState.isPending = false
   createState.error = null
 })
@@ -124,7 +134,7 @@ describe('BuyersScreen create', () => {
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
 
     expect(screen.getByTestId('buyer-name-error')).toBeInTheDocument()
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   test('a whitespace-only name is not a name', async () => {
@@ -135,7 +145,7 @@ describe('BuyersScreen create', () => {
     await userEvent.type(screen.getByTestId('buyer-name'), '   ')
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
 
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   test('a valid buyer is sent with the session project and trimmed values', async () => {
@@ -147,8 +157,8 @@ describe('BuyersScreen create', () => {
     await chooseChannel('AFM')
     await userEvent.click(screen.getByTestId('buyer-create-submit'))
 
-    expect(mutate).toHaveBeenCalledTimes(1)
-    expect(mutate.mock.calls[0][0]).toEqual({
+    expect(mutateAsync).toHaveBeenCalledTimes(1)
+    expect(mutateAsync.mock.calls[0][0]).toEqual({
       // The draft's clientRef, so an uncertain response reconciles by id.
       id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       project_id: '20000000-0000-4000-8000-000000000001',
@@ -183,5 +193,27 @@ describe('BuyersScreen create', () => {
     await openCreate()
 
     expect(screen.getByTestId('buyer-create-submit')).toBeDisabled()
+  })
+})
+
+describe('the buyer draft after a confirmed save', () => {
+  test('is cleared even when the screen unmounted before the save resolved', async () => {
+    const key = 'form:u1:20000000-0000-4000-8000-000000000001:buyer-create'
+    session.data.userId = 'u1'
+    let resolve!: () => void
+    mutateAsync.mockReturnValue(new Promise<void>((r) => { resolve = r }))
+    useBuyers.mockReturnValue({ isLoading: false, error: null, data: [] })
+
+    const { unmount } = render(<BuyersScreen />)
+    await openCreate()
+    await userEvent.type(screen.getByTestId('buyer-name'), 'Mbeya Millers')
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toMatchObject({ values: { name: 'Mbeya Millers' } }))
+
+    await userEvent.click(screen.getByTestId('buyer-create-submit'))
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    unmount()
+    await act(async () => resolve())
+
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toBeUndefined())
   })
 })

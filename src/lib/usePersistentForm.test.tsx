@@ -69,6 +69,45 @@ describe('usePersistentForm', () => {
     await waitFor(async () => expect(await store.get(KEY_A)).toMatchObject({ values: { name: 'Typed early' } }))
   })
 
+  // An early keystroke is one field of intent, not the whole form. The rest of
+  // the stored draft survives it.
+  test('an early edit merges over the stored draft instead of replacing it', async () => {
+    const restoredRef = '33333333-3333-4333-8333-333333333333'
+    await store.set(KEY_A, { clientRef: restoredRef, values: { name: 'Old', note: 'Kept note' } })
+    let release: (() => void) | undefined
+    const slow: DraftStore = {
+      ...store,
+      get: (key) => new Promise((resolve) => { release = () => void store.get(key).then(resolve) }),
+    }
+    const { result } = mount('project-1', slow)
+    await waitFor(() => expect(release).toBeDefined())
+    try {
+      act(() => result.current.field('name')[1]('New'))
+    } finally {
+      await act(async () => release!())
+    }
+    await waitFor(() => expect(result.current.ready).toBe(true))
+    expect(result.current.values).toEqual({ name: 'New', note: 'Kept note' })
+    expect(result.current.clientRef).toBe(restoredRef)
+    await waitFor(async () => expect(await store.get(KEY_A)).toMatchObject({
+      clientRef: restoredRef,
+      values: { name: 'New', note: 'Kept note' },
+    }))
+  })
+
+  // The component can unmount while the save is in flight. The promise still
+  // resolves, and finish() must still clear the stored copy.
+  test('finish clears the stored draft after the form has unmounted', async () => {
+    const { result, unmount } = mount()
+    await waitFor(() => expect(result.current.ready).toBe(true))
+    act(() => result.current.field('name')[1]('Saved elsewhere'))
+    await waitFor(async () => expect(await store.get(KEY_A)).toBeDefined())
+    const finish = result.current.finish
+    unmount()
+    await act(async () => { await finish() })
+    await expect(store.get(KEY_A)).resolves.toBeUndefined()
+  })
+
   // A reload is a remount: the values and the clientRef both come back, so a
   // resubmit after an uncertain response reuses the same row id.
   test('restores values and clientRef after a reload', async () => {
@@ -191,5 +230,52 @@ describe('usePersistentForm', () => {
     rerender({ scope: 'project-2' })
     await waitFor(() => expect(result.current.ready).toBe(true))
     expect(result.current.values).toEqual(DEFAULTS)
+  })
+
+  describe('a versioned draft', () => {
+    const REF = '44444444-4444-4444-8444-444444444444'
+    function mountVersioned(version: string | null | undefined) {
+      return renderHook(() => usePersistentForm('buyer-create', 'project-1', DEFAULTS, undefined, { store, version }))
+    }
+
+    test('restores when the record has not changed since', async () => {
+      await store.set(KEY_A, { clientRef: REF, values: { name: 'Draft', note: '' }, version: 'v1' })
+      const { result } = mountVersioned('v1')
+      await waitFor(() => expect(result.current.ready).toBe(true))
+      expect(result.current.values.name).toBe('Draft')
+      expect(result.current.clientRef).toBe(REF)
+    })
+
+    // An abandoned correction must not resurrect over a newer server record.
+    test('is discarded, and removed, when the record changed since', async () => {
+      await store.set(KEY_A, { clientRef: REF, values: { name: 'Stale', note: '' }, version: 'v1' })
+      const { result } = mountVersioned('v2')
+      await waitFor(() => expect(result.current.ready).toBe(true))
+      expect(result.current.values).toEqual(DEFAULTS)
+      expect(result.current.dirty).toBe(false)
+      await expect(store.get(KEY_A)).resolves.toBeUndefined()
+    })
+
+    test('a draft saved without a version is discarded once one is expected', async () => {
+      await store.set(KEY_A, { clientRef: REF, values: { name: 'Unversioned', note: '' } })
+      const { result } = mountVersioned('v1')
+      await waitFor(() => expect(result.current.ready).toBe(true))
+      expect(result.current.values).toEqual(DEFAULTS)
+      await expect(store.get(KEY_A)).resolves.toBeUndefined()
+    })
+
+    test('stores the version with every save', async () => {
+      const { result } = mountVersioned('v1')
+      await waitFor(() => expect(result.current.ready).toBe(true))
+      act(() => result.current.field('name')[1]('Typed'))
+      await waitFor(async () => expect(await store.get(KEY_A)).toMatchObject({ values: { name: 'Typed' }, version: 'v1' }))
+    })
+
+    test('no version behaves as an unversioned draft', async () => {
+      await store.set(KEY_A, { clientRef: REF, values: { name: 'Any', note: '' }, version: 'v1' })
+      const { result } = mountVersioned(null)
+      await waitFor(() => expect(result.current.ready).toBe(true))
+      expect(result.current.values.name).toBe('Any')
+    })
   })
 })

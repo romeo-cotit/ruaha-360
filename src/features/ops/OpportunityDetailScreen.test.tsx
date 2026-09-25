@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
@@ -14,17 +14,25 @@ vi.mock('@/features/ops/useOpportunity', () => ({
   useOpportunityStatus: () => useOpportunityStatus(),
 }))
 // No signed-in owner: the draft is in-memory only, so the form is ready at once.
-vi.mock('@/app/session', () => ({ useSession: () => ({ data: undefined }) }))
+// One test signs in, to see the stored draft.
+const session = { data: undefined as { userId: string } | undefined }
+vi.mock('@/app/session', () => ({ useSession: () => session }))
+// In-memory in place of IndexedDB, so a stored draft can be inspected.
+vi.mock('@/lib/drafts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/drafts')>()
+  return { ...actual, indexedDbDraftStore: actual.createMemoryDraftStore() }
+})
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ opportunityId: 'o1' }) }),
   Link: ({ children }: { children: React.ReactNode }) => <a href="#x">{children}</a>,
 }))
 
 const { OpportunityDetailScreen } = await import('@/features/ops/OpportunityDetailScreen')
+const { indexedDbDraftStore } = await import('@/lib/drafts')
 await import('@/i18n')
 
 const statusMutate = vi.fn()
-const attachMutate = vi.fn()
+const attachMutateAsync = vi.fn()
 
 beforeEach(() => {
   useOpportunity.mockReset()
@@ -32,11 +40,14 @@ beforeEach(() => {
   useAttachSupply.mockReset()
   useOpportunityStatus.mockReset()
   statusMutate.mockReset()
-  attachMutate.mockReset()
+  attachMutateAsync.mockReset()
+  attachMutateAsync.mockResolvedValue(undefined)
+  session.data = undefined
 
   useAvailableHarvest.mockReturnValue({ isLoading: false, data: [] })
   useAttachSupply.mockReturnValue({
-    mutate: attachMutate,
+    // No `mutate`: its per-call callbacks are skipped after unmount.
+    mutateAsync: attachMutateAsync,
     isPending: false,
     isError: false,
     error: null,
@@ -424,7 +435,7 @@ describe('the contribution has to be a contribution', () => {
     await attach('0')
 
     expect(screen.getByTestId('attach-kg-error')).toHaveTextContent(/more than zero/i)
-    expect(attachMutate).not.toHaveBeenCalled()
+    expect(attachMutateAsync).not.toHaveBeenCalled()
   })
 
   test('a negative contribution is refused', async () => {
@@ -432,7 +443,7 @@ describe('the contribution has to be a contribution', () => {
     await attach('-5')
 
     expect(screen.getByTestId('attach-kg-error')).toBeInTheDocument()
-    expect(attachMutate).not.toHaveBeenCalled()
+    expect(attachMutateAsync).not.toHaveBeenCalled()
   })
 
   test('text is refused, and says what is wrong', async () => {
@@ -447,7 +458,7 @@ describe('the contribution has to be a contribution', () => {
     await attach('')
 
     expect(screen.getByTestId('attach-kg-error')).toBeInTheDocument()
-    expect(attachMutate).not.toHaveBeenCalled()
+    expect(attachMutateAsync).not.toHaveBeenCalled()
   })
 
   test('choosing no harvest figure says so', async () => {
@@ -455,7 +466,7 @@ describe('the contribution has to be a contribution', () => {
     await attach('100', '')
 
     expect(screen.getByTestId('attach-harvest-error')).toBeInTheDocument()
-    expect(attachMutate).not.toHaveBeenCalled()
+    expect(attachMutateAsync).not.toHaveBeenCalled()
   })
 
   test('a valid contribution goes through', async () => {
@@ -464,7 +475,7 @@ describe('the contribution has to be a contribution', () => {
 
     // The second argument is the per-call `onSettled` that releases the
     // in-flight latch, so the payload is asserted on its own.
-    expect(attachMutate.mock.calls[0][0]).toEqual({
+    expect(attachMutateAsync.mock.calls[0][0]).toEqual({
       id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       harvestReportId: 'h9',
       cropCycleId: 'cy9',
@@ -483,7 +494,7 @@ describe('the contribution has to be a contribution', () => {
     withHarvest()
     await attach('99999')
 
-    expect(attachMutate.mock.calls[0][0]).toMatchObject({ contributedKg: 99999 })
+    expect(attachMutateAsync.mock.calls[0][0]).toMatchObject({ contributedKg: 99999 })
   })
 
   test('the error clears once the figure is fixed', async () => {
@@ -498,7 +509,7 @@ describe('the contribution has to be a contribution', () => {
     fireEvent.click(screen.getByTestId('attach-submit'))
 
     expect(screen.queryByTestId('attach-kg-error')).not.toBeInTheDocument()
-    expect(attachMutate).toHaveBeenCalledTimes(1)
+    expect(attachMutateAsync).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -542,7 +553,7 @@ describe('attaching supply is a real form', () => {
     fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: '1600' } })
     fireEvent.submit(screen.getByTestId('attach-submit').closest('form')!)
 
-    expect(attachMutate.mock.calls[0][0]).toMatchObject({ contributedKg: 1600 })
+    expect(attachMutateAsync.mock.calls[0][0]).toMatchObject({ contributedKg: 1600 })
   })
 
   // QA #23. A second submit while the first is in flight is a duplicate write,
@@ -551,7 +562,8 @@ describe('attaching supply is a real form', () => {
   test('a submit in flight disables the control', () => {
     withHarvest()
     useAttachSupply.mockReturnValue({
-      mutate: attachMutate,
+      // No `mutate`: its per-call callbacks are skipped after unmount.
+    mutateAsync: attachMutateAsync,
       isPending: true,
       isError: false,
       error: null,
@@ -572,6 +584,33 @@ describe('attaching supply is a real form', () => {
     fireEvent.submit(form)
     fireEvent.submit(form)
 
-    expect(attachMutate).toHaveBeenCalledTimes(1)
+    expect(attachMutateAsync).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('the supply draft after a confirmed save', () => {
+  test('is cleared even when the screen unmounted before the save resolved', async () => {
+    const key = 'form:u1:o1:opportunity-supply'
+    session.data = { userId: 'u1' }
+    let resolve!: () => void
+    attachMutateAsync.mockReturnValue(new Promise<void>((r) => { resolve = r }))
+    loaded({ status: 'proposed' })
+    useAvailableHarvest.mockReturnValue({
+      isLoading: false,
+      data: [{ harvest_report_id: 'h9', crop_cycle_id: 'cy9', quantity_kg: 4100, available_kg: 4100, harvest_start: '2026-09-01' }],
+    })
+
+    const { unmount } = render(<OpportunityDetailScreen />)
+    await waitFor(() => expect(screen.getByTestId('attach-submit')).toBeEnabled())
+    await chooseHarvest()
+    fireEvent.change(screen.getByTestId('attach-kg'), { target: { value: '1600' } })
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toMatchObject({ values: { contributed_kg: '1600' } }))
+
+    fireEvent.submit(screen.getByTestId('attach-submit').closest('form')!)
+    expect(attachMutateAsync).toHaveBeenCalledTimes(1)
+    unmount()
+    await act(async () => resolve())
+
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toBeUndefined())
   })
 })

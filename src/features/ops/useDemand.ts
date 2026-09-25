@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { supabase } from '@/lib/supabase'
 import { recoverInsert } from '@/lib/recoverInsert'
+import { EarlierVersionSavedError } from '@/lib/drafts'
 import { isUuid } from '@/lib/ids'
 import { localisedName } from '@/lib/names'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
@@ -164,29 +165,36 @@ export interface NewDemand {
 export function useCreateDemand() {
   const queryClient = useQueryClient()
 
+  // One list for success and for a recovered earlier save, so they cannot drift.
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.demands('all') })
+
   return useMutation({
     mutationFn: async (input: NewDemand) => {
+      const submitted = {
+        project_id: input.projectId,
+        buyer_id: input.buyerId,
+        crop_id: input.cropId,
+        quantity_kg: input.quantityKg,
+        window_start: input.windowStart,
+        window_end: input.windowEnd,
+        delivery_point: input.deliveryPoint || null,
+        indicative_price_per_kg: input.pricePerKg === '' ? null : Number(input.pricePerKg),
+        quality_note: input.qualityNote || null,
+      }
       const { data, error } = await supabase
         .from('buyer_demand')
-        .insert({
-          id: input.id,
-          project_id: input.projectId,
-          buyer_id: input.buyerId,
-          crop_id: input.cropId,
-          quantity_kg: input.quantityKg,
-          window_start: input.windowStart,
-          window_end: input.windowEnd,
-          delivery_point: input.deliveryPoint || null,
-          indicative_price_per_kg: input.pricePerKg === '' ? null : Number(input.pricePerKg),
-          quality_note: input.qualityNote || null,
-        })
+        .insert({ id: input.id, ...submitted })
         .select('id')
         .single()
 
-      if (error) return recoverInsert('buyer_demand', input.id, error)
+      if (error) return recoverInsert('buyer_demand', input.id, error, submitted)
       return data
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.demands('all') }),
+    onSuccess: invalidate,
+    // The earlier submission saved: the list the user is sent to must hold it.
+    onError: async (error) => {
+      if (error instanceof EarlierVersionSavedError) await invalidate()
+    },
   })
 }
 

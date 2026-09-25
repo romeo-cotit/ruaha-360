@@ -1,3 +1,4 @@
+import i18next from 'i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
@@ -208,4 +209,30 @@ export function useDraft<T>(
   }, [key])
 
   return { draft: state.draft, save, clear, status: state.status, storageError }
+}
+
+/**
+ * The id collided with a row saved earlier from this draft, but with other
+ * values: the user edited the form after an uncertain submit. Not a success,
+ * and not a database message — the record exists, so the form clears its
+ * draft and says where to look.
+ */
+export class EarlierVersionSavedError extends Error {
+  constructor() {
+    super(i18next.t('draft.earlierVersionSaved'))
+    this.name = 'EarlierVersionSavedError'
+  }
+}
+
+/**
+ * Clears the draft once the record exists. Chained on `mutateAsync`, not on
+ * `mutate`'s per-call callbacks: those are skipped once the screen unmounts,
+ * and the draft would outlive a confirmed save. Other failures keep the
+ * draft; they show through the mutation's own error state.
+ */
+export function finishDraftWhenSaved(save: Promise<unknown>, finish: () => Promise<void>): Promise<void> {
+  return save.then(
+    () => finish(),
+    (error: unknown) => (error instanceof EarlierVersionSavedError ? finish() : undefined),
+  )
 }

@@ -28,6 +28,7 @@ import {
   useOpportunityStatus,
 } from '@/features/ops/useOpportunity'
 import { formatKg, formatPlainDate } from '@/lib/format'
+import { finishDraftWhenSaved } from '@/lib/drafts'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 
 const route = getRouteApi('/_ops/ops/opportunities/$opportunityId')
@@ -125,15 +126,14 @@ export function OpportunityDetailScreen() {
     setAttachErrors({})
     const row = rows.find((r) => r.harvest_report_id === parsed.data.harvest_report_id)
     attachInFlight.current = true
-    attach.mutate(
+    void finishDraftWhenSaved(attach.mutateAsync(
       {
         id: draft.clientRef,
         harvestReportId: parsed.data.harvest_report_id,
         cropCycleId: row?.crop_cycle_id ?? '',
         contributedKg: Number(parsed.data.contributed_kg),
       },
-      { onSuccess: () => void draft.finish(), onSettled: () => (attachInFlight.current = false) },
-    )
+    ), draft.finish).finally(() => { attachInFlight.current = false })
   }
 
   const attachError = (field: 'harvest_report_id' | 'contributed_kg', testId: string) =>

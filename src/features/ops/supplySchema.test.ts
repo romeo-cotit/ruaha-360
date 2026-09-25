@@ -65,6 +65,14 @@ describe('the attach-supply form', () => {
     expect(parse({ contributed_kg: '1600.55' }).success).toBe(true)
   })
 
+  // numeric(12,2) rounds a third decimal silently rather than refusing it.
+  test('more than two decimal places is refused rather than silently rounded', () => {
+    expect(parse({ contributed_kg: '1.5' }).success).toBe(true)
+    expect(issues(parse({ contributed_kg: '1.555' }))).toContain(
+      'contributed_kg:opportunity.kgDecimals',
+    )
+  })
+
   /**
    * The line that matters most. A quantity within the column's range but past
    * what is available must still PASS here, so the guard is what refuses it

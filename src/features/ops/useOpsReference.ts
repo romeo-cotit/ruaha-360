@@ -4,6 +4,7 @@ import { queryKeys } from '@/lib/queryKeys'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/db.types'
 import { recoverInsert } from '@/lib/recoverInsert'
+import { EarlierVersionSavedError } from '@/lib/drafts'
 
 type Enums = Database['public']['Enums']
 
@@ -70,15 +71,22 @@ export interface NewBuyer {
 export function useCreateBuyer() {
   const queryClient = useQueryClient()
 
+  // One list for success and for a recovered earlier save, so they cannot drift.
+  const invalidate = async () => {
+    // The demand form's buyer picker reads the same rows.
+    await queryClient.invalidateQueries({ queryKey: queryKeys.buyers() })
+    await queryClient.invalidateQueries({ queryKey: ['demands'] })
+  }
+
   return useMutation({
     mutationFn: async (buyer: NewBuyer) => {
       const { error } = await supabase.from('buyer').insert(buyer)
-      if (error) await recoverInsert('buyer', buyer.id, error)
+      if (error) await recoverInsert('buyer', buyer.id, error, { ...buyer })
     },
-    onSuccess: async () => {
-      // The demand form's buyer picker reads the same rows.
-      await queryClient.invalidateQueries({ queryKey: queryKeys.buyers() })
-      await queryClient.invalidateQueries({ queryKey: ['demands'] })
+    onSuccess: invalidate,
+    // The earlier submission saved: the list the user is sent to must hold it.
+    onError: async (error) => {
+      if (error instanceof EarlierVersionSavedError) await invalidate()
     },
   })
 }

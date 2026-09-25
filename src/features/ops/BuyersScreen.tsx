@@ -15,6 +15,7 @@ import { TableSurface } from '@/components/TableSurface'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { FormDraftStatus } from '@/components/FormDraftStatus'
+import { finishDraftWhenSaved } from '@/lib/drafts'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 import {
   BUYER_CHANNELS,
@@ -67,18 +68,13 @@ export function BuyersScreen() {
 
   const submit = draft.handleSubmit(() => {
     if (!projectId || !draft.ready) return
-    create.mutate(
-      {
-        id: draft.clientRef,
-        project_id: projectId,
-        name: name.trim(),
-        channel,
-        contact_note: contactNote.trim() || null,
-      },
-      {
-        onSuccess: () => void draft.finish(),
-      },
-    )
+    void finishDraftWhenSaved(create.mutateAsync({
+      id: draft.clientRef,
+      project_id: projectId,
+      name: name.trim(),
+      channel,
+      contact_note: contactNote.trim() || null,
+    }), draft.finish)
   })
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />

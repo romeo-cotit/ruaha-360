@@ -6,6 +6,7 @@ import { isUuid } from '@/lib/ids'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
 import type { Database } from '@/lib/db.types'
 import { recoverInsert } from '@/lib/recoverInsert'
+import { EarlierVersionSavedError } from '@/lib/drafts'
 
 type OpportunityRow = Database['public']['Tables']['opportunity']['Row']
 type AvailableRow = Database['public']['Views']['v_harvest_available']['Row']
@@ -154,6 +155,15 @@ export function useAvailableHarvest(villageId: string | undefined, cropId: strin
 export function useAttachSupply(opportunityId: string, villageId: string | undefined) {
   const queryClient = useQueryClient()
 
+  // One list for success and for a recovered earlier save, so they cannot drift.
+  const invalidate = async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.opportunity(opportunityId) })
+    await queryClient.invalidateQueries({ queryKey: ['harvest-available'] })
+    if (villageId) {
+      await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(villageId) })
+    }
+  }
+
   return useMutation({
     mutationFn: async (input: {
       id?: string
@@ -161,21 +171,19 @@ export function useAttachSupply(opportunityId: string, villageId: string | undef
       cropCycleId: string
       contributedKg: number
     }) => {
-      const { error } = await supabase.from('opportunity_supply').insert({
-        id: input.id,
+      const submitted = {
         opportunity_id: opportunityId,
         harvest_report_id: input.harvestReportId,
         crop_cycle_id: input.cropCycleId,
         contributed_kg: input.contributedKg,
-      })
-      if (error) await recoverInsert('opportunity_supply', input.id, error)
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.opportunity(opportunityId) })
-      await queryClient.invalidateQueries({ queryKey: ['harvest-available'] })
-      if (villageId) {
-        await queryClient.invalidateQueries({ predicate: isTowerQueryForVillage(villageId) })
       }
+      const { error } = await supabase.from('opportunity_supply').insert({ id: input.id, ...submitted })
+      if (error) await recoverInsert('opportunity_supply', input.id, error, submitted)
+    },
+    onSuccess: invalidate,
+    // The earlier submission saved: the list the user is sent to must hold it.
+    onError: async (error) => {
+      if (error instanceof EarlierVersionSavedError) await invalidate()
     },
   })
 }

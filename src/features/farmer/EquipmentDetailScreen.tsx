@@ -15,6 +15,7 @@ import { useEquipmentItem } from '@/features/farmer/useEquipment'
 import { requestSchema, type RequestForm } from '@/features/farmer/requestSchema'
 import { useSubmitRequest } from '@/features/farmer/useRequests'
 import { formatKw, formatMoney } from '@/lib/format'
+import { finishDraftWhenSaved } from '@/lib/drafts'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 import { FormDraftStatus } from '@/components/FormDraftStatus'
 
@@ -141,7 +142,7 @@ export function EquipmentDetailScreen() {
    */
   const onSubmit = handleSubmit((form) => {
     if (!draft.ready) return
-    submit.mutate({
+    void finishDraftWhenSaved(submit.mutateAsync({
       id: draft.clientRef,
       actorId: session.data!.userId,
       villageId: villageId!,
@@ -151,7 +152,7 @@ export function EquipmentDetailScreen() {
       hoursPerDay: Number(form.hours_per_day),
       daysPerWeek: Number(form.days_per_week),
       purpose: form.purpose,
-    }, { onSuccess: () => void draft.finish() })
+    }), draft.finish)
   })
 
   /** One message per reason. The schema's `message` holds an i18n key. */

@@ -1,15 +1,20 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useSession = vi.fn()
 const useEquipmentItem = vi.fn()
-const mutate = vi.fn()
+const mutateAsync = vi.fn()
 
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ equipmentId: 'eq1' }) }),
   Link: ({ children }: { children: React.ReactNode }) => <a href="#x">{children}</a>,
 }))
 vi.mock('@/app/session', () => ({ useSession: () => useSession() }))
+// In-memory in place of IndexedDB, so a stored draft can be inspected.
+vi.mock('@/lib/drafts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/drafts')>()
+  return { ...actual, indexedDbDraftStore: actual.createMemoryDraftStore() }
+})
 vi.mock('@/features/farmer/useEquipment', () => ({
   useEquipmentItem: () => useEquipmentItem(),
 }))
@@ -19,16 +24,20 @@ const useSubmitRequestState = {
   isSuccess: false,
 }
 vi.mock('@/features/farmer/useRequests', () => ({
-  useSubmitRequest: () => ({ mutate, reset: vi.fn(), ...useSubmitRequestState }),
+  // No `mutate`: its per-call callbacks are skipped after unmount, so the
+  // screen must chain the draft's finish on mutateAsync instead.
+  useSubmitRequest: () => ({ mutateAsync, reset: vi.fn(), ...useSubmitRequestState }),
 }))
 
 const { EquipmentDetailScreen } = await import('@/features/farmer/EquipmentDetailScreen')
+const { indexedDbDraftStore } = await import('@/lib/drafts')
 await import('@/i18n')
 
 const VILLAGE = '30000000-0000-4000-8000-000000000001'
 
 beforeEach(() => {
-  mutate.mockReset()
+  mutateAsync.mockReset()
+  mutateAsync.mockResolvedValue({ id: 'r1' })
   useSubmitRequestState.isPending = false
   useSubmitRequestState.isError = false
   useSubmitRequestState.isSuccess = false
@@ -81,8 +90,8 @@ describe('the request form as it arrives', () => {
     render(<EquipmentDetailScreen />)
     submit()
 
-    await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
-    expect(mutate.mock.calls[0][0]).toMatchObject({
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    expect(mutateAsync.mock.calls[0][0]).toMatchObject({
       villageId: VILLAGE,
       personId: 'p1',
       equipmentId: 'eq1',
@@ -97,8 +106,8 @@ describe('the request form as it arrives', () => {
     set('request-purpose', '   ')
     submit()
 
-    await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
-    expect(mutate.mock.calls[0][0].purpose).toBe('')
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    expect(mutateAsync.mock.calls[0][0].purpose).toBe('')
   })
 })
 
@@ -114,7 +123,7 @@ describe('impossible assumptions are refused before the round trip', () => {
 
     const error = await screen.findByTestId('request-hours-error')
     expect(error).toHaveTextContent(/0 to 24/i)
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   // The column allows 0. A request to run a mill for zero hours asks for
@@ -126,7 +135,7 @@ describe('impossible assumptions are refused before the round trip', () => {
 
     const error = await screen.findByTestId('request-hours-error')
     expect(error).toHaveTextContent(/more than zero/i)
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   test('zero machines is refused — the column checks quantity > 0', async () => {
@@ -135,7 +144,7 @@ describe('impossible assumptions are refused before the round trip', () => {
     submit()
 
     await waitFor(() => expect(screen.getByTestId('request-quantity-error')).toBeInTheDocument())
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   test('eight days in a week is refused', async () => {
@@ -145,7 +154,7 @@ describe('impossible assumptions are refused before the round trip', () => {
 
     const error = await screen.findByTestId('request-days-error')
     expect(error).toHaveTextContent(/0 to 7/i)
-    expect(mutate).not.toHaveBeenCalled()
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 
   test('half a machine is refused', async () => {
@@ -257,8 +266,8 @@ describe('the request form in flight', () => {
     submit()
     submit()
 
-    await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
-    expect(mutate).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    expect(mutateAsync).toHaveBeenCalledTimes(1)
   })
 
   test('the control is disabled while the write is in flight', () => {
@@ -266,5 +275,38 @@ describe('the request form in flight', () => {
     render(<EquipmentDetailScreen />)
 
     expect(screen.getByTestId('request-submit')).toBeDisabled()
+  })
+})
+
+describe('the draft after a confirmed save', () => {
+  // The farmer can navigate away while the request is in flight. The save
+  // still lands, so the stored draft must still be cleared.
+  test('is cleared even when the screen unmounted before the save resolved', async () => {
+    const key = 'form:u1:eq1:equipment-request'
+    useSession.mockReturnValue({
+      isLoading: false,
+      error: null,
+      data: {
+        userId: 'u1',
+        appUser: { id: 'u1', person_id: 'p1' },
+        memberships: [
+          { id: 'm1', role: 'farmer', project_id: 'pr1', village_id: VILLAGE, revoked_at: null },
+        ],
+      },
+    })
+    let resolve!: (value: { id: string }) => void
+    mutateAsync.mockReturnValue(new Promise((r) => { resolve = r }))
+
+    const { unmount } = render(<EquipmentDetailScreen />)
+    await waitFor(() => expect(screen.getByTestId('request-submit')).toBeEnabled())
+    set('request-purpose', 'Milling for the co-op')
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toBeDefined())
+
+    submit()
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    unmount()
+    await act(async () => resolve({ id: 'r1' }))
+
+    await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toBeUndefined())
   })
 })

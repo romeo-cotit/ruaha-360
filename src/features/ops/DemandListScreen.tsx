@@ -24,6 +24,8 @@ import {
   type Demand,
 } from '@/features/ops/useDemand'
 import { formatKg, formatMoney, formatPlainDate } from '@/lib/format'
+import { finishDraftWhenSaved } from '@/lib/drafts'
+import { hasAtMostDecimals } from '@/lib/decimals'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 import { useSession } from '@/app/session'
 
@@ -101,20 +103,21 @@ export function DemandListScreen() {
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
   const projectId = options.data?.buyers.find((b) => b.id === buyerId)?.project_id
+  const quantityError = quantityErrorKey(quantity)
+  const priceError = priceErrorKey(pricePerKg)
   const missing = {
     buyer: touched && buyerId === '',
     crop: touched && cropId === '',
-    quantity: touched && (quantity === '' || Number(quantity) <= 0),
   }
 
   const submit = () => {
     if (inFlight.current || create.isPending || !draft.ready) return
     setTouched(true)
-    if (buyerId === '' || cropId === '' || quantity === '' || Number(quantity) <= 0) return
+    if (buyerId === '' || cropId === '' || quantityError || priceError) return
     if (!projectId) return
 
     inFlight.current = true
-    create.mutate(
+    void finishDraftWhenSaved(create.mutateAsync(
       {
         id: draft.clientRef,
         projectId,
@@ -127,8 +130,7 @@ export function DemandListScreen() {
         pricePerKg,
         qualityNote,
       },
-      { onSuccess: () => void draft.finish(), onSettled: () => (inFlight.current = false) },
-    )
+    ), draft.finish).finally(() => { inFlight.current = false })
   }
 
   return (
@@ -215,11 +217,11 @@ export function DemandListScreen() {
             </Select>
           </Field>
 
-          <Field label={t('demand.quantity')} id="demand-quantity" error={missing.quantity ? t('demand.required') : undefined} errorTestId="demand-quantity-error">
+          <Field label={t('demand.quantity')} id="demand-quantity" error={touched && quantityError ? t(quantityError) : undefined} errorTestId="demand-quantity-error">
             <input id="demand-quantity" data-testid="demand-quantity" inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={input} style={CONTROL} />
           </Field>
 
-          <Field label={t('demand.pricePerKg')} id="demand-price">
+          <Field label={t('demand.pricePerKg')} id="demand-price" error={touched && priceError ? t(priceError) : undefined} errorTestId="demand-price-error">
             <input id="demand-price" data-testid="demand-price" inputMode="decimal" value={pricePerKg} onChange={(e) => setPricePerKg(e.target.value)} className={input} style={CONTROL} />
           </Field>
 
@@ -286,6 +288,36 @@ const DEMAND_DEFAULTS = {
 }
 
 const input = 'w-full'
+
+/**
+ * `quantity_kg` and `indicative_price_per_kg` are both `numeric(12,2)`, which
+ * rounds a third decimal silently instead of refusing it — so the form refuses
+ * it. And both travel as text: `Number('12,5')` is NaN, which the create hook
+ * sent as a null price, dropping what was typed. A comma is refused with a
+ * message, not guessed at. Returns an i18n key, or undefined when the value is
+ * fine.
+ */
+function quantityErrorKey(value: string): string | undefined {
+  const text = value.trim()
+  if (text === '') return 'demand.required'
+  const n = Number(text)
+  if (!Number.isFinite(n)) return 'demand.notANumber'
+  if (!(n > 0)) return 'demand.required'
+  if (!hasAtMostDecimals(n, 2)) return 'demand.twoDecimals'
+  return undefined
+}
+
+/** The price is optional; when given it has to be a real, sendable figure. */
+function priceErrorKey(value: string): string | undefined {
+  const text = value.trim()
+  if (text === '') return undefined
+  const n = Number(text)
+  if (!Number.isFinite(n)) return 'demand.priceNotANumber'
+  // A negative price is left to the demand's check constraint (CLAUDE.md §5):
+  // it is rejected with the database's own message, not a client copy.
+  if (!hasAtMostDecimals(n, 2)) return 'demand.twoDecimals'
+  return undefined
+}
 
 function Field({
   label,

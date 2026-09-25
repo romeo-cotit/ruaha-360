@@ -104,7 +104,8 @@
   },
   "draft": {
     "notSubmitted": "Not yet submitted",
-    "storageError": "Could not save this draft on this device. Keep this page open until you submit."
+    "storageError": "Could not save this draft on this device. Keep this page open until you submit.",
+    "earlierVersionSaved": "An earlier version of this form was already saved. Open it from the list to check it."
   },
   "register": {
     "title": "Register a farmer",
@@ -333,6 +334,8 @@
     "moreThanZero": "This must be more than zero.",
     "hoursRange": "Hours per day run from 0 to 24.",
     "daysRange": "Days per week run from 0 to 7.",
+    "hoursDecimals": "Use at most 2 decimal places.",
+    "daysDecimals": "Use at most 1 decimal place.",
     "estimateBlockedTitle": "No estimate yet",
     "estimateBlockedDetail": "Fill in how many, hours per day and days per week, and the estimate appears here.",
     "estimateImpossibleTitle": "This cannot be estimated",
@@ -430,6 +433,9 @@
     "create": "Record demand",
     "creating": "Recording…",
     "required": "This is required.",
+    "notANumber": "Enter a number.",
+    "twoDecimals": "Use at most 2 decimal places.",
+    "priceNotANumber": "Enter a number, using a point for decimals (for example 12.5).",
     "colBuyer": "Buyer",
     "colCrop": "Crop",
     "colQuantity": "Quantity",
@@ -493,7 +499,8 @@
     "kgRequired": "Enter how many kilograms.",
     "kgNotANumber": "Enter a number.",
     "kgMoreThanZero": "A contribution has to be more than zero.",
-    "kgTooLarge": "This number is too large for the field."
+    "kgTooLarge": "This number is too large for the field.",
+    "kgDecimals": "Use at most 2 decimal places."
   },
   "tower": {
     "title": "Control Tower",

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { hasAtMostDecimals } from '@/lib/decimals'
+
 /**
  * The equipment request form — spec 6.4, QA #9.
  *
@@ -22,6 +24,13 @@ import { z } from 'zod'
  * send something is a different act from claiming a rule the server does not
  * have.
  *
+ * **Decimal places.** `hours_per_day numeric(4,2)` and
+ * `days_per_week numeric(3,1)` do not refuse a value past their scale — they
+ * round it silently, so 2.25 days would be stored as 2.3 without the farmer
+ * being told (and the retry reconciliation would then see a stored figure that
+ * differs from the submitted one). The form refuses what the column would
+ * change.
+ *
  * Messages are i18n keys, resolved at render.
  */
 
@@ -31,6 +40,8 @@ interface Bounds {
   /** Message key when outside [min, max]. */
   rangeKey: string
   integer?: boolean
+  /** The column's scale, with the message key when a value exceeds it. */
+  decimals?: { places: number; key: string }
 }
 
 /**
@@ -39,7 +50,7 @@ interface Bounds {
  * All three feed the estimate, so a blank is not "no answer" — `Number('')` is
  * 0, and `energy_estimate` needs all three to compute anything.
  */
-function requiredNumber({ min, max, rangeKey, integer = false }: Bounds) {
+function requiredNumber({ min, max, rangeKey, integer = false, decimals }: Bounds) {
   return z
     .string()
     .transform((s) => s.trim())
@@ -64,7 +75,13 @@ function requiredNumber({ min, max, rangeKey, integer = false }: Bounds) {
         ctx.addIssue({ code: 'custom', message: 'equipment.moreThanZero' })
         return
       }
-      if (n < min || n > max) ctx.addIssue({ code: 'custom', message: rangeKey })
+      if (n < min || n > max) {
+        ctx.addIssue({ code: 'custom', message: rangeKey })
+        return
+      }
+      if (decimals && !hasAtMostDecimals(n, decimals.places)) {
+        ctx.addIssue({ code: 'custom', message: decimals.key })
+      }
     })
 }
 
@@ -76,8 +93,20 @@ export const requestSchema = z.object({
     rangeKey: 'equipment.moreThanZero',
     integer: true,
   }),
-  hours_per_day: requiredNumber({ min: 0, max: 24, rangeKey: 'equipment.hoursRange' }),
-  days_per_week: requiredNumber({ min: 0, max: 7, rangeKey: 'equipment.daysRange' }),
+  // numeric(4,2)
+  hours_per_day: requiredNumber({
+    min: 0,
+    max: 24,
+    rangeKey: 'equipment.hoursRange',
+    decimals: { places: 2, key: 'equipment.hoursDecimals' },
+  }),
+  // numeric(3,1)
+  days_per_week: requiredNumber({
+    min: 0,
+    max: 7,
+    rangeKey: 'equipment.daysRange',
+    decimals: { places: 1, key: 'equipment.daysDecimals' },
+  }),
   /** `purpose` is nullable text. Trimmed, so `"   "` is stored as nothing. */
   purpose: z.string().transform((s) => s.trim()),
 })
