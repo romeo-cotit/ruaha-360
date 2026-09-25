@@ -124,3 +124,70 @@ select pg_temp.assert_raises($q$ insert into opportunity(buyer_demand_id,village
 update opportunity set status = 'lapsed' where id = 'e2000000-0000-4000-8000-0000000000fd';
 select pg_temp.assert_raises($q$ update opportunity set status = 'shared' where id = 'e2000000-0000-4000-8000-0000000000fd' $q$,'lapsed is terminal');
 rollback;
+
+-- Staff reads are scoped to STAFF villages everywhere, not just in the
+-- policies 20260925090001 rewrote. farm_manager, and the two helpers behind
+-- household_member and opportunity_supply, still trusted app_is_staff() plus
+-- app_villages() — a farmer membership's village included.
+begin;
+select set_config('request.jwt.claims', json_build_object('sub', :OFF_MGA)::text, true);
+set local role authenticated;
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id in ('90000000-0000-4000-8000-000000000001',
+  '90000000-0000-4000-8000-000000000002','90000000-0000-4000-8000-000000000003','90000000-0000-4000-8000-000000000004')),
+  0,'Mgama officer reads no Ilundo farm managers');
+select pg_temp.assert_eq((select count(*) from farm_manager),1,'Mgama officer reads exactly Mgama farm managers');
+rollback;
+begin;
+select set_config('request.jwt.claims', json_build_object('sub', :OFF_ILU)::text, true);
+set local role authenticated;
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id in ('90000000-0000-4000-8000-000000000001',
+  '90000000-0000-4000-8000-000000000002','90000000-0000-4000-8000-000000000003','90000000-0000-4000-8000-000000000004')),
+  4,'Ilundo officer still reads Ilundo farm managers');
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id = '90000000-0000-4000-8000-000000000005'),
+  0,'Ilundo officer reads no Mgama farm managers');
+rollback;
+begin;
+select set_config('request.jwt.claims', json_build_object('sub', :OPS)::text, true);
+set local role authenticated;
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id::text like '90000000-0000-4000-8000-00000000000_'),
+  5,'project-wide ops still reads every seeded farm manager');
+rollback;
+begin;
+select set_config('request.jwt.claims', json_build_object('sub', :FARM_NEE)::text, true);
+set local role authenticated;
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id = '90000000-0000-4000-8000-000000000001'),
+  1,'farmer still reads her own farm manager');
+rollback;
+
+-- Mixed membership: Joseph farms in Ilundo and is made a field officer in
+-- Mgama only. Staff reach must stop at Mgama; his Ilundo view stays a
+-- farmer's. A Mgama opportunity with supply is added so the staff read of
+-- opportunity_supply has something legitimate to find.
+begin;
+insert into membership(user_id,role,project_id,village_id) values
+  (:FARM_JOS,'field_officer','20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002');
+insert into opportunity(id,buyer_demand_id,village_id,crop_id) values
+  ('e2000000-0000-4000-8000-0000000000fc','e1000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000001');
+insert into opportunity_supply(opportunity_id,harvest_report_id,crop_cycle_id,contributed_kg)
+  select 'e2000000-0000-4000-8000-0000000000fc',id,crop_cycle_id,100 from harvest_report where id = 'c0000000-0000-4000-8000-000000000009';
+select set_config('request.jwt.claims', json_build_object('sub', :FARM_JOS)::text, true);
+set local role authenticated;
+select pg_temp.assert_eq((select count(*) from household_member where household_id not in
+  ('70000000-0000-4000-8000-000000000002','70000000-0000-4000-8000-000000000004')),
+  0,'mixed membership: no staff read of other Ilundo household members');
+select pg_temp.assert_eq((select count(*) from household_member where household_id = '70000000-0000-4000-8000-000000000002'),
+  2,'mixed membership: own household still read as a farmer');
+select pg_temp.assert_eq((select count(*) from household_member where household_id = '70000000-0000-4000-8000-000000000004'),
+  1,'mixed membership: Mgama household members read as staff');
+select pg_temp.assert_eq((select count(*) from opportunity_supply s where s.opportunity_id <> 'e2000000-0000-4000-8000-0000000000fc'),
+  0,'mixed membership: no staff read of Ilundo opportunity supply');
+select pg_temp.assert_eq((select count(*) from opportunity_supply where opportunity_id = 'e2000000-0000-4000-8000-0000000000fc'),
+  1,'mixed membership: Mgama opportunity supply read as staff');
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id in ('90000000-0000-4000-8000-000000000001',
+  '90000000-0000-4000-8000-000000000003','90000000-0000-4000-8000-000000000004')),
+  0,'mixed membership: no staff read of other Ilundo farm managers');
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id = '90000000-0000-4000-8000-000000000002'),
+  1,'mixed membership: own household farm manager still read');
+select pg_temp.assert_eq((select count(*) from farm_manager where farm_id = '90000000-0000-4000-8000-000000000005'),
+  1,'mixed membership: Mgama farm manager read as staff');
+rollback;
