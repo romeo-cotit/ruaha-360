@@ -228,6 +228,17 @@
     background-image: var(--hatch);
   }
 
+  /* A horizontally-scrollable row with no visible scrollbar track — the
+     register wizard rail. The affordance is the sizing (the last step peeks
+     off-edge), not chrome. */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
   /* ── the type scale ──────────────────────────────────────────────────────
      Eight steps, Poppins, four weights. 12px is the floor: nothing smaller
      ships, because the farmer surface assumes the lowest literacy and the

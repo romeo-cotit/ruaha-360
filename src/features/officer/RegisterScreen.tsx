@@ -401,7 +401,6 @@ export function RegisterScreen() {
           {t('register.intro')}
         </p>
         <div className="flex flex-wrap items-center gap-2.5">
-          {draft.status === 'dirty' && <UnsavedDraftBadge />}
           {/* Provenance is never a user-facing choice on this screen. */}
           <span
             className="type-note inline-flex items-center gap-[7px] px-3 py-1.5 font-medium"
@@ -419,35 +418,66 @@ export function RegisterScreen() {
       </header>
 
       {/*
-        A rail, not a wizard. Six chips say which groups are filled in, which is
-        open and what is left — without splitting one transaction into six
-        submits. The marks are the same shapes verification uses, so the
-        vocabulary is learned once.
+        A rail, not a wizard page-turner. Six steps say which groups are
+        filled in, which is open and what is left — without splitting one
+        transaction into six submits. Sized so the last step peeks off the
+        edge on a phone: the hint to scroll is the layout, not a scrollbar.
       */}
-      <ul data-testid="register-progress" className="flex flex-wrap gap-2">
-        {REGISTER_GROUPS.map((group) => (
-          <li key={group}>
-            <span
-              data-group={group}
-              data-complete={done(group) ? 'yes' : 'no'}
-              className="type-note inline-flex items-center gap-2 px-3 py-1.5 font-medium"
-              style={{
-                border: `1px solid ${done(group) ? 'var(--green-ink)' : 'var(--rule-2)'}`,
-                borderRadius: 'var(--radius-pill)',
-                background: done(group) ? 'var(--green-tint)' : 'var(--paper)',
-                color: done(group) ? 'var(--green-ink)' : 'var(--ink-2)',
-              }}
-            >
-              {done(group) ? (
-                <VerificationMark verification="verified" size={13} />
-              ) : (
-                <VerificationMark verification="unverified" size={13} />
-              )}
-              {t(`register.sections.${group}`)}
-            </span>
+      <ol
+        data-testid="register-progress"
+        className="scrollbar-hidden flex items-start overflow-x-auto"
+        style={{ paddingBottom: 2 }}
+      >
+        {REGISTER_GROUPS.map((group, index) => (
+          <li key={group} className="flex items-start" style={{ flex: 'none' }}>
+            <div className="flex flex-col items-center" style={{ width: 68 }}>
+              <span
+                data-group={group}
+                data-complete={done(group) ? 'yes' : 'no'}
+                className="inline-flex items-center justify-center font-semibold"
+                style={{
+                  width: 26,
+                  height: 26,
+                  flex: 'none',
+                  borderRadius: 'var(--radius-pill)',
+                  border: done(group) ? 'none' : '1.5px solid var(--rule-2)',
+                  background: done(group) ? 'var(--green-ink)' : 'var(--paper)',
+                  color: done(group) ? '#fff' : 'var(--ink-2)',
+                  fontSize: 12,
+                }}
+              >
+                {done(group) ? (
+                  <VerificationMark verification="verified" size={13} />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <span
+                className="type-note text-center"
+                style={{
+                  marginTop: 4,
+                  fontWeight: 600,
+                  color: done(group) ? 'var(--green-ink)' : 'var(--ink-2)',
+                }}
+              >
+                {t(`register.sections.${group}`)}
+              </span>
+            </div>
+            {index < REGISTER_GROUPS.length - 1 && (
+              <span
+                aria-hidden
+                style={{
+                  flex: 'none',
+                  width: 20,
+                  height: 2,
+                  marginTop: 12,
+                  background: done(group) ? 'var(--green-ink)' : 'var(--rule-2)',
+                }}
+              />
+            )}
           </li>
         ))}
-      </ul>
+      </ol>
 
       <form
         className="flex flex-col gap-4"
@@ -458,7 +488,7 @@ export function RegisterScreen() {
         // clicks again. The control below is disabled on both.
         onSubmit={handleSubmit((form) => submit.mutate(form))}
       >
-        <Fieldset number={1} legend={t('register.sections.person')}>
+        <Fieldset number={1} legend={t('register.sections.person')} complete={done('person')}>
           <Field label={t('register.givenName')} id="register-given-name">
             <input
               id="register-given-name"
@@ -477,23 +507,24 @@ export function RegisterScreen() {
             />
           </Field>
           {err('family_name')}
-          <Field label={t('register.phone')} id="register-phone" optional>
+          <Field label={t('register.phone')} id="register-phone">
             <input
               id="register-phone"
               data-testid="register-phone"
-              className={inputClass}
-              style={inputStyle}
+              inputMode="tel"
+              {...fieldProps('phone')}
               {...register('phone')}
             />
           </Field>
-          {/* `person.phone` is free text by design — the seed uses +255… and
-              there is no rule to enforce, so a hint is the whole fix. #28. */}
+          {err('phone')}
+          {/* The phone is the farmer's login name, so it is required. Whether it
+              is a Tanzanian mobile is app_normalize_phone's call, not ours. #28. */}
           <p data-testid="register-phone-hint" className="type-note" style={{ color: 'var(--ink-3)' }}>
             {t('register.phoneHint')}
           </p>
         </Fieldset>
 
-        <Fieldset number={2} legend={t('register.sections.household')}>
+        <Fieldset number={2} legend={t('register.sections.household')} complete={done('household')}>
           <Field label={t('register.householdLabel')} id="register-household-label" optional>
             <input
               id="register-household-label"
@@ -517,7 +548,7 @@ export function RegisterScreen() {
           </label>
         </Fieldset>
 
-        <Fieldset number={3} legend={t('register.sections.farm')}>
+        <Fieldset number={3} legend={t('register.sections.farm')} complete={done('farm')}>
           <Field label={t('register.farmLabel')} id="register-farm-label">
             <input
               id="register-farm-label"
@@ -529,7 +560,7 @@ export function RegisterScreen() {
           {err('farm_label')}
           <div className="flex flex-wrap gap-3">
             <div style={{ flex: '1 1 150px', minWidth: 0 }}>
-            <Field label={t('register.latitude')} id="register-farm-latitude" optional>
+            <Field label={t('register.latitude')} id="register-farm-latitude">
               <input
                 id="register-farm-latitude"
                 data-testid="register-farm-latitude"
@@ -541,7 +572,7 @@ export function RegisterScreen() {
             </Field>
             </div>
             <div style={{ flex: '1 1 150px', minWidth: 0 }}>
-            <Field label={t('register.longitude')} id="register-farm-longitude" optional>
+            <Field label={t('register.longitude')} id="register-farm-longitude">
               <input
                 id="register-farm-longitude"
                 data-testid="register-farm-longitude"
@@ -591,7 +622,7 @@ export function RegisterScreen() {
           )}
         </Fieldset>
 
-        <Fieldset number={4} legend={t('register.sections.plot')}>
+        <Fieldset number={4} legend={t('register.sections.plot')} complete={done('plot')}>
           <Field label={t('register.plotLabel')} id="register-plot-label">
             <input
               id="register-plot-label"
@@ -614,7 +645,7 @@ export function RegisterScreen() {
           {rounded('register-plot-area', plotArea, 4)}
         </Fieldset>
 
-        <Fieldset number={5} legend={t('register.sections.cycle')}>
+        <Fieldset number={5} legend={t('register.sections.cycle')} complete={done('cycle')}>
           <Field label={t('register.crop')} id="register-crop">
             <Select
               value={cropId}
@@ -714,7 +745,7 @@ export function RegisterScreen() {
           </div>
         </Fieldset>
 
-        <Fieldset number={6} legend={t('register.sections.harvest')}>
+        <Fieldset number={6} legend={t('register.sections.harvest')} complete={done('harvest')}>
           <Field label={t('register.harvestKg')} id="register-harvest-kg">
             <input
               id="register-harvest-kg"
@@ -767,22 +798,18 @@ export function RegisterScreen() {
           data-testid="register-submit-bar"
           className="-mx-4 flex flex-col gap-2.5 px-4 pt-3 pb-4"
           style={{
-            background: 'var(--sand)',
+            background: 'var(--paper)',
             borderTop: '1px solid var(--rule)',
           }}
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
             <span className="type-note" style={{ color: 'var(--ink-3)' }}>
               {t('register.groupsComplete', {
                 done: completeCount,
                 total: REGISTER_GROUPS.length,
               })}
             </span>
-            {draft.status === 'dirty' && (
-              <span className="type-note font-semibold" style={{ color: 'var(--flag-ink)' }}>
-                {t('draft.notSubmitted')}
-              </span>
-            )}
+            {draft.status === 'dirty' && <UnsavedDraftBadge />}
           </div>
           <button
             type="submit"
@@ -841,17 +868,20 @@ function fieldId(name: keyof RegisterForm) {
 function Fieldset({
   number,
   legend,
+  complete,
   children,
 }: {
   number: number
   legend: string
+  complete: boolean
   children: React.ReactNode
 }) {
   return (
     <fieldset
+      data-complete={complete ? 'yes' : 'no'}
       className="flex flex-col gap-3.5 p-[18px]"
       style={{
-        border: '1px solid var(--rule)',
+        border: `1px solid ${complete ? 'rgba(63,84,16,0.45)' : 'var(--rule)'}`,
         borderRadius: 'var(--radius-frame)',
         background: 'var(--paper)',
       }}

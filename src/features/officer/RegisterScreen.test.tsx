@@ -106,7 +106,12 @@ async function chooseCrop(label: string) {
 async function fillValid() {
   fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: 'Neema' } })
   fireEvent.change(screen.getByTestId('register-family-name'), { target: { value: 'Mwakalinga' } })
+  fireEvent.change(screen.getByTestId('register-phone'), { target: { value: '+255700000101' } })
   fireEvent.change(screen.getByTestId('register-farm-label'), { target: { value: 'Shamba' } })
+  // jsdom has no GPS, so the location fields stay open for typing — the same
+  // fallback an officer gets when the handset refuses a position.
+  fireEvent.change(screen.getByTestId('register-farm-latitude'), { target: { value: '-8.1303' } })
+  fireEvent.change(screen.getByTestId('register-farm-longitude'), { target: { value: '35.1895' } })
   fireEvent.change(screen.getByTestId('register-plot-label'), { target: { value: 'Kipande' } })
   await chooseCrop('Mahindi')
   fireEvent.change(screen.getByTestId('register-cycle-area'), { target: { value: '1.6' } })
@@ -255,9 +260,23 @@ describe('the message names the actual problem', () => {
   })
 })
 
-/** QA #28. `person.phone` is free text by design, so a hint is all there is. */
+/**
+ * QA #28. The phone is now the farmer's login name, so it is required. Its
+ * FORMAT is still not checked here: app_normalize_phone decides what a
+ * Tanzanian mobile is, and a client copy of that rule would drift.
+ */
 describe('the phone field', () => {
-  test('shows the format the programme uses, without enforcing it', async () => {
+  test('is required, and never reaches the RPC blank', async () => {
+    renderScreen()
+    await fillValid()
+    fireEvent.change(screen.getByTestId('register-phone'), { target: { value: '  ' } })
+    submit()
+
+    await waitFor(() => expect(screen.getByTestId('register-phone-error')).toBeInTheDocument())
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  test('shows the format the programme uses, and leaves checking it to the database', async () => {
     renderScreen()
 
     expect(screen.getByTestId('register-phone-hint')).toHaveTextContent(/\+255/)
@@ -266,8 +285,23 @@ describe('the phone field', () => {
     fireEvent.change(screen.getByTestId('register-phone'), { target: { value: '0700 000 101' } })
     submit()
 
-    // Free text: an unconventional number is still a number someone answered.
+    // Another spelling of a Tanzanian mobile: the database normalises it.
     await waitFor(() => expect(rpc).toHaveBeenCalledTimes(1))
+  })
+})
+
+describe('the farm location', () => {
+  test('is required: a registration without it never reaches the RPC', async () => {
+    renderScreen()
+    await fillValid()
+    fireEvent.change(screen.getByTestId('register-farm-latitude'), { target: { value: '' } })
+    fireEvent.change(screen.getByTestId('register-farm-longitude'), { target: { value: '' } })
+    submit()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('register-farm-latitude-error')).toBeInTheDocument(),
+    )
+    expect(rpc).not.toHaveBeenCalled()
   })
 })
 
@@ -431,6 +465,56 @@ describe('a draft that no longer matches this form', () => {
     renderScreen()
 
     await waitFor(() => expect(screen.getByTestId('register-given-name')).toHaveValue('Neema'))
+  })
+})
+
+/**
+ * The unsaved-draft badge is required by business-rules.md §12 and asserted
+ * by Playwright via its testid — it can move, but it must still exist, and
+ * exactly once. Two copies (a header pill plus a footer echo) was the bug
+ * being fixed here.
+ */
+describe('the unsaved-draft badge', () => {
+  test('appears once, in the submit bar, when the draft is dirty', async () => {
+    useDraft.mockReturnValue({
+      status: 'dirty',
+      draft: { ...EMPTY_DRAFT, given_name: 'Neema' },
+      save,
+      clear,
+    })
+    renderScreen()
+
+    await waitFor(() => expect(screen.getByTestId('register-given-name')).toHaveValue('Neema'))
+    expect(screen.getAllByTestId('unsaved-draft-badge')).toHaveLength(1)
+    expect(
+      screen.getByTestId('register-submit-bar').querySelector('[data-testid="unsaved-draft-badge"]'),
+    ).not.toBeNull()
+  })
+
+  test('is absent when the draft is clean', async () => {
+    useDraft.mockReturnValue({ status: 'clean', draft: null, save, clear })
+    renderScreen()
+
+    expect(screen.queryByTestId('unsaved-draft-badge')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * A section's card gets a soft green border once its own fields are filled —
+ * the same completion the progress rail already computes, just reflected on
+ * the card too (business-rules §22 territory: a hint, not a validation claim).
+ */
+describe('a completed section card', () => {
+  test('is marked complete once its required fields are filled', async () => {
+    renderScreen()
+
+    const person = screen.getByRole('group', { name: /Person/ })
+    expect(person).toHaveAttribute('data-complete', 'no')
+
+    fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: 'Neema' } })
+    fireEvent.change(screen.getByTestId('register-family-name'), { target: { value: 'Mwakalinga' } })
+
+    await waitFor(() => expect(person).toHaveAttribute('data-complete', 'yes'))
   })
 })
 
