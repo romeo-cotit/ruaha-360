@@ -395,89 +395,94 @@ export function RegisterScreen() {
 
   return (
     <section className="flex max-w-xl flex-col gap-[18px]">
-      <header className="flex flex-col gap-2">
-        <h1 className="type-screen-title">{t('register.title')}</h1>
-        <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--ink-2)' }}>
-          {t('register.intro')}
-        </p>
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Provenance is never a user-facing choice on this screen. */}
-          <span
-            className="type-note inline-flex items-center gap-[7px] px-3 py-1.5 font-medium"
-            style={{
-              border: '1px solid var(--rule-2)',
-              borderRadius: 'var(--radius-pill)',
-              background: 'var(--primary-tint)',
-              color: 'var(--primary-ink)',
-            }}
-          >
-            <VerificationMark verification="verified" size={13} />
-            {t('register.provenanceNote')}
-          </span>
-        </div>
-      </header>
-
-      {/*
-        A rail, not a wizard page-turner. Six steps say which groups are
-        filled in, which is open and what is left — without splitting one
-        transaction into six submits. Sized so the last step peeks off the
-        edge on a phone: the hint to scroll is the layout, not a scrollbar.
-      */}
-      <ol
-        data-testid="register-progress"
-        className="scrollbar-hidden flex items-start overflow-x-auto"
-        style={{ paddingBottom: 2 }}
+      <div
+        className="flex flex-col gap-[18px] p-[18px]"
+        style={{
+          border: '1px solid var(--rule)',
+          borderRadius: 'var(--radius-frame)',
+          background: 'var(--paper)',
+        }}
       >
-        {REGISTER_GROUPS.map((group, index) => (
-          <li key={group} className="flex items-start" style={{ flex: 'none' }}>
-            <div className="flex flex-col items-center" style={{ width: 68 }}>
-              <span
-                data-group={group}
-                data-complete={done(group) ? 'yes' : 'no'}
-                className="inline-flex items-center justify-center font-semibold"
-                style={{
-                  width: 26,
-                  height: 26,
-                  flex: 'none',
-                  borderRadius: 'var(--radius-pill)',
-                  border: done(group) ? 'none' : '1.5px solid var(--rule-2)',
-                  background: done(group) ? 'var(--green-ink)' : 'var(--paper)',
-                  color: done(group) ? '#fff' : 'var(--ink-2)',
-                  fontSize: 12,
-                }}
-              >
-                {done(group) ? (
-                  <VerificationMark verification="verified" size={13} />
-                ) : (
-                  index + 1
-                )}
-              </span>
-              <span
-                className="type-note text-center"
-                style={{
-                  marginTop: 4,
-                  fontWeight: 600,
-                  color: done(group) ? 'var(--green-ink)' : 'var(--ink-2)',
-                }}
-              >
-                {t(`register.sections.${group}`)}
-              </span>
-            </div>
-            {index < REGISTER_GROUPS.length - 1 && (
-              <span
-                aria-hidden
-                style={{
-                  flex: 'none',
-                  width: 20,
-                  height: 2,
-                  marginTop: 12,
-                  background: done(group) ? 'var(--green-ink)' : 'var(--rule-2)',
-                }}
-              />
-            )}
-          </li>
-        ))}
-      </ol>
+        <header className="flex flex-col gap-2">
+          <h1 className="type-screen-title">{t('register.title')}</h1>
+          <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+            {t('register.intro')}
+          </p>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Provenance is never a user-facing choice on this screen. */}
+            <span
+              className="type-note inline-flex items-center gap-[7px] px-3 py-1.5 font-medium"
+              style={{
+                border: '1px solid var(--rule-2)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--primary-tint)',
+                color: 'var(--primary-ink)',
+              }}
+            >
+              <VerificationMark verification="verified" size={13} />
+              {t('register.provenanceNote')}
+            </span>
+          </div>
+        </header>
+
+        {/*
+          A rail, not a wizard page-turner. Six steps say which groups are
+          filled in, which is open and what is left — without splitting one
+          transaction into six submits. Sized so the last step peeks off the
+          edge on a phone: the hint to scroll is the layout, not a scrollbar.
+        */}
+        <ol
+          data-testid="register-progress"
+          className="scrollbar-hidden flex items-start overflow-x-auto"
+          style={{ paddingBottom: 2 }}
+        >
+          {REGISTER_GROUPS.map((group, index) => (
+            <li key={group} className="flex items-start" style={{ flex: 'none' }}>
+              <div className="flex flex-col items-center" style={{ width: 68 }}>
+                <span
+                  data-group={group}
+                  data-complete={done(group) ? 'yes' : 'no'}
+                  className="inline-flex items-center justify-center font-semibold"
+                  style={{
+                    width: 26,
+                    height: 26,
+                    flex: 'none',
+                    borderRadius: 'var(--radius-pill)',
+                    border: done(group) ? 'none' : '1.5px solid var(--rule-2)',
+                    background: done(group) ? 'var(--green-ink)' : 'var(--paper)',
+                    color: done(group) ? '#fff' : 'var(--ink-2)',
+                    fontSize: 12,
+                  }}
+                >
+                  {done(group) ? <StepCheck /> : index + 1}
+                </span>
+                <span
+                  className="type-note text-center"
+                  style={{
+                    marginTop: 4,
+                    fontWeight: 600,
+                    color: done(group) ? 'var(--green-ink)' : 'var(--ink-2)',
+                  }}
+                >
+                  {t(`register.sections.${group}`)}
+                </span>
+              </div>
+              {index < REGISTER_GROUPS.length - 1 && (
+                <span
+                  aria-hidden
+                  style={{
+                    flex: 'none',
+                    width: 20,
+                    height: 2,
+                    marginTop: 12,
+                    background: done(group) ? 'var(--green-ink)' : 'var(--rule-2)',
+                  }}
+                />
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
 
       <form
         className="flex flex-col gap-4"
@@ -881,7 +886,7 @@ function Fieldset({
       data-complete={complete ? 'yes' : 'no'}
       className="flex flex-col gap-3.5 p-[18px]"
       style={{
-        border: `1px solid ${complete ? 'rgba(63,84,16,0.45)' : 'var(--rule)'}`,
+        border: `1.5px solid ${complete ? 'rgba(63,84,16,0.55)' : 'var(--rule)'}`,
         borderRadius: 'var(--radius-frame)',
         background: 'var(--paper)',
       }}
@@ -893,19 +898,41 @@ function Fieldset({
             width: 20,
             height: 20,
             borderRadius: 'var(--radius-pill)',
-            background: 'var(--sand-2)',
-            color: 'var(--ink-2)',
+            background: complete ? 'var(--green-ink)' : 'var(--sand-2)',
+            color: complete ? '#fff' : 'var(--ink-2)',
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: 0,
           }}
         >
-          {number}
+          {complete ? <StepCheck /> : number}
         </span>
         {legend}
       </legend>
       {children}
     </fieldset>
+  )
+}
+
+/**
+ * A plain check mark, sized for the 20-26px badges this screen uses to mark a
+ * step or a section done. `VerificationMark`'s "verified" glyph draws its own
+ * filled circle behind the check — nesting that inside another circle here
+ * doubled up the background and looked wrong, so this is the check alone.
+ */
+function StepCheck() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: 'block',
+        width: 7,
+        height: 3.5,
+        borderLeft: '2px solid currentColor',
+        borderBottom: '2px solid currentColor',
+        transform: 'rotate(-45deg) translate(0.5px, -1px)',
+      }}
+    />
   )
 }
 
