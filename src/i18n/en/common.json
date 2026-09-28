@@ -9,6 +9,7 @@
     "detail": "Every figure here is invented. Nothing is a measured Ruaha result."
   },
   "nav": {
+    "userMenu": "Account menu",
     "signOut": "Sign out",
     "myFarm": "My farm",
     "equipment": "Equipment",
@@ -128,6 +129,11 @@
     "latitude": "Latitude",
     "longitude": "Longitude",
     "gpsNote": "Leaving GPS blank is allowed, and shows up honestly in the Tower's data-quality tile as a farm without a point.",
+    "gpsDetecting": "Finding this farm's location…",
+    "gpsDenied": "Location access was declined. Enter the coordinates yourself, or",
+    "gpsUnsupported": "This browser can't detect location. Enter the coordinates yourself, or",
+    "gpsError": "Couldn't get a location just now. Enter the coordinates yourself, or",
+    "gpsRetry": "Try again",
     "plotLabel": "Plot name",
     "plotArea": "Plot area (ha)",
     "crop": "Crop",

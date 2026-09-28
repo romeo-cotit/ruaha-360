@@ -6,6 +6,7 @@ import { DemoBanner } from '@/app/DemoBanner'
 import { LanguageSwitch } from '@/app/LanguageSwitch'
 import { SignOutButton } from '@/app/SignOutButton'
 import { SurfaceNav } from '@/app/SurfaceNav'
+import { UserMenu } from '@/app/UserMenu'
 import { TourButton } from '@/app/tour/TourButton'
 import { TourProvider } from '@/app/tour/TourProvider'
 import { activeMemberships } from '@/app/membership'
@@ -57,19 +58,26 @@ export function RootLayout() {
           className="flex flex-wrap items-center justify-between gap-3.5 px-3 py-3 sm:px-4 lg:px-[18px]"
           style={{ background: 'var(--paper)', borderBottom: '1px solid var(--rule)' }}
         >
-          <div className="mx-auto flex w-full max-w-screen-2xl flex-col items-stretch gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <Link to="/" className="self-start">
+          <div className="mx-auto flex w-full max-w-screen-2xl flex-row items-center gap-3.5 justify-between">
+            <Link to="/">
               <BrandLockup height={layout === 'tabs' ? 23 : 26} />
             </Link>
 
+            {/*
+              `sm` and up: the full action row, unchanged. Below `sm`: a single
+              icon trigger folds the same actions into a popup instead of four
+              stacked full-width buttons — a signed-out visitor (the login
+              screen) has no identity to fold, so the language switch stays
+              directly on the row instead.
+            */}
             <div
               data-testid="global-header-actions"
-              className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full sm:[&>button]:w-auto [&>div]:w-full sm:[&>div]:w-auto"
+              className="hidden w-full flex-wrap items-center justify-end gap-2 sm:flex sm:w-auto"
             >
               {session?.appUser && (
                 <span
                   data-testid="current-user"
-                  className="col-span-2 inline-flex min-h-11 items-center rounded-full bg-sand-2 px-3 py-1.5 text-sm font-medium text-ink-2 sm:col-span-auto"
+                  className="inline-flex min-h-11 items-center rounded-full bg-sand-2 px-3 py-1.5 text-sm font-medium text-ink-2"
                 >
                   {session.appUser.display_name}
                 </span>
@@ -79,6 +87,9 @@ export function RootLayout() {
               {signedIn && <TourButton />}
               <LanguageSwitch className="w-full sm:w-auto" />
               {signedIn && <SignOutButton className="w-full sm:w-auto" />}
+            </div>
+            <div className="flex w-full justify-end sm:hidden">
+              {signedIn ? <UserMenu /> : <LanguageSwitch className="w-auto" />}
             </div>
           </div>
         </header>

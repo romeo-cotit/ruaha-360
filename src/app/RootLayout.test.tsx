@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import type { ActiveMembership } from '@/app/membership'
@@ -158,15 +159,53 @@ describe('the tab bar never covers the last control', () => {
     expect(workspace).not.toHaveClass('max-w-screen-2xl')
   })
 
-  test('the shell header gives mobile actions their own full-width layout', () => {
+})
+
+/**
+ * The mobile header no longer stacks every action as its own full-width
+ * button — the `sm`-and-up row is hidden below it, replaced by one trigger
+ * that opens the same actions as a popup (spec: logo left, account menu
+ * right). A signed-out visitor has no identity to fold behind a trigger, so
+ * the language switch stays directly on the mobile row for them.
+ */
+describe('the mobile header collapses actions into one menu', () => {
+  test('signed in: the full action row is hidden below sm, and a single trigger takes its place', () => {
     useSession.mockReturnValue({
       data: { appUser: { display_name: 'Asha' }, memberships: [m('ops')] },
       isLoading: false,
     })
     renderLayout()
 
-    expect(screen.getByTestId('global-header-actions')).toHaveClass('grid', 'w-full', 'grid-cols-2')
-    expect(screen.getByTestId('current-user')).toHaveClass('col-span-2', 'min-h-11')
+    const desktopActions = screen.getByTestId('global-header-actions')
+    expect(desktopActions.className).toMatch(/\bhidden\b/)
+    expect(desktopActions.className).toMatch(/\bsm:flex\b/)
+    expect(screen.getByTestId('user-menu-trigger')).toBeInTheDocument()
+  })
+
+  test('signed out: there is no user menu, but the mobile row still offers the language switch', () => {
+    useSession.mockReturnValue({ data: undefined, isLoading: false })
+    renderLayout()
+
+    expect(screen.queryByTestId('user-menu-trigger')).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('language-switch').length).toBeGreaterThan(0)
+  })
+
+  test('opening the trigger surfaces the name, language switch and sign out', async () => {
+    useSession.mockReturnValue({
+      data: { appUser: { id: 'u-1', display_name: 'Asha' }, memberships: [m('ops')] },
+      isLoading: false,
+    })
+    pathname.mockReturnValue('/ops/tower')
+    renderLayout()
+
+    await userEvent.click(screen.getByTestId('user-menu-trigger'))
+
+    expect(await screen.findByTestId('user-menu-popup')).toBeInTheDocument()
+    expect(screen.getByTestId('user-menu-name')).toHaveTextContent('Asha')
+    expect(screen.getAllByTestId('language-switch').length).toBeGreaterThan(0)
+    // The desktop row's own sign-out is also in the DOM (hidden by CSS, not
+    // removed), so this only asserts the popup's copy is now reachable too.
+    expect(screen.getAllByTestId('sign-out').length).toBeGreaterThan(0)
   })
 })
 

@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { UnsavedDraftBadge } from '@/components/UnsavedDraftBadge'
 import { BangMark, HatchMark, VerificationMark } from '@/components/marks'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { buildRegisterPayload, type RegisterForm } from '@/features/officer/registerPayload'
 import {
@@ -25,6 +26,7 @@ import {
   type RegisterGroup,
 } from '@/features/officer/registerProgress'
 import { useCrops } from '@/features/officer/useCrops'
+import { useFarmLocation, type FarmLocationStatus } from '@/features/officer/useFarmLocation'
 import { draftKey, indexedDbDraftStore, useDraft } from '@/lib/drafts'
 import { newUuid } from '@/lib/ids'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
@@ -126,7 +128,7 @@ export function RegisterScreen() {
     [],
   )
 
-  const { register, handleSubmit, watch, reset, setValue, formState } = useForm<
+  const { register, handleSubmit, watch, reset, setValue, getValues, formState } = useForm<
     RegisterForm,
     unknown,
     RegisterForm
@@ -144,6 +146,30 @@ export function RegisterScreen() {
     if (draft.draft) reset(draft.draft)
     setRestored(true)
   }, [draft.status, draft.draft, reset, restored])
+
+  /**
+   * Whether an automatic GPS read is allowed to fill and disable the farm
+   * coordinate fields. Decided once, from the values restoration left behind:
+   * an officer's own typing, or a value already in a restored draft, is never
+   * overwritten by a sensor read (the reload-survives-a-draft guarantee).
+   * `null` means "not decided yet" — before the draft has finished restoring.
+   */
+  const [gpsEligible, setGpsEligible] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!restored || gpsEligible !== null) return
+    const values = getValues()
+    setGpsEligible(values.farm_latitude === '' && values.farm_longitude === '')
+  }, [restored, gpsEligible, getValues])
+
+  const location = useFarmLocation(gpsEligible === true)
+  useEffect(() => {
+    if (!gpsEligible || location.status !== 'acquired' || !location.coords) return
+    setValue('farm_latitude', location.coords.latitude, { shouldDirty: true })
+    setValue('farm_longitude', location.coords.longitude, { shouldDirty: true })
+  }, [gpsEligible, location.status, location.coords, setValue])
+
+  const gpsFieldsDisabled =
+    gpsEligible === true && (location.status === 'acquiring' || location.status === 'acquired')
 
   // Only the crop drives rendering, so only it is subscribed for render.
   const cropId = watch('crop_id')
@@ -332,6 +358,20 @@ export function RegisterScreen() {
     }
   }
 
+  /** The status line for a GPS read that isn't quietly succeeding. */
+  const gpsMessageKey = (status: FarmLocationStatus): string | null => {
+    switch (status) {
+      case 'denied':
+        return 'register.gpsDenied'
+      case 'unsupported':
+        return 'register.gpsUnsupported'
+      case 'error':
+        return 'register.gpsError'
+      default:
+        return null
+    }
+  }
+
   /** What a column's scale will store, when that is not what was typed. */
   const rounded = (testId: string, value: string | undefined, dp: number) => {
     const stored = roundedTo(value ?? '', dp)
@@ -493,6 +533,7 @@ export function RegisterScreen() {
               <input
                 id="register-farm-latitude"
                 data-testid="register-farm-latitude"
+                disabled={gpsFieldsDisabled}
                 {...fieldProps('farm_latitude')}
               {...register('farm_latitude')}
               />
@@ -504,6 +545,7 @@ export function RegisterScreen() {
               <input
                 id="register-farm-longitude"
                 data-testid="register-farm-longitude"
+                disabled={gpsFieldsDisabled}
                 {...fieldProps('farm_longitude')}
               {...register('farm_longitude')}
               />
@@ -511,9 +553,42 @@ export function RegisterScreen() {
             </Field>
             </div>
           </div>
-          <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
-            {t('register.gpsNote')}
-          </p>
+          {gpsEligible && location.status === 'acquiring' && (
+            <p
+              data-testid="register-gps-status"
+              className="type-note"
+              style={{ color: 'var(--ink-3)' }}
+            >
+              {t('register.gpsDetecting')}
+            </p>
+          )}
+          {gpsEligible && gpsMessageKey(location.status) && (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <p
+                data-testid="register-gps-status"
+                className="type-note"
+                style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}
+              >
+                {t(gpsMessageKey(location.status) as string)}
+              </p>
+              {location.status !== 'unsupported' && (
+                <Button
+                  type="button"
+                  data-testid="register-gps-retry"
+                  variant="secondary"
+                  size="sm"
+                  onClick={location.retry}
+                >
+                  {t('register.gpsRetry')}
+                </Button>
+              )}
+            </div>
+          )}
+          {(!gpsEligible || location.status === 'acquired') && (
+            <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
+              {t('register.gpsNote')}
+            </p>
+          )}
         </Fieldset>
 
         <Fieldset number={4} legend={t('register.sections.plot')}>

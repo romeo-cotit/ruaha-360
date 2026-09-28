@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { queryKeys } from '@/lib/queryKeys'
 import { isSupportedLanguage, supportedLanguages } from '@/i18n'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-
+import { clsx as cx } from 'clsx'
 /**
  * Spec 4.1: the language choice is persisted to `app_user.locale`.
  *
@@ -91,10 +91,8 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
     human === null ? undefined : human.kind === 'verbatim' ? human.message : t(human.key)
 
   return (
-    <div className={`inline-flex flex-col items-end gap-1 ${className}`}>
-      <label className="inline-flex items-center gap-2 text-sm">
-        <span className="sr-only">{t('a11y.language')}</span>
-        <Select
+    <div className={cx(`inline-flex flex-col items-end gap-1`, className)}>
+      <Select
           value={i18n.resolvedLanguage}
           onValueChange={(value) => void onChange(value ?? '')}
           disabled={persist.isPending}
@@ -112,9 +110,7 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
-      </label>
-
+      </Select>
       {failureMessage && (
         <p
           data-testid="language-error"

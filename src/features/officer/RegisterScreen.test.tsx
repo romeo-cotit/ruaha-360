@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useSession = vi.fn()
 const useCrops = vi.fn()
@@ -431,5 +431,92 @@ describe('a draft that no longer matches this form', () => {
     renderScreen()
 
     await waitFor(() => expect(screen.getByTestId('register-given-name')).toHaveValue('Neema'))
+  })
+})
+
+/**
+ * The Farm section's GPS auto-capture: `docs/screens-and-components.md`'s
+ * `GpsCapture` states, wired into this screen's own coordinate fields rather
+ * than a separate component.
+ */
+describe('farm GPS auto-capture', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'geolocation')
+  })
+
+  function mockGeolocation() {
+    const getCurrentPosition = vi.fn()
+    Object.defineProperty(navigator, 'geolocation', {
+      value: { getCurrentPosition },
+      configurable: true,
+    })
+    return getCurrentPosition
+  }
+
+  test('an unsupported browser leaves the fields enabled, with an explanatory note and no retry button', async () => {
+    Reflect.deleteProperty(navigator, 'geolocation')
+    renderScreen()
+
+    await screen.findByTestId('register-gps-status')
+    expect(screen.getByTestId('register-gps-status')).toHaveTextContent(
+      /can't detect location/i,
+    )
+    expect(screen.queryByTestId('register-gps-retry')).not.toBeInTheDocument()
+    expect(screen.getByTestId('register-farm-latitude')).toBeEnabled()
+    expect(screen.getByTestId('register-farm-longitude')).toBeEnabled()
+  })
+
+  test('a successful read fills and disables both coordinate fields', async () => {
+    const getCurrentPosition = mockGeolocation()
+    renderScreen()
+
+    await waitFor(() => expect(getCurrentPosition).toHaveBeenCalledTimes(1))
+    const [success] = getCurrentPosition.mock.calls[0]
+    act(() => success({ coords: { latitude: -7.1, longitude: 34.9 } }))
+
+    await waitFor(() => expect(screen.getByTestId('register-farm-latitude')).toHaveValue('-7.100000'))
+    expect(screen.getByTestId('register-farm-longitude')).toHaveValue('34.900000')
+    expect(screen.getByTestId('register-farm-latitude')).toBeDisabled()
+    expect(screen.getByTestId('register-farm-longitude')).toBeDisabled()
+  })
+
+  test('a denied read shows why and offers a retry, which can then succeed', async () => {
+    const getCurrentPosition = mockGeolocation()
+    renderScreen()
+
+    await waitFor(() => expect(getCurrentPosition).toHaveBeenCalledTimes(1))
+    const [, failure] = getCurrentPosition.mock.calls[0]
+    act(() => failure({ code: 1 }))
+
+    await screen.findByTestId('register-gps-retry')
+    expect(screen.getByTestId('register-gps-status')).toHaveTextContent(/declined/i)
+    expect(screen.getByTestId('register-farm-latitude')).toBeEnabled()
+
+    await userEvent.click(screen.getByTestId('register-gps-retry'))
+    await waitFor(() => expect(getCurrentPosition).toHaveBeenCalledTimes(2))
+    const [secondSuccess] = getCurrentPosition.mock.calls[1]
+    act(() => secondSuccess({ coords: { latitude: 1, longitude: 2 } }))
+
+    await waitFor(() => expect(screen.getByTestId('register-farm-latitude')).toHaveValue('1.000000'))
+    expect(screen.getByTestId('register-farm-latitude')).toBeDisabled()
+  })
+
+  // The reload-survives-a-draft guarantee: a value already in the draft is the
+  // officer's, typed or previously captured, and a fresh sensor read must not
+  // silently replace it.
+  test('a restored draft with its own coordinates is never overwritten by a GPS read', async () => {
+    const getCurrentPosition = mockGeolocation()
+    useDraft.mockReturnValue({
+      status: 'dirty',
+      draft: { ...EMPTY_DRAFT, farm_latitude: '-6.5', farm_longitude: '35.5' },
+      save,
+      clear,
+    })
+    renderScreen()
+
+    await waitFor(() => expect(screen.getByTestId('register-farm-latitude')).toHaveValue('-6.5'))
+    expect(screen.getByTestId('register-farm-longitude')).toHaveValue('35.5')
+    expect(screen.getByTestId('register-farm-latitude')).toBeEnabled()
+    expect(getCurrentPosition).not.toHaveBeenCalled()
   })
 })

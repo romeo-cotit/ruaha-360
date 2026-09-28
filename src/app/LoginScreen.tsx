@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next'
 
 import { BrandLockup } from '@/app/BrandLockup'
 import { CONTROL_FIELD } from '@/components/controlStyles'
+import { Card } from '@/components/controls'
 import { BangMark } from '@/components/marks'
+import { Button } from '@/components/ui/button'
 import { z } from 'zod'
 
 import { resolveLanding, safeRedirect } from '@/app/membership'
@@ -100,107 +102,101 @@ export function LoginScreen() {
   const passwordError = fieldError('password')
 
   return (
-    <section className="mx-auto flex w-full max-w-sm flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <BrandLockup height={34} />
-        <h1 className="type-screen-title">{t('login.title')}</h1>
-      </div>
-
-      <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="flex flex-col gap-1.5">
-          <label className="block" htmlFor="login-email" style={LABEL}>
-            {t('login.email')}
-          </label>
-          <input
-            id="login-email"
-            data-testid="login-email"
-            type="email"
-            autoComplete="email"
-            aria-invalid={emailError ? true : undefined}
-            aria-describedby={emailError ? 'login-email-error' : undefined}
-            style={emailError ? INVALID_FIELD : CONTROL_FIELD}
-            {...register('email')}
-          />
-          {emailError && (
-            <p
-              id="login-email-error"
-              data-testid="login-email-error"
-              className="flex items-start gap-[7px] font-medium"
-              style={FIELD_ERROR}
-            >
-              <BangMark />
-              {emailError}
-            </p>
-          )}
+    <section className="flex justify-center p-4 pt-6 sm:min-h-[75vh] sm:items-center sm:p-8">
+      <Card className="flex w-full max-w-sm flex-col gap-4 p-6 sm:p-8">
+        <div className="flex flex-col items-center gap-1 text-center">
+          <BrandLockup height={34} />
+          <h1 className="type-screen-title">{t('login.title')}</h1>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="block" htmlFor="login-password" style={LABEL}>
-            {t('login.password')}
-          </label>
-          <input
-            id="login-password"
-            data-testid="login-password"
-            type="password"
-            autoComplete="current-password"
-            aria-invalid={passwordError ? true : undefined}
-            aria-describedby={passwordError ? 'login-password-error' : undefined}
-            style={passwordError ? INVALID_FIELD : CONTROL_FIELD}
-            {...register('password')}
-          />
-          {passwordError && (
+        <form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="flex flex-col gap-1.5">
+            <label className="block" htmlFor="login-email" style={LABEL}>
+              {t('login.email')}
+            </label>
+            <input
+              id="login-email"
+              data-testid="login-email"
+              type="email"
+              autoComplete="email"
+              aria-invalid={emailError ? true : undefined}
+              aria-describedby={emailError ? 'login-email-error' : undefined}
+              style={emailError ? INVALID_FIELD : CONTROL_FIELD}
+              {...register('email')}
+            />
+            {emailError && (
+              <p
+                id="login-email-error"
+                data-testid="login-email-error"
+                className="flex items-start gap-[7px] font-medium"
+                style={FIELD_ERROR}
+              >
+                <BangMark />
+                {emailError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="block" htmlFor="login-password" style={LABEL}>
+              {t('login.password')}
+            </label>
+            <input
+              id="login-password"
+              data-testid="login-password"
+              type="password"
+              autoComplete="current-password"
+              aria-invalid={passwordError ? true : undefined}
+              aria-describedby={passwordError ? 'login-password-error' : undefined}
+              style={passwordError ? INVALID_FIELD : CONTROL_FIELD}
+              {...register('password')}
+            />
+            {passwordError && (
+              <p
+                id="login-password-error"
+                data-testid="login-password-error"
+                className="flex items-start gap-[7px] font-medium"
+                style={FIELD_ERROR}
+              >
+                <BangMark />
+                {passwordError}
+              </p>
+            )}
+          </div>
+
+          {formError && (
             <p
-              id="login-password-error"
-              data-testid="login-password-error"
-              className="flex items-start gap-[7px] font-medium"
-              style={FIELD_ERROR}
+              data-testid="login-error"
+              role="alert"
+              className="flex items-start gap-2 px-3.5 py-3"
+              style={{
+                border: '1px solid rgba(158, 27, 27, .25)',
+                borderLeft: '4px solid var(--flag-ink)',
+                borderRadius: 'var(--radius-card)',
+                background: 'var(--flag-tint)',
+                fontSize: 14,
+                lineHeight: 1.55,
+                color: 'var(--ink)',
+                textWrap: 'pretty',
+              }}
             >
-              <BangMark />
-              {passwordError}
+              <BangMark size={18} />
+              {formError}
             </p>
           )}
-        </div>
 
-        {formError && (
-          <p
-            data-testid="login-error"
-            role="alert"
-            className="flex items-start gap-2 px-3.5 py-3"
-            style={{
-              border: '1px solid rgba(158, 27, 27, .25)',
-              borderLeft: '4px solid var(--flag-ink)',
-              borderRadius: 'var(--radius-card)',
-              background: 'var(--flag-tint)',
-              fontSize: 14,
-              lineHeight: 1.55,
-              color: 'var(--ink)',
-              textWrap: 'pretty',
-            }}
+          <Button
+            type="submit"
+            data-testid="login-submit"
+            disabled={isSubmitting}
+            variant="primary"
+            size="lg"
+            className="w-full"
           >
-            <BangMark size={18} />
-            {formError}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          data-testid="login-submit"
-          disabled={isSubmitting}
-          className="w-full font-semibold disabled:opacity-60"
-          style={{
-            minHeight: 48,
-            border: 0,
-            borderRadius: 'var(--radius-control)',
-            background: 'var(--primary)',
-            color: '#fff',
-            fontSize: 16,
-            fontFamily: 'inherit',
-            textWrap: 'balance',
-          }}
-        >
-          {isSubmitting ? t('login.submitting') : t('login.submit')}
-        </button>
-      </form>
+            {isSubmitting ? t('login.submitting') : t('login.submit')}
+          </Button>
+        </form>
+      </Card>
     </section>
   )
 }
