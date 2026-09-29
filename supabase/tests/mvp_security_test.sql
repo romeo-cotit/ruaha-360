@@ -26,11 +26,11 @@ values ('e2000000-0000-4000-8000-000000000001','c0000000-0000-4000-8000-00000000
 with changed as (update opportunity set status = 'declined' returning id)
 select pg_temp.assert_eq((select count(*) from changed),0,'officer opportunity update affects no rows');
 -- RPC registration both enforces scope and remains atomic/idempotent.
-select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000001","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Test"},"household":{"label":"MVP fixture"},"farm":{"label":"MVP fixture"},"plot":{"label":"MVP fixture","area_ha":"1"}}');
+select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000001","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Test","phone":"0712000801"},"household":{"label":"MVP fixture"},"farm":{"label":"MVP fixture","latitude":"-8.13","longitude":"35.19"},"plot":{"label":"MVP fixture","area_ha":"1"}}');
 select pg_temp.assert_eq((select count(*) from person where family_name = 'Test' and given_name = 'MVP'),1,'RPC registration remains usable');
 select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000001","village_id":"30000000-0000-4000-8000-000000000001"}');
 select pg_temp.assert_eq((select count(*) from person where family_name = 'Test' and given_name = 'MVP'),1,'registration replay creates no duplicate');
-select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000002","village_id":"30000000-0000-4000-8000-000000000002","person":{"given_name":"MVP","family_name":"Denied"}}') $q$,'out-of-village registration denied','42501');
+select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000002","village_id":"30000000-0000-4000-8000-000000000002","person":{"given_name":"MVP","family_name":"Denied","phone":"0712000802"},"farm":{"label":"x","latitude":"-8.13","longitude":"35.19"}}') $q$,'out-of-village registration denied','42501');
 rollback;
 
 begin;
@@ -84,15 +84,15 @@ rollback;
 begin;
 select set_config('request.jwt.claims', json_build_object('sub', :OFF_ILU)::text, true);
 set local role authenticated;
-select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000004","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing"},"household":{"existing_household_id":"70000000-0000-4000-8000-000000000004"},"farm":{"label":"x"},"plot":{"label":"x","area_ha":"1"}}') $q$,
+select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000004","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing","phone":"0712000803"},"household":{"existing_household_id":"70000000-0000-4000-8000-000000000004"},"farm":{"label":"x","latitude":"-8.13","longitude":"35.19"},"plot":{"label":"x","area_ha":"1"}}') $q$,
   'officer cannot join another village''s household','42501');
 rollback;
 begin;
 select set_config('request.jwt.claims', json_build_object('sub', :OPS)::text, true);
 set local role authenticated;
-select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000005","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing"},"household":{"existing_household_id":"70000000-0000-4000-8000-000000000004"},"farm":{"label":"x"},"plot":{"label":"x","area_ha":"1"}}') $q$,
+select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000005","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing","phone":"0712000803"},"household":{"existing_household_id":"70000000-0000-4000-8000-000000000004"},"farm":{"label":"x","latitude":"-8.13","longitude":"35.19"},"plot":{"label":"x","area_ha":"1"}}') $q$,
   'cross-village household join denied for project staff','42501');
-select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000006","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing"},"household":{"label":"x"},"farm":{"existing_farm_id":"90000000-0000-4000-8000-000000000005"},"plot":{"label":"x","area_ha":"1"}}') $q$,
+select pg_temp.assert_raises($q$ select app_register_farmer('{"client_ref":"99000000-0000-4000-8000-000000000006","village_id":"30000000-0000-4000-8000-000000000001","person":{"given_name":"MVP","family_name":"Crossing","phone":"0712000803"},"household":{"label":"x"},"farm":{"existing_farm_id":"90000000-0000-4000-8000-000000000005"},"plot":{"label":"x","area_ha":"1"}}') $q$,
   'cross-village farm join denied for project staff','42501');
 select pg_temp.assert_eq((select count(*) from person where family_name = 'Crossing'),0,'a denied registration leaves nothing behind');
 rollback;

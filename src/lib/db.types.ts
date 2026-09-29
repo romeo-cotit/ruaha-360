@@ -45,6 +45,7 @@ export type Database = {
           display_name: string
           id: string
           locale: string
+          must_change_password: boolean
           person_id: string | null
           updated_at: string
         }
@@ -53,6 +54,7 @@ export type Database = {
           display_name: string
           id: string
           locale?: string
+          must_change_password?: boolean
           person_id?: string | null
           updated_at?: string
         }
@@ -61,6 +63,7 @@ export type Database = {
           display_name?: string
           id?: string
           locale?: string
+          must_change_password?: boolean
           person_id?: string | null
           updated_at?: string
         }
@@ -959,6 +962,58 @@ export type Database = {
           },
         ]
       }
+      login_issue: {
+        Row: {
+          id: string
+          issued_at: string
+          issued_by: string
+          kind: string
+          person_id: string
+          temp_password_hash: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          issued_at?: string
+          issued_by: string
+          kind: string
+          person_id: string
+          temp_password_hash: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          issued_at?: string
+          issued_by?: string
+          kind?: string
+          person_id?: string
+          temp_password_hash?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_issue_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "login_issue_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "person"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "login_issue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership: {
         Row: {
           created_at: string
@@ -1575,6 +1630,471 @@ export type Database = {
           },
         ]
       }
+      survey: {
+        Row: {
+          audit_rate: number
+          closed_at: string | null
+          closes_at: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description_en: string | null
+          description_sw: string | null
+          id: string
+          max_households: number | null
+          project_id: string
+          published_at: string | null
+          published_by: string | null
+          reward_amount: number
+          status: Database["public"]["Enums"]["survey_status"]
+          title_en: string
+          title_sw: string | null
+          updated_at: string
+          village_id: string | null
+        }
+        Insert: {
+          audit_rate?: number
+          closed_at?: string | null
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description_en?: string | null
+          description_sw?: string | null
+          id?: string
+          max_households?: number | null
+          project_id: string
+          published_at?: string | null
+          published_by?: string | null
+          reward_amount: number
+          status?: Database["public"]["Enums"]["survey_status"]
+          title_en: string
+          title_sw?: string | null
+          updated_at?: string
+          village_id?: string | null
+        }
+        Update: {
+          audit_rate?: number
+          closed_at?: string | null
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description_en?: string | null
+          description_sw?: string | null
+          id?: string
+          max_households?: number | null
+          project_id?: string
+          published_at?: string | null
+          published_by?: string | null
+          reward_amount?: number
+          status?: Database["public"]["Enums"]["survey_status"]
+          title_en?: string
+          title_sw?: string | null
+          updated_at?: string
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_village_in_project"
+            columns: ["village_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "village"
+            referencedColumns: ["id", "project_id"]
+          },
+        ]
+      }
+      survey_answer: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          response_id: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          response_id: string
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          response_id?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_answer_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "survey_question"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_answer_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_answer_tally"
+            referencedColumns: ["question_id"]
+          },
+          {
+            foreignKeyName: "survey_answer_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_number_summary"
+            referencedColumns: ["question_id"]
+          },
+          {
+            foreignKeyName: "survey_answer_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "survey_response"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_question: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["survey_question_kind"]
+          options: Json
+          position: number
+          prompt_en: string
+          prompt_sw: string | null
+          required: boolean
+          survey_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["survey_question_kind"]
+          options?: Json
+          position: number
+          prompt_en: string
+          prompt_sw?: string | null
+          required?: boolean
+          survey_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["survey_question_kind"]
+          options?: Json
+          position?: number
+          prompt_en?: string
+          prompt_sw?: string | null
+          required?: boolean
+          survey_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_summary"
+            referencedColumns: ["survey_id"]
+          },
+        ]
+      }
+      survey_response: {
+        Row: {
+          captured_at: string
+          captured_by: string | null
+          client_ref: string
+          confidence: Database["public"]["Enums"]["confidence_level"] | null
+          created_at: string
+          deleted_at: string | null
+          evidence_ref: string | null
+          household_id: string
+          id: string
+          person_id: string
+          source: Database["public"]["Enums"]["source_type"]
+          submitted_at: string
+          survey_id: string
+          updated_at: string
+          verification: Database["public"]["Enums"]["verification_status"]
+          verified_at: string | null
+          verified_by: string | null
+          village_id: string
+        }
+        Insert: {
+          captured_at?: string
+          captured_by?: string | null
+          client_ref: string
+          confidence?: Database["public"]["Enums"]["confidence_level"] | null
+          created_at?: string
+          deleted_at?: string | null
+          evidence_ref?: string | null
+          household_id: string
+          id?: string
+          person_id: string
+          source: Database["public"]["Enums"]["source_type"]
+          submitted_at?: string
+          survey_id: string
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
+          verified_by?: string | null
+          village_id: string
+        }
+        Update: {
+          captured_at?: string
+          captured_by?: string | null
+          client_ref?: string
+          confidence?: Database["public"]["Enums"]["confidence_level"] | null
+          created_at?: string
+          deleted_at?: string | null
+          evidence_ref?: string | null
+          household_id?: string
+          id?: string
+          person_id?: string
+          source?: Database["public"]["Enums"]["source_type"]
+          submitted_at?: string
+          survey_id?: string
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verified_at?: string | null
+          verified_by?: string | null
+          village_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_response_captured_by_fkey"
+            columns: ["captured_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_response_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "household"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_response_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "person"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_response_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_response_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_summary"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_response_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_response_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "v_village_data_quality"
+            referencedColumns: ["village_id"]
+          },
+          {
+            foreignKeyName: "survey_response_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "v_village_energy"
+            referencedColumns: ["village_id"]
+          },
+          {
+            foreignKeyName: "survey_response_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "village"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_voucher: {
+        Row: {
+          amount: number
+          audit_required: boolean
+          code: string
+          created_at: string
+          currency: string
+          expires_at: string
+          household_id: string
+          id: string
+          id_type_seen: Database["public"]["Enums"]["id_document_type"] | null
+          issued_at: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          response_id: string
+          status: Database["public"]["Enums"]["voucher_status"]
+          survey_id: string
+          updated_at: string
+          village_id: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          amount: number
+          audit_required?: boolean
+          code: string
+          created_at?: string
+          currency: string
+          expires_at: string
+          household_id: string
+          id?: string
+          id_type_seen?: Database["public"]["Enums"]["id_document_type"] | null
+          issued_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          response_id: string
+          status?: Database["public"]["Enums"]["voucher_status"]
+          survey_id: string
+          updated_at?: string
+          village_id: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          amount?: number
+          audit_required?: boolean
+          code?: string
+          created_at?: string
+          currency?: string
+          expires_at?: string
+          household_id?: string
+          id?: string
+          id_type_seen?: Database["public"]["Enums"]["id_document_type"] | null
+          issued_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          response_id?: string
+          status?: Database["public"]["Enums"]["voucher_status"]
+          survey_id?: string
+          updated_at?: string
+          village_id?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_voucher_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "household"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_redeemed_by_fkey"
+            columns: ["redeemed_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: true
+            referencedRelation: "survey_response"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_summary"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "v_village_data_quality"
+            referencedColumns: ["village_id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "v_village_energy"
+            referencedColumns: ["village_id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "village"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_voucher_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       village: {
         Row: {
           code: string
@@ -1680,6 +2200,54 @@ export type Database = {
           },
         ]
       }
+      voucher_event: {
+        Row: {
+          actor_id: string | null
+          actor_name: string
+          actor_role: string
+          detail: Json
+          id: string
+          kind: Database["public"]["Enums"]["voucher_event_kind"]
+          occurred_at: string
+          voucher_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name: string
+          actor_role: string
+          detail?: Json
+          id?: string
+          kind: Database["public"]["Enums"]["voucher_event_kind"]
+          occurred_at?: string
+          voucher_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string
+          actor_role?: string
+          detail?: Json
+          id?: string
+          kind?: Database["public"]["Enums"]["voucher_event_kind"]
+          occurred_at?: string
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voucher_event_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voucher_event_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "survey_voucher"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_demand_match: {
@@ -1761,6 +2329,83 @@ export type Database = {
             columns: ["crop_cycle_id"]
             isOneToOne: false
             referencedRelation: "crop_cycle"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_survey_answer_tally: {
+        Row: {
+          answer_count: number | null
+          kind: Database["public"]["Enums"]["survey_question_kind"] | null
+          option_value: string | null
+          position: number | null
+          question_id: string | null
+          survey_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_summary"
+            referencedColumns: ["survey_id"]
+          },
+        ]
+      }
+      v_survey_number_summary: {
+        Row: {
+          answer_count: number | null
+          average: number | null
+          maximum: number | null
+          minimum: number | null
+          position: number | null
+          question_id: string | null
+          survey_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_question_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "v_survey_summary"
+            referencedColumns: ["survey_id"]
+          },
+        ]
+      }
+      v_survey_summary: {
+        Row: {
+          expired_count: number | null
+          issued_amount: number | null
+          issued_count: number | null
+          outstanding_amount: number | null
+          outstanding_count: number | null
+          project_id: string | null
+          redeemed_amount: number | null
+          redeemed_count: number | null
+          responses: number | null
+          survey_id: string | null
+          void_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
             referencedColumns: ["id"]
           },
         ]
@@ -1891,6 +2536,7 @@ export type Database = {
       }
     }
     Functions: {
+      app_actor_display_name: { Args: never; Returns: string }
       app_actor_id: { Args: never; Returns: string }
       app_actor_names: {
         Args: { p_ids: string[] }
@@ -1899,7 +2545,9 @@ export type Database = {
           id: string
         }[]
       }
+      app_actor_role: { Args: never; Returns: string }
       app_admins_project: { Args: { p: string }; Returns: boolean }
+      app_farmer_login_issue: { Args: { p_person_id: string }; Returns: Json }
       app_farms: { Args: never; Returns: string[] }
       app_has_role: {
         Args: { r: Database["public"]["Enums"]["app_role"] }
@@ -1908,14 +2556,56 @@ export type Database = {
       app_household_persons: { Args: never; Returns: string[] }
       app_households: { Args: never; Returns: string[] }
       app_is_staff: { Args: never; Returns: boolean }
+      app_login_email_for_phone: { Args: { p_phone: string }; Returns: string }
       app_manage_opportunity: {
         Args: { p_opportunity: string }
         Returns: boolean
       }
       app_manage_village: { Args: { p_village: string }; Returns: boolean }
       app_manages_project: { Args: { p: string }; Returns: boolean }
+      app_must_change_password: { Args: never; Returns: boolean }
+      app_normalize_phone: { Args: { p_phone: string }; Returns: string }
+      app_password_changed: { Args: never; Returns: undefined }
       app_person_id: { Args: never; Returns: string }
+      app_person_login_history: {
+        Args: { p_person_id: string }
+        Returns: {
+          issued_at: string
+          issued_by_name: string
+          kind: string
+          must_change_password: boolean
+        }[]
+      }
       app_projects: { Args: never; Returns: string[] }
+      app_random_crockford: { Args: { p_length: number }; Returns: string }
+      app_redemption_log: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          amount: number
+          audit_required: boolean
+          currency: string
+          household_label: string
+          id_type_seen: Database["public"]["Enums"]["id_document_type"]
+          redeemed_at: string
+          redeemed_by: string
+          redeemed_by_name: string
+          survey_title_en: string
+          survey_title_sw: string
+          village_name: string
+          voucher_id: string
+        }[]
+      }
+      app_redemption_totals: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          amount: number
+          currency: string
+          day: string
+          redeemed_by: string
+          redeemed_by_name: string
+          vouchers: number
+        }[]
+      }
       app_register_farmer: { Args: { payload: Json }; Returns: Json }
       app_staff_households: { Args: never; Returns: string[] }
       app_staff_opportunities: { Args: never; Returns: string[] }
@@ -1932,15 +2622,80 @@ export type Database = {
         Returns: string
       }
       app_supplied_opportunities: { Args: never; Returns: string[] }
+      app_survey_eligibility: {
+        Args: never
+        Returns: {
+          eligible: boolean
+          reason: string
+          response_id: string
+          survey_id: string
+          voucher_id: string
+        }[]
+      }
+      app_survey_household_count: {
+        Args: { p_survey: string }
+        Returns: number
+      }
+      app_survey_submit: {
+        Args: { p_answers: Json; p_client_ref: string; p_survey_id: string }
+        Returns: Json
+      }
+      app_survey_vouchers: {
+        Args: { p_survey_id: string }
+        Returns: {
+          amount: number
+          audit_required: boolean
+          currency: string
+          expired: boolean
+          expires_at: string
+          household_label: string
+          id_type_seen: Database["public"]["Enums"]["id_document_type"]
+          issued_at: string
+          redeemed_at: string
+          redeemed_by_name: string
+          respondent_name: string
+          status: Database["public"]["Enums"]["voucher_status"]
+          submitted_at: string
+          void_reason: string
+          voucher_id: string
+        }[]
+      }
       app_update_observed_record: {
         Args: { p_id: string; p_payload: Json; p_table: string }
         Returns: Json
       }
+      app_user_role_label: { Args: { p_user: string }; Returns: string }
       app_verify: {
         Args: { p_id: string; p_table: string }
         Returns: undefined
       }
       app_villages: { Args: never; Returns: string[] }
+      app_voucher_code: { Args: { p_voucher_id: string }; Returns: string }
+      app_voucher_lookup: { Args: { p_code: string }; Returns: Json }
+      app_voucher_normalize: { Args: { p_code: string }; Returns: string }
+      app_voucher_redeem: {
+        Args: {
+          p_code: string
+          p_id_type: Database["public"]["Enums"]["id_document_type"]
+          p_name_confirmed: boolean
+        }
+        Returns: Json
+      }
+      app_voucher_resolve: { Args: { p_code: string }; Returns: string }
+      app_voucher_timeline: {
+        Args: { p_voucher_id: string }
+        Returns: {
+          actor_name: string
+          actor_role: string
+          detail: Json
+          kind: string
+          occurred_at: string
+        }[]
+      }
+      app_voucher_void: {
+        Args: { p_reason: string; p_voucher_id: string }
+        Returns: undefined
+      }
       assert_eq: {
         Args: { actual: number; expected: number; label: string }
         Returns: undefined
@@ -1948,6 +2703,13 @@ export type Database = {
       assert_raises: {
         Args: { label: string; stmt: string }
         Returns: undefined
+      }
+      survey_block_reason: { Args: { p_survey_id: string }; Returns: string }
+      voucher_block_reason: {
+        Args: {
+          p_voucher: Database["public"]["Tables"]["survey_voucher"]["Row"]
+        }
+        Returns: string
       }
     }
     Enums: {
@@ -1960,6 +2722,7 @@ export type Database = {
       crop_measure: "area" | "tree_count" | "unit_count"
       demand_status: "open" | "matched" | "closed" | "cancelled"
       harvest_kind: "expected" | "actual"
+      id_document_type: "nida" | "voter" | "driving_licence" | "village_letter"
       opportunity_status:
         | "proposed"
         | "shared"
@@ -1980,7 +2743,21 @@ export type Database = {
         | "transaction_derived"
         | "sensor_derived"
         | "model_estimated"
+      survey_question_kind:
+        | "single_choice"
+        | "multi_choice"
+        | "number"
+        | "text"
+        | "yes_no"
+      survey_status: "draft" | "live" | "closed"
       verification_status: "unverified" | "pending" | "verified" | "disputed"
+      voucher_event_kind:
+        | "issued"
+        | "scanned"
+        | "refused"
+        | "redeemed"
+        | "voided"
+      voucher_status: "issued" | "redeemed" | "void"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2120,6 +2897,7 @@ export const Constants = {
       crop_measure: ["area", "tree_count", "unit_count"],
       demand_status: ["open", "matched", "closed", "cancelled"],
       harvest_kind: ["expected", "actual"],
+      id_document_type: ["nida", "voter", "driving_licence", "village_letter"],
       opportunity_status: [
         "proposed",
         "shared",
@@ -2143,7 +2921,23 @@ export const Constants = {
         "sensor_derived",
         "model_estimated",
       ],
+      survey_question_kind: [
+        "single_choice",
+        "multi_choice",
+        "number",
+        "text",
+        "yes_no",
+      ],
+      survey_status: ["draft", "live", "closed"],
       verification_status: ["unverified", "pending", "verified", "disputed"],
+      voucher_event_kind: [
+        "issued",
+        "scanned",
+        "refused",
+        "redeemed",
+        "voided",
+      ],
+      voucher_status: ["issued", "redeemed", "void"],
     },
   },
 } as const

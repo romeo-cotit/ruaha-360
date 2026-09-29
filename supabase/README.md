@@ -34,7 +34,7 @@ pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
 pnpm db:types       # regenerate src/lib/db.types.ts — commit it
-pnpm db:rls         # the 92 policy assertions
+pnpm db:rls         # the 193 policy assertions
 ```
 
 `db:types` is the exception: it goes through the Management API with
@@ -78,9 +78,10 @@ migration's statements: the files and the database cannot drift silently.
 pnpm db:rls
 ```
 
-92 assertions over the policies (measured 25 Sep 2026): `rls_test.sql`, which
+193 assertions over the policies (measured 29 Sep 2026): `rls_test.sql`, which
 includes `mvp_security_test.sql` for the protected-write, provenance and market
-guards. Every block runs in a rolled-back transaction, and `assert_raises`
+guards, and `survey_test.sql` for farmer logins, household four eyes, surveys,
+vouchers and the audit trail. Every block runs in a rolled-back transaction, and `assert_raises`
 checks the SQLSTATE, so an unrelated error cannot count as a security pass.
 RLS is the security boundary, so this is the highest-value test here. CI runs
 it unconditionally: missing `SUPABASE_DB_*` secrets fail the job.
@@ -92,3 +93,18 @@ Demo data, every figure invented. It refuses to run against a database whose
 12,000 / 6,400 / 5,600 kg, 62.2%, 10.800 kW, 489.200 kW — are specification,
 asserted by both `rls_test.sql` and the Playwright suite, so the seed is not
 edited casually.
+
+## seed_surveys.sql
+
+Run after `seed.sql`; re-runnable. A second Ilundo officer (Juma), a second
+staff verifier on the seeded households (Asha), five demo surveys and three
+vouchers — answered and redeemed through the real RPCs, so each voucher has a
+true audit trail. `setseed()` keeps the random audit draws reproducible.
+
+```bash
+psql "$(node scripts/db-url.mjs)" -v ON_ERROR_STOP=1 -f supabase/seed_surveys.sql
+```
+
+Seeded figures `survey_test.sql` asserts: three vouchers, TZS 10,000 issued,
+TZS 2,000 redeemed (by Juma), TZS 8,000 outstanding; Neema may answer two
+surveys.
