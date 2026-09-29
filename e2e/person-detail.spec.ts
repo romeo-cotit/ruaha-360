@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { markedName } from './support/marker'
+import { markedPhone } from './support/phone'
 import { CROP } from './support/seed'
 import { chooseSelect } from './support/select'
 
@@ -15,11 +16,15 @@ import { chooseSelect } from './support/select'
 const PASSWORD = 'demo1234'
 
 async function signInAsOfficer(page: Page) {
+  await signIn(page, 'officer.ilundo@demo.ruaha360.test', /\/officer$/)
+}
+
+async function signIn(page: Page, email: string, home: RegExp) {
   await page.goto('/login')
-  await page.getByTestId('login-email').fill('officer.ilundo@demo.ruaha360.test')
+  await page.getByTestId('login-email').fill(email)
   await page.getByTestId('login-password').fill(PASSWORD)
   await page.getByTestId('login-submit').click()
-  await expect(page).toHaveURL(/\/officer$/)
+  await expect(page).toHaveURL(home)
 }
 
 async function confirmVerification(page: Page) {
@@ -32,11 +37,12 @@ async function registerAndOpen(page: Page): Promise<string> {
   await page.goto('/officer/register')
   await page.getByTestId('register-given-name').fill('Test')
   await page.getByTestId('register-family-name').fill(family)
+  await page.getByTestId('register-phone').fill(markedPhone())
   await page.getByTestId('register-household-label').fill(`${family} household`)
   await page.getByTestId('register-farm-label').fill(`${family} farm`)
   await page.getByTestId('register-plot-label').fill(`${family} plot`)
   await page.getByTestId('register-plot-area').fill('1.5')
-  await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
+  await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
   await page.getByTestId('register-cycle-area').fill('1.2')
   await page.getByTestId('register-harvest-start').fill('2026-09-01')
   await page.getByTestId('register-harvest-end').fill('2026-09-30')
@@ -186,17 +192,29 @@ test.describe('/officer/people/$personId', () => {
     await expect(page.getByTestId('officer-edit-save')).toBeEnabled()
   })
 
+  // Four eyes on households (business-rules §5): the registering officer
+  // verifies five records; the household needs a second staff member.
   test('verifying every record clears the outstanding count', async ({ page }) => {
     await signInAsOfficer(page)
     await registerAndOpen(page)
 
-    for (let i = 0; i < 6; i += 1) {
+    await expect(page.locator('[data-verify-table="household"]')).toHaveCount(0)
+    for (let i = 0; i < 5; i += 1) {
       const next = page.locator('[data-verify-table]').first()
       if ((await next.count()) === 0) break
       await next.click()
       await confirmVerification(page)
       await expect(page.getByTestId('person-outstanding')).not.toContainText(`${6 - i} records`)
     }
+    await expect(page.getByTestId('person-outstanding')).toContainText('1 record still need')
+    await expect(page.locator('[data-verify-table]')).toHaveCount(0)
+
+    const personUrl = page.url()
+    await page.getByTestId('sign-out').click()
+    await signIn(page, 'ops@demo.ruaha360.test', /\/ops$/)
+    await page.goto(personUrl)
+    await page.locator('[data-verify-table="household"]').click()
+    await confirmVerification(page)
 
     await expect(page.getByTestId('person-outstanding')).toContainText('Every record here is verified')
     await expect(page.locator('[data-verify-table]')).toHaveCount(0)

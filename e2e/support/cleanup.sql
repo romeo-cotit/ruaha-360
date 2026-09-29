@@ -26,7 +26,8 @@ create temporary table _e2e_person on commit drop as
 create temporary table _e2e_auth_user on commit drop as
   select u.id from auth.users u
   join app_user a on a.id = u.id
-  where u.email like 'e2e-journey-%@demo.ruaha360.test'
+  where (u.email like 'e2e-journey-%@demo.ruaha360.test'
+         or u.email like '%@farmers.ruaha360.test')
     and a.person_id in (select id from _e2e_person);
 
 create temporary table _e2e_receipt on commit drop as
@@ -63,6 +64,27 @@ create temporary table _e2e_demand on commit drop as
 create temporary table _e2e_opportunity on commit drop as
   select id from opportunity
   where note like 'E2E-%' or buyer_demand_id in (select id from _e2e_demand);
+
+-- Surveys the suite authored (title marked), and every answer, voucher and
+-- audit event under them or given by a marked household. The audit trail is
+-- append-only; cleanup opts in for this transaction only.
+create temporary table _e2e_survey on commit drop as
+  select id from survey where title_en like 'E2E-%';
+
+create temporary table _e2e_response on commit drop as
+  select id from survey_response
+  where survey_id in (select id from _e2e_survey)
+     or household_id in (select id from _e2e_household);
+
+select set_config('ruaha.cleanup', 'on', true);
+delete from voucher_event where voucher_id in (
+  select id from survey_voucher where response_id in (select id from _e2e_response));
+delete from survey_voucher where response_id in (select id from _e2e_response);
+delete from survey_answer where response_id in (select id from _e2e_response);
+delete from survey_response where id in (select id from _e2e_response);
+delete from survey_question where survey_id in (select id from _e2e_survey);
+delete from survey where id in (select id from _e2e_survey);
+delete from login_issue where person_id in (select id from _e2e_person);
 
 -- leaves first
 delete from opportunity_supply where opportunity_id in (select id from _e2e_opportunity);

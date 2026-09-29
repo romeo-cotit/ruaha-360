@@ -26,7 +26,7 @@ const WHO = {
     email: 'officer.ilundo@demo.ruaha360.test',
     landing: /\/officer$/,
     /** Where the last stop leaves you, and a nav link that is not it. */
-    lastRoute: /\/officer\/verify/,
+    lastRoute: /\/officer\/redeem/,
     thenClick: 'People',
     thenAt: /\/officer\/people/,
   },
@@ -40,7 +40,7 @@ const WHO = {
   farmer: {
     email: 'neema@demo.ruaha360.test',
     landing: /\/farm$/,
-    lastRoute: /\/farm\/opportunities/,
+    lastRoute: /\/farm\/surveys/,
     thenClick: 'Equipment',
     thenAt: /\/farm\/equipment/,
   },
@@ -84,7 +84,7 @@ async function assertStepInViewport(page: Page, role: Role, stop: number, stops:
   await expect(target).toBeInViewport()
 }
 
-async function walkToTheEnd(page: Page, role: Role, stops = 6) {
+async function walkToTheEnd(page: Page, role: Role, stops = 7) {
   // A stop on another screen has to wait for a route change and the read
   // behind it, and the bubble is not drawn while the library waits for its
   // target. The suite's default 10s is the same number the tour itself gives a
@@ -113,7 +113,7 @@ test.describe('the first visit', () => {
       await signIn(page, role)
 
       await expect(page.getByTestId('tour-tooltip')).toBeVisible()
-      await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 6')
+      await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 7')
       await expect(page.getByTestId('tour-tooltip')).toContainText('Welcome to Ruaha 360')
     })
   }
@@ -182,16 +182,16 @@ test.describe('crossing between screens', () => {
 
     // Stops 1 and 2 are on /officer; stop 3 is not.
     await page.getByTestId('tour-next').click()
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
 
     await page.getByTestId('tour-next').click()
     await expect(page).toHaveURL(/\/officer\/register/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 7')
     await expect(page.getByTestId('register-progress')).toBeVisible()
 
     await page.getByTestId('tour-back').click()
     await expect(page).toHaveURL(/\/officer$/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
   })
 
   /**
@@ -209,11 +209,11 @@ test.describe('crossing between screens', () => {
     await expect(page.getByTestId('tour-tooltip')).toBeVisible()
 
     await page.getByTestId('tour-next').click()
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
     await page.getByTestId('tour-next').click()
 
     await expect(page).toHaveURL(/\/ops\/requests/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 7')
   })
 })
 
@@ -222,21 +222,21 @@ test.describe('mobile target positioning', () => {
 
   test('the officer tour brings the submit stop into view after step 3', async ({ page }) => {
     await signIn(page, 'officer')
-    await assertStepInViewport(page, 'officer', 1, 6)
+    await assertStepInViewport(page, 'officer', 1, 7)
 
     await page.getByTestId('tour-next').click()
-    await assertStepInViewport(page, 'officer', 2, 6)
+    await assertStepInViewport(page, 'officer', 2, 7)
     await page.getByTestId('tour-next').click()
-    await assertStepInViewport(page, 'officer', 3, 6)
+    await assertStepInViewport(page, 'officer', 3, 7)
 
     await page.getByTestId('tour-next').click()
-    await assertStepInViewport(page, 'officer', 4, 6)
+    await assertStepInViewport(page, 'officer', 4, 7)
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
 
     // The visible control itself remains actionable; this advances to People
     // rather than leaving an off-screen bubble behind a blocking overlay.
     await page.getByTestId('tour-next').click()
-    await assertStepInViewport(page, 'officer', 5, 6)
+    await assertStepInViewport(page, 'officer', 5, 7)
     await expect(page).toHaveURL(/\/officer\/people/)
   })
 })
@@ -252,7 +252,7 @@ test.describe('asking for it again', () => {
     await page.getByTestId('tour-restart').click()
 
     await expect(page).toHaveURL(/\/ops$/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 6')
+    await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 7')
   })
 
   test('the button is there on every surface, and never on the login screen', async ({ page }) => {

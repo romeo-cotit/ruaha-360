@@ -96,6 +96,11 @@ whole point of S13 and the UI must reflect it.
 
 - `client_ref` present, else refuse
 - caller is staff, else refuse
+- **phone present** — it is the farmer's login name (§15). Normalised by
+  `app_normalize_phone` to `+255` and nine digits; anything that is not a
+  Tanzanian mobile is refused
+- **farm GPS present** for a new farm — the form fills and locks latitude and
+  longitude from the handset and opens them for typing only when GPS fails
 - crop measure matches `crop.measured_by` — an `area` crop requires `area_ha`,
   a `tree_count` crop requires `tree_count`, a `unit_count` crop requires
   `unit_count`. **The client must branch the same way** (`MeasureInput`), but
@@ -273,6 +278,11 @@ One entry point, so `verification` can never be set without a verifier.
   shows verification as a distinct, deliberate action with the verifier's name
   attached, never a checkbox inside an edit form.
 - Registration never verifies (§1).
+- **Four eyes on households.** The officer who registered a household may
+  not verify it: `a household must be verified by someone other than the
+  officer who registered it`. A household is what a survey incentive is paid
+  to (§16), so one person must never create one and vouch for it alone. The
+  verify queue does not offer the button on your own registrations.
 - `disputed` and `pending` exist in the enum; verification may move
   `unverified` or `pending → verified`, while `disputed` rows require
   correction before verification. Do not build a separate dispute flow.
@@ -438,6 +448,14 @@ Surface them verbatim in a toast or inline alert.
 | `app_register_farmer` | `client_ref is required …` | bug — fix the client |
 | RLS | *no error, zero rows* | empty state |
 | unique violation `harvest_one_current` | constraint error | you wrote a harvest row directly — use `app_supersede_harvest` |
+| `app_register_farmer` | `a phone number is required so the farmer can sign in` · `the farm location is required: …` | show on the form |
+| `app_verify` | `a household must be verified by someone other than the officer who registered it` | bug — the queue should not have offered it |
+| `app_farmer_login_issue` | `this phone number already has an app login` · `add a phone number before issuing a login` | show verbatim on the login card |
+| `app_password_changed` | `choose a new password first` | show verbatim |
+| `survey_guard` | `only an admin may author surveys` · `a live survey cannot be edited` · `a survey needs at least one question before it goes live` · `every choice question needs at least two options` | show verbatim; the first is a bug |
+| `app_survey_submit` | the eligibility reason (§16) · `question N is required` · `question N: choose one of the listed options` | show verbatim on the survey |
+| `app_voucher_redeem` | `you registered this household, …` · `you verified this household, …` · `this voucher is held for an audit: …` · `voucher already redeemed on … by …` · `this voucher expired on …` · `record which ID document you checked` | show verbatim on the redeem screen |
+| unique violation `survey_response_one_per_household` | constraint error | the household already answered — a race the RPC normally catches first |
 
 Three of these mean the client rendered a control it should not have. Treat
 them as bugs to fix, not conditions to handle politely.
@@ -463,6 +481,12 @@ them as bugs to fix, not conditions to handle politely.
 ['tower', 'energy', villageId]
 ['tower', 'market', villageId]
 ['tower', 'quality', villageId]
+['surveyEligibility']           ['survey', surveyId]
+['farmerVouchers']              ['voucherCode', voucherId]
+['voucherTimeline', voucherId]
+['surveyAdmin']                 ['surveyAdmin', surveyId]
+['surveyVouchers', surveyId]    ['surveyTally', surveyId]
+['redemptionLog', from, to]     ['loginHistory', personId]
 ```
 
 ### Invalidation map
@@ -476,6 +500,10 @@ them as bugs to fix, not conditions to handle politely.
 | approve / reject | as above, plus the farmer's `['request', id]` |
 | `app_supersede_harvest` | `['harvest', cycle]` `['tower','production',village]` `['tower','market',village]` |
 | `opportunity_supply` change | `['opportunity', id]` `['demand', demandId]` `['tower','market',village]` |
+| `app_farmer_login_issue` | `['loginHistory', person]` |
+| `app_survey_submit` | `['surveyEligibility']` `['farmerVouchers']` `['voucherTimeline', id]` |
+| survey write / publish / close | `['surveyAdmin']` `['surveyAdmin', id]` `['surveyEligibility']` |
+| `app_voucher_redeem` · `app_voucher_void` | `['voucherTimeline', id]` `['surveyVouchers', survey]` `['surveyAdmin']` `['redemptionLog']` |
 
 ### Reads
 Views for anything aggregate. Tables for record detail. Nested `select()` for
@@ -553,7 +581,7 @@ sorting a page of already-fetched rows, and the live estimate preview.
 | weight | kg, 2 dp |
 | power | kW, 3 dp |
 | energy | kWh, 3 dp |
-| money | `numeric(14,2)` + explicit currency code. Default TZS. Always labelled **indicative** |
+| money | `numeric(14,2)` + explicit currency code. Default TZS. Prices always labelled **indicative**. A survey incentive is a fixed amount, not a price: never "indicative", never "earnings", "wallet" or "balance" |
 | percentages | 1 dp |
 | timestamps | `timestamptz`, stored UTC, displayed `Africa/Dar_es_Salaam` |
 | harvest windows, planting dates | plain `date`. No timezone. Never converted |
@@ -561,7 +589,111 @@ sorting a page of already-fetched rows, and the live estimate preview.
 
 ---
 
-## 15 · Open
+## 15 · Farmer logins — `app_farmer_login_issue(person)`
+
+Farmers sign in with the **phone number their officer registered** and a
+temporary password. No email, no SMS, no third party.
+
+- After registration the officer's screen shows a login card: the phone and
+  an 8-character temporary password. **Shown once.** It exists in plain text
+  only in the RPC's return value — never stored, never in a draft or a URL.
+- The login is created by the database: an `auth.users` row under a hidden
+  address derived from the phone (`255…@farmers.ruaha360.test`), `app_user`
+  linked to the person, and a farmer membership in the person's village. The
+  sign-in screen maps any spelling of the phone to that address
+  (`src/lib/phone.ts` mirrors `app_normalize_phone`).
+- One login per person (`app_user_person_unique`) and one login per phone.
+  Family members who share a phone share a household anyway (§16).
+- **First sign-in forces a new password.** `must_change_password` sends
+  every guard to `/set-password`. After `supabase.auth.updateUser`, the
+  client calls `app_password_changed`, which refuses while the stored hash is
+  still the temporary one — the flag cannot be cleared without a real change.
+- **While the flag is set, the database refuses survey answers.** The
+  officer who read out the temporary password cannot answer as the farmer.
+- A forgotten password is reset the same way: the officer issues a new
+  temporary one from Person detail. The farmer is signed out everywhere.
+  Every issue and reset is in `login_issue`, with the officer's name.
+
+---
+
+## 16 · Surveys and incentives
+
+Admin authors a survey; a farmer answers once per household and receives a
+single-use voucher for a **fixed cash incentive, paid at the Ruaha office**.
+An incentive is not a wage, a balance or a payment instrument.
+
+### Authoring — admin only (`survey_guard`)
+- `draft → live → closed`. A draft is edited freely; publishing checks there
+  is at least one question, two options per choice question, an English label
+  per option, and a future closing date. Publishing stamps `published_by` and
+  `published_at` (`clock_timestamp()`).
+- **Once live, nothing changes** — not the questions, not the incentive. The
+  amount is also copied onto each voucher at issue.
+- Ops sees every survey and its results; only admin authors or publishes.
+
+### Who may answer — `survey_block_reason`, shared by the list and the submit
+In order; the first reason that applies is the answer:
+1. the survey is live and not past its closing date
+2. the caller is a farmer linked to a person, **not on a temporary password**
+3. the person belongs to **exactly one** household
+4. the survey covers the household's village
+5. **the household has not answered** (`survey_response_one_per_household`)
+6. the household is verified, **by someone other than its registrar** (§5)
+7. the household **existed before the survey went live** — registering a
+   household to catch an open survey does not work
+8. the survey's household cap (`max_households`) is not reached
+
+The farmer's list shows the reason verbatim. The client never re-derives it.
+
+### Answering — `app_survey_submit(survey, answers, client_ref)`
+- Answers are keyed by question id and validated in the RPC (required,
+  option values, numbers, text length).
+- `client_ref` makes a retry replay the same voucher.
+- One transaction: response, answers, voucher (10-character Crockford code,
+  30-day expiry, `audit_required = random() < audit_rate`) and an `issued`
+  event.
+
+### Notification
+In-app only: a count on the Surveys tab of surveys the household may answer
+now. The MVP sends no SMS and no push.
+
+---
+
+## 17 · Redeeming a voucher — three staff, a random audit, a named trail
+
+- **The code is the household's.** Staff cannot read `code` (column grants);
+  the household reads it through `app_voucher_code`. A voucher can only be
+  redeemed when its code is shown at the office — as a QR code, or typed.
+- **Every scan is logged** (`app_voucher_lookup` writes `scanned`). A real
+  code scanned outside the officer's villages answers "not found" and is
+  logged as `refused` — ops sees the attempt.
+- **Three different staff.** Whoever registered or verified the household
+  cannot redeem its vouchers; nor can a member of the household. With §5's
+  four-eyes rule, paying a fake household needs three colluding staff.
+- **Random audit hold.** A share of vouchers (`survey.audit_rate`, default
+  15%) is marked at issue. Only ops or admin redeem those, face to face. The
+  flag is invisible to farmers and field officers until the scan.
+- **ID sighted.** The redeemer records which ID document they checked (NIDA
+  card, voter card, driving licence, village letter) and confirms the name
+  matches. The type is stored; **never the number, never a photo**.
+- Row lock plus `status = 'issued'`: two officers scanning at once cannot both
+  pay. The same officer retrying is a replay, not a second payout. Expired and
+  void vouchers are refused. Ops may void an unredeemed voucher, with a reason.
+- **The audit trail.** `voucher_event` is append-only; actor name and role
+  are snapshots. `app_voucher_timeline` merges it with the household's
+  registration and verification, the farmer's login history, the survey's
+  publication and the answer — filtered by who asks (farmer: issued,
+  answered, redeemed, voided; field staff: plus scans; ops/admin: everything).
+- Cash reconciliation: `app_redemption_totals` gives redemptions per officer
+  per day; `app_redemption_log` lists each one.
+
+**The honest limit.** Without an outside identity source the app cannot
+prove two households are not one family. These rules make that fraud need
+three staff, catch it at random, and put a name on every step.
+
+---
+
+## 18 · Open
 
 - Confidence is `low/medium/high` provisionally (S22)
 - Season taxonomy — `season_label` is free text (S22)

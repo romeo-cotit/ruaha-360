@@ -71,10 +71,31 @@ Only when every assertion passes does UI work begin.
 - `app_user` is self-read only; provenance names come from `app_actor_names`.
 - Opportunity writes are ops/admin only; its status machine and the supply
   commitment lock live in Postgres (business-rules §8).
-- `pnpm db:rls` runs 92 assertions. The Playwright journey signs in as the
-  farmer it registered, through a synthetic login created by privileged test
-  setup (`e2e/support/db.ts`) — there is still no account-management UI.
+- `pnpm db:rls` runs 193 assertions (92 until 29 Sep, plus `tests/survey_test.sql`).
+  The Playwright journey signs in as the farmer it registered, with the phone
+  and temporary password its login card showed, then continues through a
+  survey answered, refused to the registrar, and redeemed by a second officer.
 - Proof and open items: `docs/mvp-proof.md`.
+
+## Surveys and farmer logins — added 29 September 2026
+
+Approved by the product owner on 29 Sep 2026 as an exception to "Do not
+build" (notifications, QR payments), for this feature only. Rules:
+business-rules §15–17.
+
+- Farmers sign in with their registered phone and a temporary password the
+  officer's screen shows once; first sign-in forces a new password. Phone and
+  farm GPS are now required at registration.
+- Admin authors surveys in the ops shell; each household answers a survey
+  once and gets a single-use QR voucher for a fixed cash incentive, redeemed
+  at the office. In-app badge only — no SMS, no push.
+- Anti-collusion: a household is verified by someone other than its
+  registrar; its vouchers are redeemed by a third person; a random share
+  (default 15%) is held for ops/admin; the redeemer records the ID type seen
+  (never the number). Every step is on an append-only, named audit trail.
+- Three migrations (`20260929090001`–`…03`), `supabase/seed_surveys.sql`
+  (run after `seed.sql`), `pnpm db:rls` now 193 assertions.
+- Dependencies `uqr` (QR drawing) and `qr-scanner` (camera) were approved.
 
 ---
 
@@ -140,7 +161,7 @@ pnpm e2e journey        # the acceptance journey alone
 pnpm db:list            # migration history: files vs database
 pnpm db:push            # apply pending migrations (db:push:dry to preview)
 pnpm db:types           # regenerate src/lib/db.types.ts (Management API)
-pnpm db:rls             # the 92 policy assertions
+pnpm db:rls             # the 193 policy assertions
 ```
 
 **No local Supabase.** The cloud dev project is the only database — every
@@ -231,13 +252,17 @@ Both must be true:
 
 ```
 officer registers person + household + farm + plot + cycle + expected harvest
-officer verifies the records
+officer verifies the records; a second staff member verifies the household
+farmer signs in with the login card's phone + temporary password, sets their own
 farmer sees the same records, with provenance
 farmer submits an equipment request; the estimate moves when hours change
 ops reviews and approves
 ops opens the maize demand and sees Ilundo coverage
 ops creates an opportunity and attaches supply
 tower reflects all of it, and a headline drills to that farmer's record
+admin publishes a survey; the farmer answers once and gets a voucher
+the registering officer may not redeem it; a second officer does, ID checked
+the farmer sees who handed it over; ops sees every name on the trail
 ```
 
 Plus: role permissions tested, and an interrupted save in step 1 that survives
@@ -269,6 +294,9 @@ misrepresents the programme.
 - `cycle_area_ha` is "planted area across cycles", never "land area" —
   intercropping means it can exceed the village's hectares
 - Every record shows where its data came from (`ProvenanceBadge`)
+- A survey incentive is **a fixed cash amount per household per survey**,
+  paid at the office. Never "earnings", "wallet", "balance" or "payment",
+  and not "indicative" — it is not a price
 
 Farmer and Officer surfaces ship complete Swahili. Ops and Tower may ship
 English for the demo. **Swahili strings do not exist yet and need a native
@@ -280,10 +308,11 @@ translation to Tanzanian stakeholders.
 ## Do not build
 
 Training · Services · Progress · translations admin · user admin · photo
-upload · farm polygons · PostGIS · offline sync queues · notifications · meter
-screens · tariffs · finance terms, schedules or repayments · crowdfarming ·
-wallets or QR payments · export or shipment tracking · buyer self-service
-accounts · any AI surface.
+upload · farm polygons · PostGIS · offline sync queues · notifications (beyond the
+in-app survey badge) · meter screens · tariffs · finance terms, schedules or
+repayments · crowdfarming · wallets or QR payment rails (survey vouchers are
+single-use cash claims, not payments) · export or shipment tracking · buyer
+self-service accounts · any AI surface.
 
 Reference screens from the Ruaha Control Center and African Farmers Market
 decks show several of these. **A screen existing does not put it in scope.**

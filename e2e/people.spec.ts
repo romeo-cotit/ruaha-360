@@ -47,7 +47,7 @@ for (const width of [320, 375, 768, 1024, 1440] as const) {
           return { left: box.left, right: box.right, width: box.width }
         }),
       )
-      expect(tabBounds.length).toBe(3)
+      expect(tabBounds.length).toBe(4)
       expect(tabBounds.every(({ left, right, width }) => left >= -1 && right <= viewportWidth + 1 && width > 0)).toBe(true)
 
       const pageScroll = await page.evaluate(() => {

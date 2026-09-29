@@ -10,7 +10,7 @@ Authority: Ruaha 360 Overview Plan v2. Target: MVP demo, 30 September 2026.
 pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
-pnpm db:rls         # the 92 policy assertions
+pnpm db:rls         # the 193 policy assertions
 ```
 
 **Cloud dev project only** — there is no local Supabase and none is wanted.
@@ -36,8 +36,12 @@ than a rewrite.
 | `..._energy.sql` | `village_capacity` `energy_estimate` + recompute trigger |
 | `..._market.sql` | `buyer` `buyer_demand` `opportunity` `opportunity_supply` + commitment guard |
 | `..._views.sql` | seven Control Tower views, all `security_invoker` |
+| `20260929090001_farmer_login.sql` | `app_user.must_change_password`, `login_issue`, phone normalisation, phone + GPS required at registration, `app_farmer_login_issue`, `app_password_changed` |
+| `20260929090002_household_four_eyes.sql` | `app_verify` refuses a household to the officer who registered it |
+| `20260929090003_surveys.sql` | `survey` `survey_question` `survey_response` `survey_answer` `survey_voucher` `voucher_event`, the survey and redeem RPCs, the audit timeline, three staff views |
 | `seed.sql` | labelled demo data, two villages, six accounts |
-| `tests/rls_test.sql` | 92 assertions on the policies, including `tests/mvp_security_test.sql` |
+| `seed_surveys.sql` | run after `seed.sql`: a second Ilundo officer, household verifiers, five demo surveys, three vouchers |
+| `tests/rls_test.sql` | 193 assertions on the policies, including `tests/mvp_security_test.sql` and `tests/survey_test.sql` |
 
 ## Conventions
 
@@ -93,6 +97,10 @@ Three product roles plus `admin` for operations.
 | opportunity | read if own supply is in it | read in village | read + write | read + write |
 | Tower views | empty | village rows | project rows | project rows |
 | membership | read own | read own | grant farmer + officer | grant any role |
+| app login | sign in with phone | issue / reset in village | issue / reset | issue / reset |
+| survey | read live in project | read live | read all | **author and publish** |
+| survey response | answer once per household (RPC) | read in village | read | read |
+| voucher | read own, code via RPC | redeem in village (RPC) | redeem, void, reconcile | redeem, void, reconcile |
 
 ## Where the security actually lives
 
@@ -108,6 +116,20 @@ RLS is row-level. Three things it cannot express are done with triggers:
   sides of a move.
 - **`pue_recompute_estimate`** — clients hold no write policy on
   `energy_estimate` at all. The trigger is the only writer.
+
+- **`survey_guard`** — admin-only authoring, `draft → live → closed`,
+  content frozen once live, publish checks, server-stamped `published_by`.
+- **`survey_block_reason` / `voucher_block_reason`** — the survey
+  eligibility and redeem rules, shared by the list and the write so they
+  cannot disagree. See business-rules §16–17.
+- **`voucher_event_append_only`** — the audit trail cannot be edited or
+  deleted (cleanup opts in with `ruaha.cleanup = on`).
+
+**The one ownership exception.** `app_farmer_login_issue` and
+`app_password_changed` are owned by `postgres`, not `ruaha_observed_writer`:
+they must write `auth.users`, and the writer role has no `auth` access by
+design. `postgres` bypasses RLS, so both check scope explicitly, and
+`tests/survey_test.sql` asserts it.
 
 RLS helper functions are `SECURITY DEFINER` because they read `membership`;
 `membership`'s own read policy is kept trivial (`user_id = auth.uid()`) so
@@ -157,9 +179,13 @@ satisfying the RLS test suite.
 
 ## Not in this schema, deliberately
 
-Wallets and QR payments · crowdfarming and investor ROI · full commodity
+Wallets and QR payment rails · crowdfarming and investor ROI · full commodity
 exchange · end-to-end logistics and export traceability · meter fleet
 management · offline sync queues · pgvector and any AI surface.
 
 Reference screens from Control Center and African Farmers Market show several
 of these. A screen existing does not put it in scope.
+
+A survey voucher is **not** a payment instrument: it is a single-use claim on
+a fixed cash incentive, redeemed face to face at the office. There is no
+balance, no transfer and no wallet (decision of 29 September 2026).

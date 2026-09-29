@@ -98,12 +98,14 @@ test.describe('the ops surface on a phone', () => {
 
       const viewportWidth = page.viewportSize()!.width
       const pageHeader = await page.getByTestId('page-header').boundingBox()
-      const shellActions = page.getByTestId('global-header-actions')
-      const shellBox = await shellActions.boundingBox()
-
       expect(pageHeader!.x + pageHeader!.width).toBeLessThanOrEqual(viewportWidth)
-      expect(shellBox!.x + shellBox!.width).toBeLessThanOrEqual(viewportWidth)
-      expect(await shellActions.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+
+      // On a phone the shell's action row folds into one menu trigger (the
+      // user menu); the full row is for `sm` and up.
+      await expect(page.getByTestId('global-header-actions')).toBeHidden()
+      const trigger = await page.getByTestId('user-menu-trigger').boundingBox()
+      expect(trigger!.x + trigger!.width).toBeLessThanOrEqual(viewportWidth)
+      expect(trigger!.height).toBeGreaterThanOrEqual(44)
 
       const pageActions = page.getByTestId('page-header-actions')
       if (await pageActions.count()) {

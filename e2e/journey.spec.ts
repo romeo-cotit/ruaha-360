@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { createSyntheticFarmerLogin, sql } from './support/db'
+import { sql } from './support/db'
 import { markedName } from './support/marker'
+import { markedPhone } from './support/phone'
 import { CROP, VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
 import { chooseSelect } from './support/select'
@@ -20,6 +21,11 @@ import { chooseSelect } from './support/select'
  *   6 ops opens the maize demand and sees Ilundo coverage
  *   7 ops creates an opportunity and attaches supply
  *   8 the Tower reflects all of it, and a headline drills to that farmer
+ *  10 admin authors and publishes a survey
+ *  11 the farmer answers it once and gets a voucher
+ *  12 the officer who registered the household may not redeem it; a second
+ *     officer does, after checking ID
+ *  13 the farmer sees who handed it over; ops sees every name on the trail
  *
  * The individual screens are covered by their own specs. This one exists to
  * prove the steps CONNECT: every figure asserted from step 6 onwards is the
@@ -27,9 +33,11 @@ import { chooseSelect } from './support/select'
  * chain from the officer's registration to the Tower headline were broken
  * anywhere, these numbers would not move.
  *
- * Step 3 uses a privileged test fixture to link a temporary auth account to
- * the person registered in step 1. Account creation is outside the product
- * UI; this fixture proves that the same farmer can sign in and continue.
+ * Step 1's success screen shows the farmer's app login once: their phone and
+ * a temporary password. Step 3 signs in with exactly that, and is made to
+ * choose a new password before anything else. Step 2 is split by the four-eyes
+ * rule: the registering officer verifies five records, and ops verifies the
+ * household (business-rules §5).
  *
  * Step 7 creates its own buyer demand rather than adding an opportunity to
  *   the seeded maize demand. That demand already carries the seeded demo
@@ -45,6 +53,9 @@ import { chooseSelect } from './support/select'
  * permanently degrade the demo.
  */
 const PASSWORD = 'demo1234'
+// What the farmer chooses at first sign-in, replacing the temporary password.
+const FARMER_PASSWORD = 'E2E-farmer-own-1'
+
 
 // MILL-500: 15 kW rated, 6 h/day and 5 days/week typical.
 const MILL = '51000000-0000-4000-8000-000000000001'
@@ -62,10 +73,10 @@ const EXPECTED_KG = '3140'
 // Asserts seeded figures plus its own delta, so it starts from seeded state.
 assertsSeededFigures()
 
-async function signIn(page: Page, email: string, home: RegExp) {
+async function signIn(page: Page, email: string, home: RegExp, password = PASSWORD) {
   await page.goto('/login')
   await page.getByTestId('login-email').fill(email)
-  await page.getByTestId('login-password').fill(PASSWORD)
+  await page.getByTestId('login-password').fill(password)
   await page.getByTestId('login-submit').click()
   // Wait for the landing redirect: navigating before it lands races the
   // session and drops straight back to /login.
@@ -78,6 +89,7 @@ async function signOut(page: Page) {
 }
 
 test.describe('the acceptance journey', () => {
+
   // Three sign-ins, ~30 navigations and eleven writes against a remote
   // database. The per-step assertions are the real guard; this only stops the
   // whole journey being cut off by the default per-test budget.
@@ -88,7 +100,8 @@ test.describe('the acceptance journey', () => {
     const farmLabel = `${family} farm`
     let personId = ''
     let requestId = ''
-    let farmerEmail = ''
+    const phone = markedPhone()
+    let tempPassword = ''
 
     await test.step('1 · officer registers a farmer in one submit', async () => {
       await signIn(page, 'officer.ilundo@demo.ruaha360.test', /\/officer$/)
@@ -96,20 +109,24 @@ test.describe('the acceptance journey', () => {
 
       await page.getByTestId('register-given-name').fill('Test')
       await page.getByTestId('register-family-name').fill(family)
-      await page.getByTestId('register-phone').fill('+255700000999')
+      await page.getByTestId('register-phone').fill(phone)
       await page.getByTestId('register-household-label').fill(`${family} household`)
       await page.getByTestId('register-farm-label').fill(farmLabel)
       await page.getByTestId('register-plot-label').fill(`${family} plot`)
       await page.getByTestId('register-plot-area').fill('1.5')
       // Selected by id: crop names come from the database per the user's
       // locale, and the seeded Ilundo officer reads Swahili.
-      await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
+      await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
       await page.getByTestId('register-cycle-area').fill('1.2')
       // September, so the figure lands in the same production and supply
       // window as the seeded maize the later steps read.
       await page.getByTestId('register-harvest-start').fill('2026-09-01')
       await page.getByTestId('register-harvest-end').fill('2026-09-30')
       await page.getByTestId('register-harvest-kg').fill(EXPECTED_KG)
+
+      // The handset's GPS read filled and locked the farm position.
+      await expect(page.getByTestId('register-farm-latitude')).toHaveValue(/^-8\.13/)
+      await expect(page.getByTestId('register-farm-latitude')).toBeDisabled()
 
       // CLAUDE.md's extra requirement on this step: "an interrupted save in
       // step 1 that survives a reload". Asserted here rather than only in
@@ -120,10 +137,19 @@ test.describe('the acceptance journey', () => {
       await expect(page.getByTestId('register-harvest-kg')).toHaveValue(EXPECTED_KG)
       await expect(page.getByTestId('unsaved-draft-badge')).toBeVisible()
 
+      // The farm position survived the reload with the rest of the draft.
+      await expect(page.getByTestId('register-farm-latitude')).toHaveValue(/^-8\.13/)
+
       await page.getByTestId('register-submit').click()
       await expect(page.getByTestId('register-success')).toBeVisible()
       // The draft is cleared only once the RPC has returned success.
       await expect(page.getByTestId('unsaved-draft-badge')).toHaveCount(0)
+
+      // The farmer's app login, shown once: their phone and a temporary password.
+      const card = page.getByTestId('farmer-login-card')
+      await expect(card.getByTestId('farmer-login-password')).toHaveText(/^[0-9a-z]{8}$/)
+      await expect(card.getByTestId('farmer-login-phone')).toContainText(phone.slice(4))
+      tempPassword = (await card.getByTestId('farmer-login-password').textContent())?.trim() ?? ''
 
       await page.getByTestId('register-view-person').click()
       await expect(page.getByTestId('person-detail')).toBeVisible()
@@ -136,9 +162,11 @@ test.describe('the acceptance journey', () => {
       await expect(page.getByTestId('person-outstanding')).toContainText('6 records still need')
     })
 
-    await test.step('2 · officer verifies the records', async () => {
-      // Only records this test created: app_verify is one-way.
-      for (let i = 0; i < 6; i += 1) {
+    await test.step('2 · officer verifies the records, and a second staff member the household', async () => {
+      // Only records this test created: app_verify is one-way. The officer
+      // who registered the household is not offered its Verify: four eyes.
+      await expect(page.locator('[data-verify-table="household"]')).toHaveCount(0)
+      for (let i = 0; i < 5; i += 1) {
         const next = page.locator('[data-verify-table]').first()
         if ((await next.count()) === 0) break
         await next.click()
@@ -147,6 +175,14 @@ test.describe('the acceptance journey', () => {
           `${6 - i} records still need`,
         )
       }
+      await expect(page.getByTestId('person-outstanding')).toContainText('1 record still need')
+
+      // Ops is the second pair of eyes on the household.
+      await signOut(page)
+      await signIn(page, 'ops@demo.ruaha360.test', /\/ops$/)
+      await page.goto(`/officer/people/${personId}`)
+      await page.locator('[data-verify-table="household"]').click()
+      await page.getByTestId('confirm-dialog-confirm').click()
 
       await expect(page.getByTestId('person-outstanding')).toContainText(
         'Every record here is verified',
@@ -156,17 +192,26 @@ test.describe('the acceptance journey', () => {
     })
 
     await test.step('3 · the farmer surface shows records with provenance', async () => {
-      const login = createSyntheticFarmerLogin(personId)
-      farmerEmail = login.email
+      const account = sql(`select id from app_user where person_id = '${personId}'::uuid`)
+      if (!account.ran) throw new Error(`could not read the farmer login: ${account.reason}`)
+      expect(account.out).toMatch(/^[0-9a-f-]{36}$/)
       // TOURS_ALREADY_SEEN names only seeded accounts. Without this the new
       // account gets the first-run tour, which takes over the farmer home.
       await page.evaluate((userId) => {
         const key = 'ruaha360:tours-seen'
         const seen = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]
         localStorage.setItem(key, JSON.stringify([...seen, `farmer:${userId}`]))
-      }, login.userId)
+      }, account.out)
       await signOut(page)
-      await signIn(page, farmerEmail, /\/farm$/)
+
+      // The phone and temporary password from the login card, typed the way a
+      // farmer would: with a leading zero and spaces.
+      const local = `0${phone.slice(4, 7)} ${phone.slice(7, 10)} ${phone.slice(10)}`
+      await signIn(page, local, /\/set-password$/, tempPassword)
+      await page.getByTestId('set-password-new').fill(FARMER_PASSWORD)
+      await page.getByTestId('set-password-confirm').fill(FARMER_PASSWORD)
+      await page.getByTestId('set-password-submit').click()
+      await expect(page).toHaveURL(/\/farm$/)
       await page.goto('/farm/my-farm')
 
       await expect(page.getByTestId('my-farm')).toBeVisible()
@@ -207,7 +252,7 @@ test.describe('the acceptance journey', () => {
 
       const owner = sql(`
         select r.person_id = '${personId}'::uuid and r.captured_by = u.id
-        from pue_request r join auth.users u on u.email = '${farmerEmail}'
+        from pue_request r join app_user u on u.person_id = '${personId}'::uuid
         where r.id = '${requestId}'::uuid
       `)
       if (!owner.ran) throw new Error(`could not check request owner: ${owner.reason}`)
@@ -333,11 +378,11 @@ test.describe('the acceptance journey', () => {
       await expect(market).toContainText('62.2%')
 
       // Data quality: Ilundo was 3/6 persons verified, 3/4 farms with GPS and
-      // 5/7 cycles with an estimate. Step 1 added a person, a farm without
-      // GPS and a cycle with an estimate; step 2 verified the person.
+      // 5/7 cycles with an estimate. Step 1 added a person, a farm WITH GPS
+      // (now required) and a cycle with an estimate; step 2 verified the person.
       const quality = page.getByTestId('tile-quality')
       await expect(quality).toContainText('4 / 7')
-      await expect(quality).toContainText('3 / 5')
+      await expect(quality).toContainText('4 / 5')
       await expect(quality).toContainText('6 / 8')
     })
 
@@ -365,7 +410,7 @@ test.describe('the acceptance journey', () => {
 
     await test.step('9 · the same farmer sees the decision on their request', async () => {
       await signOut(page)
-      await signIn(page, farmerEmail, /\/farm$/)
+      await signIn(page, phone, /\/farm$/, FARMER_PASSWORD)
       await page.goto(`/farm/requests/${requestId}`)
       await expect(page.getByTestId('request-detail')).toBeVisible()
       await expect(page.getByTestId('request-detail').getByTestId('status-pill')).toHaveAttribute(
@@ -373,6 +418,130 @@ test.describe('the acceptance journey', () => {
         'approved',
       )
       await expect(page.getByTestId('request-detail')).toContainText('DEMO approval. Headroom confirmed.')
+    })
+
+    // Surveys and incentives (business-rules §16–17). The survey is published
+    // AFTER step 1 registered the household, so this farmer may answer it —
+    // and none of the seeded surveys, which went live before the household
+    // existed. audit_rate 0 keeps the run deterministic; the audit hold is
+    // asserted in survey_test.sql.
+    const surveyTitle = `${family} storage survey`
+    let surveyId = ''
+    let voucherCode = ''
+
+    await test.step('10 · admin authors and publishes a survey', async () => {
+      await signOut(page)
+      await signIn(page, 'admin@demo.ruaha360.test', /\/ops$/)
+      await page.goto('/ops/surveys')
+      await expect(page.getByTestId('survey-admin-list')).toBeVisible()
+
+      await page.getByTestId('survey-create-open').click()
+      await page.getByTestId('survey-new-title').fill(surveyTitle)
+      await page.getByTestId('survey-new-reward').fill('5000')
+      await page.getByTestId('survey-new-submit').click()
+      await expect(page.getByTestId('survey-admin-detail')).toBeVisible()
+      surveyId = new URL(page.url()).pathname.split('/').pop() ?? ''
+      expect(surveyId).toMatch(/^[0-9a-f-]{36}$/)
+
+      await page.getByTestId('survey-audit-rate').fill('0')
+      await page.getByTestId('survey-save').click()
+      await expect(page.getByTestId('survey-saved')).toBeVisible()
+
+      await page.getByTestId('question-add').click()
+      await chooseSelect(page, 'question-kind', 'yes_no')
+      await page.getByTestId('question-prompt-en').fill('Would you use a shared maize store?')
+      await page.getByTestId('question-save').click()
+      // Saved: the add button is back, and the question is one editable card.
+      await expect(page.getByTestId('question-add')).toBeVisible()
+      await expect(page.getByTestId('questions-editor').getByTestId('question-prompt-en')).toHaveValue(
+        'Would you use a shared maize store?',
+      )
+
+      await page.getByTestId('survey-publish').click()
+      await page.getByTestId('confirm-dialog-confirm').click()
+      await expect(page.getByTestId('survey-published-by')).toContainText('Demo Admin')
+    })
+
+    await test.step('11 · the farmer answers it once and gets a voucher', async () => {
+      await signOut(page)
+      await signIn(page, phone, /\/farm$/, FARMER_PASSWORD)
+
+      // The in-app notice: exactly this survey is waiting.
+      await expect(page.getByTestId('nav-badge-surveys')).toContainText('1')
+
+      await page.goto('/farm/surveys')
+      const card = page.getByTestId('survey-card').filter({ hasText: surveyTitle })
+      await expect(card).toHaveAttribute('data-state', 'new')
+      await expect(card).toContainText('TZS 5,000.00')
+      await card.getByTestId('survey-open').click()
+
+      await page.getByTestId('survey-question').getByLabel('Yes').check()
+      await page.getByTestId('survey-submit').click()
+
+      const voucher = page.getByTestId('voucher-card')
+      await expect(voucher).toBeVisible()
+      await expect(voucher.getByRole('img')).toBeVisible()
+      voucherCode = (await voucher.getByTestId('voucher-code').textContent())?.trim() ?? ''
+      expect(voucherCode).toMatch(/^[0-9A-Z]{5}-[0-9A-Z]{5}$/)
+
+      // One try per household: coming back shows the voucher, not the form.
+      await page.reload()
+      await expect(page.getByTestId('voucher-card')).toBeVisible()
+      await expect(page.getByTestId('survey-submit')).toHaveCount(0)
+      await expect(page.getByTestId('nav-badge-surveys')).toHaveCount(0)
+    })
+
+    await test.step('12 · the registering officer may not redeem; a second officer does', async () => {
+      await signOut(page)
+      await signIn(page, 'officer.ilundo@demo.ruaha360.test', /\/officer$/)
+      await page.goto('/officer/redeem')
+      await page.getByTestId('redeem-code').fill(voucherCode)
+      await page.getByTestId('redeem-lookup').click()
+      await expect(page.getByTestId('redeem-blocked')).toContainText(/you registered this household/i)
+      await expect(page.getByTestId('redeem-confirm')).toHaveCount(0)
+
+      await signOut(page)
+      await signIn(page, 'officer2.ilundo@demo.ruaha360.test', /\/officer$/)
+      await page.goto('/officer/redeem')
+      await page.getByTestId('redeem-code').fill(voucherCode.toLowerCase())
+      await page.getByTestId('redeem-lookup').click()
+      const preview = page.getByTestId('redeem-preview')
+      await expect(preview).toContainText(`${family} household`)
+      await expect(preview).toContainText(`Test ${family}`)
+      await chooseSelect(page, 'redeem-id-type', 'nida')
+      await page.getByTestId('redeem-name-confirm').check()
+      await page.getByTestId('redeem-confirm').click()
+      await expect(page.getByTestId('redeem-done')).toBeVisible()
+
+      // Single use: the same code again is refused, with who and when.
+      await page.getByTestId('redeem-another').click()
+      await page.getByTestId('redeem-code').fill(voucherCode)
+      await page.getByTestId('redeem-lookup').click()
+      await expect(page.getByTestId('redeem-blocked')).toContainText(/already redeemed .* by Juma Officer/i)
+    })
+
+    await test.step('13 · the farmer sees who handed it over; ops sees every name', async () => {
+      await signOut(page)
+      await signIn(page, phone, /\/farm$/, FARMER_PASSWORD)
+      await page.goto(`/farm/surveys/${surveyId}`)
+      await expect(page.getByTestId('voucher-card')).toContainText('Juma Officer')
+      await expect(page.getByTestId('voucher-card').getByTestId('status-pill')).toHaveAttribute(
+        'data-status',
+        'redeemed',
+      )
+
+      await signOut(page)
+      await signIn(page, 'ops@demo.ruaha360.test', /\/ops$/)
+      await page.goto(`/ops/surveys/${surveyId}`)
+      await page.getByTestId('voucher-row').first().click()
+      const trail = page.getByTestId('audit-timeline')
+      await expect(trail.getByTestId('audit-event-household_registered')).toContainText('Salima Officer')
+      await expect(trail.getByTestId('audit-event-household_verified')).toContainText('Asha Ops')
+      await expect(trail.getByTestId('audit-event-login_initial')).toContainText('Salima Officer')
+      await expect(trail.getByTestId('audit-event-survey_published')).toContainText('Demo Admin')
+      await expect(trail.getByTestId('audit-event-redeemed')).toContainText('Juma Officer')
+      await expect(trail.getByTestId('audit-event-redeemed')).toContainText('NIDA card')
+      await expect(trail.getByTestId('audit-event-scanned')).toHaveCount(3)
     })
   })
 })

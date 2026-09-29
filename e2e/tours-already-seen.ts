@@ -19,6 +19,7 @@ const SEEDED_USERS = [
   '80000000-0000-4000-8000-000000000004', // officer, Mgama
   '80000000-0000-4000-8000-000000000005', // farmer, Neema
   '80000000-0000-4000-8000-000000000006', // farmer, Joseph
+  '80000000-0000-4000-8000-000000000007', // officer, Ilundo (second; seed_surveys.sql)
 ]
 
 const SURFACES = ['farmer', 'officer', 'ops']

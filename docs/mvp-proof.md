@@ -59,7 +59,7 @@ officer-edit coverage reported earlier is per-feature, not whole-app.
 
 | requirement | implementation | test |
 |---|---|---|
-| journey uses the farmer it registers | `createSyntheticFarmerLogin` (privileged setup, seed conventions, `E2E-` person only) | `journey.spec.ts` steps 3–9: same `person_id` owns the request (checked in SQL), approval seen by that farmer, their harvest attached, Tower row drills to their record |
+| journey uses the farmer it registers | the login card shown at registration (`app_farmer_login_issue`), then a forced password change (29 Sep 2026; the synthetic login fixture is gone) | `journey.spec.ts` steps 3–9: same `person_id` owns the request (checked in SQL), approval seen by that farmer, their harvest attached, Tower row drills to their record |
 | Neema/Joseph isolation separate | unchanged specs | `rls_test.sql` §1, farmer specs |
 | cleanup scoped to test-owned ids; accounts removed after relationships | `e2e/support/cleanup.sql` — demo-only guard, FK scan before deleting a synthetic account | global setup/teardown fail loudly on error |
 
@@ -146,3 +146,20 @@ New English strings needing Swahili review are in `docs/i18n-handover.md`
 | Handset/connectivity validation, real-data consent (research A, B), finance classification (C), meter provider, season/grade/confidence taxonomies (S22) | field / legal / product | deferred |
 | GitHub secrets for CI browser + RLS jobs | repository owner | required; jobs fail visibly until set |
 | Fresh-database replay of all migrations | needs an approved disposable cloud project | **unproven**; the shared demo DB is never reset |
+
+## 29 September 2026 — farmer logins, surveys and incentive vouchers
+
+| check | command | result |
+|---|---|---|
+| migrations | `pnpm db:push` | `20260929090001_farmer_login`, `…02_household_four_eyes`, `…03_surveys` applied; `db.types.ts` regenerated |
+| survey seed | `psql … -f supabase/seed_surveys.sql` | applied; re-runnable |
+| RLS / DB contract | `pnpm db:rls` | **193 / 193 pass** (92 before, plus 101 in `survey_test.sql`) |
+| unit | `pnpm test` | 2942 / 2943; the one failure, in `LanguageSwitch.test.tsx`, also fails on the previous commit (`6c88432`) and is not part of this feature |
+| typecheck, lint | `pnpm typecheck`, `pnpm lint` | pass |
+| browser | `pnpm e2e` | **210 passed, 1 failed, 4 skipped**. The one failure was `responsive.spec`'s phone header check, which expected the action row that the user menu (`6c88432`) folds away below `sm`; the spec now checks the menu trigger and passes (19 / 19) |
+| journey | `pnpm e2e journey` | **pass, all 13 steps**: the seeded Tower figures, then survey published, answered once, refused to the registrar, redeemed by a second officer with ID seen, and every name on the ops trail |
+
+Before these runs, four demo records that manual use on 28 Sep had changed
+were restored to their seeded state: Baraka's request back to `under_review`,
+Amina, Rehema, Daudi and the Sanga household back to unverified or pending,
+and Salima's locale back to `sw`.

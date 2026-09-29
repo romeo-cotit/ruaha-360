@@ -22,12 +22,16 @@ test.describe('app shell', () => {
     await expect(tabs).toBeVisible()
     await expect(page.getByTestId('nav-sidebar')).toHaveCount(0)
 
+    // Surveys carries the in-app count of surveys waiting — two for Neema in
+    // the seed (maize storage, harvest labour) — read out as "2 new surveys".
     await expect(tabs.getByRole('link')).toHaveText([
       'My farm',
       'Equipment',
       'Requests',
       'Opportunities',
+      /^Surveys22 new surveys$/,
     ])
+    await expect(tabs.getByTestId('nav-badge-surveys')).toContainText('2')
   })
 
   test('an officer gets a bottom tab bar', async ({ page }) => {
@@ -37,7 +41,7 @@ test.describe('app shell', () => {
     const tabs = page.getByTestId('nav-tabs')
     await expect(tabs).toBeVisible()
     await expect(page.getByTestId('nav-sidebar')).toHaveCount(0)
-    await expect(tabs.getByRole('link')).toHaveText(['Register', 'People', 'Verify'])
+    await expect(tabs.getByRole('link')).toHaveText(['Register', 'People', 'Verify', 'Redeem'])
   })
 
   test('ops gets a sidebar and no tab bar, Tower included', async ({ page }) => {
@@ -54,6 +58,7 @@ test.describe('app shell', () => {
       'Catalogue',
       'Buyers',
       'Villages',
+      'Surveys',
       'Control Tower',
     ])
   })
@@ -62,7 +67,7 @@ test.describe('app shell', () => {
     await signIn(page, 'ops@demo.ruaha360.test')
     await expect(page).toHaveURL(/\/ops$/)
 
-    const labels = ['Requests', 'Demand', 'Catalogue', 'Buyers', 'Villages', 'Control Tower']
+    const labels = ['Requests', 'Demand', 'Catalogue', 'Buyers', 'Villages', 'Surveys', 'Control Tower']
     for (const label of labels) {
       await page.getByTestId('nav-sidebar').getByRole('link', { name: label }).click()
       // A route that does not resolve renders the router's error or not-found
@@ -77,7 +82,7 @@ test.describe('app shell', () => {
     await signIn(page, 'neema@demo.ruaha360.test')
     await expect(page).toHaveURL(/\/farm$/)
 
-    for (const label of ['My farm', 'Equipment', 'Requests', 'Opportunities']) {
+    for (const label of ['My farm', 'Equipment', 'Requests', 'Opportunities', /^Surveys/]) {
       await page.getByTestId('nav-tabs').getByRole('link', { name: label }).click()
       await expect(page.getByRole('heading').first()).toBeVisible()
     }

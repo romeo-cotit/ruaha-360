@@ -131,6 +131,14 @@ executive is an Ops view in MVP, not a fourth role.
 - Lists memberships as role + project + village. Selection stored in memory
   and in the URL, not in a token.
 
+### 4.3a `/set-password` — surveys feature (29 Sep 2026)
+A farmer signing in with the temporary password from their login card lands
+here first — every surface guard sends them. New password twice → the auth
+server stores it → `app_password_changed` clears the flag. Until then the
+database refuses their survey answers. Password rules are the auth server's;
+its message is shown as it says it. `/login` accepts a phone number or an
+email.
+
 ### 4.4 `/no-access` — T1
 - A real screen with a next step ("ask your programme manager to add you"),
   never a blank page or a crash.
@@ -197,6 +205,20 @@ constraint error, do not pre-check.
 Queue of records where `verification in ('unverified','pending')` in the
 officer's villages.
 
+### 5.7a `/officer/redeem` — surveys feature
+Scan the farmer's voucher QR (`qr-scanner`, typed code always available) →
+`app_voucher_lookup` (logs the scan) → preview: household, head, respondent,
+survey, incentive, status. If the database says this caller may not redeem —
+they registered or verified the household, or the voucher is held for an
+ops audit — the reason is shown and there is no confirm. Otherwise: ID type
+seen + name matches → `app_voucher_redeem` → receipt with the audit trail.
+Ops and admin reach this screen too.
+
+Registration's success state shows the **farmer login card** once: phone and
+temporary password. Person detail shows the login history and "Reset app
+password". Neither screen offers Verify on a household the viewer
+registered (business-rules §5).
+
 ### 5.8 Visits — **T3**. Not in MVP.
 
 ---
@@ -245,6 +267,15 @@ inside.
 ### 6.6 `/farm/opportunities` — T2
 Opportunities where this farmer's supply is in `opportunity_supply`. Must state
 plainly that an opportunity is not a sale.
+
+### 6.6a `/farm/surveys` and `/farm/surveys/$surveyId` — surveys feature
+The Surveys tab carries a count of surveys the household may answer now —
+the only notification in the MVP. Each card: title, description, incentive
+("paid in cash at the Ruaha office"), question count, and New / Answered /
+Not available with the database's reason. The survey screen is the answer
+form (draft survives a reload; submitted once per household) or, once
+answered, the voucher: QR code, printed code, amount, status, expiry, and
+who handed it over, with the farmer's view of the audit trail.
 
 ### 6.7 Progress · Training · Services — **cut**.
 
@@ -307,6 +338,16 @@ List of `buyer_demand` plus a create form: buyer, crop, `quantity_kg`, window,
 ### 7.9 `/ops/villages` — T2
 Village list, `village_capacity` with `basis` and `simultaneity_factor` shown
 explicitly.
+
+### 7.9a `/ops/surveys`, `/ops/surveys/$surveyId`, `/ops/surveys/redemptions` — surveys feature
+The survey list with its figures. **Admin** authors: a draft editor
+(English + optional Swahili, incentive, household cap, audit share, closing
+date, questions of five kinds) and Publish; once live, nothing changes.
+Results for everyone staff: households answered, issued / collected / not
+yet collected / expired / cancelled, a per-question tally, and every voucher
+with its full audit trail; ops or admin may cancel an unredeemed voucher with
+a reason. Redemptions: per officer per day, and each redemption, for
+reconciling cash.
 
 ### 7.10 Translations admin · user admin — **cut.**
 Translations are JSON in the repo. User admin is the Supabase dashboard.
@@ -463,8 +504,10 @@ interrupted save in step 1.
 ## 12 · Do not build
 
 Training · Services · Progress · translations admin · user admin · photo
-upload · farm polygons · offline sync queues · notifications · meter screens ·
-crowdfarming · wallets or QR payments · export or shipment tracking · buyer
+upload · farm polygons · offline sync queues · notifications (beyond the
+in-app survey badge) · meter screens · crowdfarming · wallets or QR payment
+rails (a survey voucher is a single-use cash claim, not a payment — added 29
+Sep 2026 by decision) · export or shipment tracking · buyer
 self-service accounts · any AI surface · any chart library before the Tower
 renders real numbers.
 

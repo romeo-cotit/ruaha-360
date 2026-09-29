@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { markedName } from './support/marker'
+import { markedPhone } from './support/phone'
 import { CROP } from './support/seed'
 import { chooseSelect } from './support/select'
 
@@ -32,25 +33,29 @@ function localeSaved(page: Page) {
   )
 }
 
-async function fillRegistration(page: Page, family: string) {
+async function fillRegistration(page: Page, family: string, phone = markedPhone()) {
   await page.getByTestId('register-given-name').fill('Test')
   await page.getByTestId('register-family-name').fill(family)
-  await page.getByTestId('register-phone').fill('+255700000999')
+  await page.getByTestId('register-phone').fill(phone)
   await page.getByTestId('register-household-label').fill(`${family} household`)
   await page.getByTestId('register-farm-label').fill(`${family} farm`)
   await page.getByTestId('register-plot-label').fill(`${family} plot`)
   await page.getByTestId('register-plot-area').fill('1.5')
   // Selected by id, not by label: crop names come from the database per the
   // user's locale, and the seeded Ilundo officer reads Swahili.
-  await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
+  await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
   await page.getByTestId('register-cycle-area').fill('1.2')
   await page.getByTestId('register-harvest-start').fill('2026-09-01')
   await page.getByTestId('register-harvest-end').fill('2026-09-30')
   await page.getByTestId('register-harvest-kg').fill('3000')
+  return phone
 }
 
 test.describe('/officer/register', () => {
   test('starts empty, with nothing marked as an unsaved draft', async ({ page }) => {
+    // Without a GPS position: a granted read fills the farm location on
+    // arrival, which is real input and rightly marks the draft.
+    await page.context().clearPermissions()
     await signInAsOfficer(page)
     await page.goto('/officer/register')
 
@@ -77,7 +82,7 @@ test.describe('/officer/register', () => {
     await signInAsOfficer(page)
     await page.goto('/officer/register')
 
-    await chooseSelect(page, 'register-crop', CROP.MAIZE.sw)
+    await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
     await expect(page.getByTestId('register-cycle-area')).toBeVisible()
     await expect(page.getByTestId('register-cycle-tree-count')).toHaveCount(0)
 
@@ -95,7 +100,7 @@ test.describe('/officer/register', () => {
     await page.goto('/officer/register')
 
     const family = markedName()
-    await fillRegistration(page, family)
+    const phone = await fillRegistration(page, family)
 
     // An unsubmitted form must LOOK unsubmitted.
     await expect(page.getByTestId('unsaved-draft-badge')).toBeVisible()
@@ -104,7 +109,7 @@ test.describe('/officer/register', () => {
 
     await expect(page.getByTestId('register-given-name')).toHaveValue('Test')
     await expect(page.getByTestId('register-family-name')).toHaveValue(family)
-    await expect(page.getByTestId('register-phone')).toHaveValue('+255700000999')
+    await expect(page.getByTestId('register-phone')).toHaveValue(phone)
     await expect(page.getByTestId('register-farm-label')).toHaveValue(`${family} farm`)
     await expect(page.getByTestId('register-plot-area')).toHaveValue('1.5')
     await expect(page.getByTestId('register-harvest-kg')).toHaveValue('3000')

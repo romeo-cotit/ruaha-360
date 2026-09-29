@@ -37,6 +37,10 @@ export default defineConfig({
     // tour over the whole screen. Every spec but `tour.spec.ts` starts with
     // the tours already taken.
     storageState: TOURS_ALREADY_SEEN,
+    // Registration requires the farm's GPS position, which the form reads from
+    // the handset. Ilundo, so figures land in the seeded village.
+    geolocation: { latitude: -8.1303, longitude: 35.1895 },
+    permissions: ['geolocation'],
   },
   webServer: {
     // Tour positioning has failed only after bundling before. Exercise the
