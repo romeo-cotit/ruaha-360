@@ -6,16 +6,23 @@ import type { Database } from '@/lib/db.types'
 type RequestStatus = Database['public']['Enums']['pue_status']
 type DemandStatus = Database['public']['Enums']['demand_status']
 type OpportunityStatus = Database['public']['Enums']['opportunity_status']
+type SurveyStatus = Database['public']['Enums']['survey_status']
+/** `expired` is derived from `expires_at`; the database never stores it. */
+export type VoucherDisplayStatus = Database['public']['Enums']['voucher_status'] | 'expired'
 
 export type StatusPillProps =
   | { kind: 'request'; status: RequestStatus }
   | { kind: 'demand'; status: DemandStatus }
   | { kind: 'opportunity'; status: OpportunityStatus }
+  | { kind: 'survey'; status: SurveyStatus }
+  | { kind: 'voucher'; status: VoucherDisplayStatus }
 
 const NAMESPACE = {
   request: 'requestStatus',
   demand: 'demandStatus',
   opportunity: 'opportunityStatus',
+  survey: 'surveyStatus',
+  voucher: 'voucherStatus',
 } as const
 
 /**
@@ -139,6 +146,41 @@ const OPPORTUNITY_STYLE: Record<OpportunityStatus, CSSProperties> = {
   lapsed: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
 }
 
+const SURVEY_STYLE: Record<SurveyStatus, CSSProperties> = {
+  draft: { ...OUTLINE, color: 'var(--ink-3)' },
+  live: {
+    border: '1px solid var(--primary)',
+    background: 'var(--primary-tint)',
+    color: 'var(--primary-ink)',
+    fontWeight: 600,
+  },
+  closed: { ...OUTLINE, background: 'var(--sand-2)' },
+}
+
+// A collected incentive is money handed over, not a decision with capacity
+// consequences, so it takes a tint rather than the approval fill.
+const VOUCHER_STYLE: Record<VoucherDisplayStatus, CSSProperties> = {
+  issued: {
+    border: '1px solid rgba(29, 112, 183, .35)',
+    background: 'var(--primary-tint)',
+    color: 'var(--primary-ink)',
+    fontWeight: 500,
+  },
+  redeemed: {
+    border: '1px solid var(--green-ink)',
+    background: 'var(--green-tint)',
+    color: 'var(--green-ink)',
+    fontWeight: 600,
+  },
+  void: {
+    border: '1px solid rgba(158, 27, 27, .4)',
+    background: 'var(--paper)',
+    color: 'var(--flag-ink)',
+    fontWeight: 500,
+  },
+  expired: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
+}
+
 function styleFor(props: StatusPillProps): CSSProperties {
   switch (props.kind) {
     case 'request':
@@ -147,5 +189,9 @@ function styleFor(props: StatusPillProps): CSSProperties {
       return DEMAND_STYLE[props.status]
     case 'opportunity':
       return OPPORTUNITY_STYLE[props.status]
+    case 'survey':
+      return SURVEY_STYLE[props.status]
+    case 'voucher':
+      return VOUCHER_STYLE[props.status]
   }
 }

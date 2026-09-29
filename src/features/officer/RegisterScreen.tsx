@@ -26,6 +26,7 @@ import {
   type RegisterGroup,
 } from '@/features/officer/registerProgress'
 import { useCrops } from '@/features/officer/useCrops'
+import { FarmerLoginCard } from '@/features/officer/FarmerLoginCard'
 import { useFarmLocation, type FarmLocationStatus } from '@/features/officer/useFarmLocation'
 import { draftKey, indexedDbDraftStore, useDraft } from '@/lib/drafts'
 import { newUuid } from '@/lib/ids'
@@ -270,6 +271,8 @@ export function RegisterScreen() {
         <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--ink-2)' }}>
           {t('register.successDetail')}
         </p>
+        {/* The farmer's app login, created now and shown once (business-rules §15). */}
+        {created?.person_id && <FarmerLoginCard personId={created.person_id} autoIssue />}
         {created?.person_id && (
           <Link
             to="/officer/people/$personId"

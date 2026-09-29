@@ -14,6 +14,7 @@ import { z } from 'zod'
 
 import { resolveLanding, safeRedirect } from '@/app/membership'
 import { sessionQuery } from '@/app/session'
+import { loginEmailFor } from '@/lib/phone'
 import { supabase } from '@/lib/supabase'
 
 // By route id rather than by importing the route, which would be circular.
@@ -21,9 +22,14 @@ const route = getRouteApi('/(auth)/login')
 
 // Messages are i18n keys, resolved at render. Validation is client-side only
 // because it costs a round trip to learn an empty field is empty — it is not a
-// copy of any server rule.
+// copy of any server rule. Staff type an email; farmers type the phone their
+// officer registered, which maps to the hidden address their login was
+// created under (src/lib/phone.ts).
 const schema = z.object({
-  email: z.string().min(1, 'login.emailRequired').email('login.emailInvalid'),
+  email: z
+    .string()
+    .min(1, 'login.emailRequired')
+    .refine((value) => loginEmailFor(value) !== null, 'login.emailInvalid'),
   password: z.string().min(1, 'login.passwordRequired'),
 })
 
@@ -47,7 +53,8 @@ export function LoginScreen() {
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
+        // Never null here: the schema refused anything loginEmailFor rejects.
+        email: loginEmailFor(values.email) as string,
         password: values.password,
       })
 
@@ -117,8 +124,8 @@ export function LoginScreen() {
             <input
               id="login-email"
               data-testid="login-email"
-              type="email"
-              autoComplete="email"
+              type="text"
+              autoComplete="username"
               aria-invalid={emailError ? true : undefined}
               aria-describedby={emailError ? 'login-email-error' : undefined}
               style={emailError ? INVALID_FIELD : CONTROL_FIELD}

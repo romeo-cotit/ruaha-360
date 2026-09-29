@@ -28,6 +28,12 @@ export interface QueueRow {
   captured_at: string
   farm_id?: string
   crop_cycle_id?: string
+  /**
+   * Present only for a household: who registered it. That officer may not
+   * verify it (20260929090002_household_four_eyes) — app_verify refuses, and
+   * the screen says so before they try. Convenience; the database decides.
+   */
+  captured_by?: string | null
 }
 
 /**
@@ -42,22 +48,27 @@ export interface QueueRow {
  */
 export const OUTSTANDING: Enums['verification_status'][] = ['unverified', 'pending']
 
-/** The five tables `app_verify` accepts. Anything else raises (business-rules §5). */
+/** Every table below is one `app_verify` accepts. Anything else raises (business-rules §5). */
 const PROVENANCE = 'village_id, source, verification, confidence, captured_at'
 
 /**
  * The officer's verify queue — spec 5.7.
  *
- * Five reads rather than one, because these are five tables with no common
+ * Six reads rather than one, because these are six tables with no common
  * parent. No village filter is applied: every one of them is scoped by its own
  * `*_read_staff` policy to `app_villages()`, so "outstanding in my villages" is
  * already the whole query.
  */
 export async function fetchVerifyQueue(): Promise<QueueRow[]> {
-  const [persons, farms, plots, cycles, harvests] = await Promise.all([
+  const [persons, households, farms, plots, cycles, harvests] = await Promise.all([
     supabase
       .from('person')
       .select(`id, given_name, family_name, ${PROVENANCE}`)
+      .in('verification', OUTSTANDING)
+      .is('deleted_at', null),
+    supabase
+      .from('household')
+      .select(`id, label, captured_by, ${PROVENANCE}`)
       .in('verification', OUTSTANDING)
       .is('deleted_at', null),
     supabase
@@ -82,9 +93,9 @@ export async function fetchVerifyQueue(): Promise<QueueRow[]> {
       .is('deleted_at', null),
   ])
 
-  for (const r of [persons, farms, plots, cycles, harvests]) {
+  for (const r of [persons, households, farms, plots, cycles, harvests]) {
     // A failed read is not an empty queue. Showing "nothing to verify" because
-    // one of five queries broke would tell an officer their work is done.
+    // one of six queries broke would tell an officer their work is done.
     if (r.error) throw new Error(r.error.message)
   }
 
@@ -107,11 +118,13 @@ export async function fetchVerifyQueue(): Promise<QueueRow[]> {
       captured_at: raw.captured_at as string,
       farm_id: raw.farm_id as string | undefined,
       crop_cycle_id: raw.crop_cycle_id as string | undefined,
+      ...(table === 'household' ? { captured_by: raw.captured_by as string | null } : {}),
     })
 
   for (const p of persons.data ?? []) {
     push('person', p, `${p.given_name} ${p.family_name}`)
   }
+  for (const h of households.data ?? []) push('household', h, h.label)
   for (const f of farms.data ?? []) push('farm', f, f.label)
   for (const p of plots.data ?? []) push('plot', p, p.label)
   for (const c of cycles.data ?? []) {

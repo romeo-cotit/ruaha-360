@@ -44,6 +44,8 @@ interface NumberRules {
   belowKey?: string
   aboveKey?: string
   integer?: boolean
+  /** Blank is an error rather than "not answered". */
+  required?: boolean
 }
 
 /**
@@ -60,13 +62,17 @@ function numericText(rules: NumberRules) {
     belowKey = 'register.notNegative',
     aboveKey = 'register.tooLarge',
     integer = false,
+    required = false,
   } = rules
 
   return z
     .string()
     .transform((s) => s.trim())
     .superRefine((value, ctx) => {
-      if (value === '') return
+      if (value === '') {
+        if (required) ctx.addIssue({ code: 'custom', message: 'register.required' })
+        return
+      }
 
       const n = Number(value)
       if (!Number.isFinite(n)) {
@@ -88,25 +94,30 @@ const hectares = numericText({ max: 999_999.9999 })
 const quantityKg = numericText({ max: 9_999_999_999.99 })
 /** `plot.latitude` / `longitude` are `numeric(9,6)` with their own ranges. */
 // One message for either end: "-95" and "95" are the same mistake, and
-// "too large" is the wrong word for a latitude.
+// "too large" is the wrong word for a latitude. Required: a new farm is
+// located by the officer's GPS read, and app_register_farmer refuses one
+// without it.
 const latitude = numericText({
   max: 90,
   min: -90,
   belowKey: 'register.latitudeRange',
   aboveKey: 'register.latitudeRange',
+  required: true,
 })
 const longitude = numericText({
   max: 180,
   min: -180,
   belowKey: 'register.longitudeRange',
   aboveKey: 'register.longitudeRange',
+  required: true,
 })
 const wholeCount = numericText({ max: 2_147_483_647, integer: true })
 
 const base = z.object({
   given_name: requiredText,
   family_name: requiredText,
-  phone: optionalText,
+  // The farmer's login name. Its format is app_normalize_phone's call.
+  phone: requiredText,
   household_label: optionalText,
   is_head: z.boolean(),
   farm_label: requiredText,

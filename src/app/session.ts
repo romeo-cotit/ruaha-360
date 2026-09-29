@@ -11,7 +11,10 @@ type AppUserRow = Database['public']['Tables']['app_user']['Row']
 export interface AppSession {
   userId: string
   email: string | null
-  appUser: Pick<AppUserRow, 'id' | 'person_id' | 'display_name' | 'locale'> | null
+  appUser: Pick<
+    AppUserRow,
+    'id' | 'person_id' | 'display_name' | 'locale' | 'must_change_password'
+  > | null
   memberships: ActiveMembership[]
 }
 
@@ -31,7 +34,7 @@ export async function fetchSession(): Promise<AppSession | null> {
   const [appUserResult, membershipResult] = await Promise.all([
     supabase
       .from('app_user')
-      .select('id, person_id, display_name, locale')
+      .select('id, person_id, display_name, locale, must_change_password')
       .eq('id', userId)
       .maybeSingle(),
     // `user_id` MUST be filtered here. membership carries two read policies:
@@ -72,6 +75,15 @@ export async function fetchSession(): Promise<AppSession | null> {
     appUser,
     memberships,
   }
+}
+
+/**
+ * A farmer still on the temporary password from their login card. Every
+ * surface guard sends them to /set-password first. Convenience, not security:
+ * the database refuses their survey answers until the flag clears.
+ */
+export function passwordChangeRequired(session: AppSession | null): boolean {
+  return session?.appUser?.must_change_password === true
 }
 
 export const sessionQuery = {

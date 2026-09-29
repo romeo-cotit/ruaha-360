@@ -16,6 +16,8 @@ vi.mock('@/features/officer/useVerifyQueue', () => ({
 vi.mock('@/app/scope', () => ({
   useScopeNames: () => scopeState,
 }))
+const sessionState: { data: { userId: string } | undefined } = { data: { userId: 'officer-1' } }
+vi.mock('@/app/session', () => ({ useSession: () => sessionState }))
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to, ...props }: { children: React.ReactNode; to: string; [key: string]: unknown }) => (
     <a href={to} {...props}>{children}</a>
@@ -31,6 +33,7 @@ beforeEach(() => {
   verifyState.isPending = false
   verifyState.error = null
   scopeState.data = { villages: { v1: 'Ilundo' }, projects: {} }
+  sessionState.data = { userId: 'officer-1' }
 })
 
 const row = (over: Record<string, unknown> = {}) => ({
@@ -175,5 +178,67 @@ describe('VerifyQueueScreen content', () => {
     )
     // The queue still renders: one failed write does not hide the work.
     expect(screen.getByTestId('verify-queue-row')).toBeInTheDocument()
+  })
+})
+
+/**
+ * Four eyes on households (20260929090002_household_four_eyes): the officer
+ * who registered a household may not verify it, because a household is what a
+ * survey incentive is paid to. app_verify refuses; the queue says so first,
+ * rather than offering a button that can only fail.
+ */
+describe('VerifyQueueScreen household four eyes', () => {
+  const household = (over: Record<string, unknown> = {}) =>
+    row({ table: 'household', id: 'hh1', label: 'Kaya ya Neema', captured_by: 'officer-1', ...over })
+
+  test('a household you registered has no Verify button, and says why', () => {
+    useVerifyQueue.mockReturnValue({
+      isLoading: false,
+      error: null,
+      data: [household(), row({ id: 'p1', captured_by: undefined })],
+    })
+    render(<VerifyQueueScreen />)
+
+    expect(screen.queryByTestId('verify-household-hh1')).not.toBeInTheDocument()
+    expect(screen.getByTestId('verify-needs-second-staff-hh1')).toBeInTheDocument()
+    // The rule is about households only: your own person record stays verifiable.
+    expect(screen.getByTestId('verify-person-p1')).toBeInTheDocument()
+    // The row still counts: it is outstanding, for someone else.
+    expect(screen.getByTestId('verify-queue-count')).toHaveTextContent('2')
+  })
+
+  test("another officer's household can be verified", () => {
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [household({ captured_by: 'officer-2' })] })
+    render(<VerifyQueueScreen />)
+
+    expect(screen.getByTestId('verify-household-hh1')).toBeInTheDocument()
+    expect(screen.queryByTestId('verify-needs-second-staff-hh1')).not.toBeInTheDocument()
+  })
+
+  test('a household with no recorded registrar can be verified', () => {
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [household({ captured_by: null })] })
+    render(<VerifyQueueScreen />)
+
+    expect(screen.getByTestId('verify-household-hh1')).toBeInTheDocument()
+  })
+
+  // Convenience, not security: with no session read yet, the button is shown
+  // and the database is still the one that refuses.
+  test('before the session is known, the button is offered and the database decides', () => {
+    sessionState.data = undefined
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [household()] })
+    render(<VerifyQueueScreen />)
+
+    expect(screen.getByTestId('verify-household-hh1')).toBeInTheDocument()
+  })
+
+  test("the database's refusal is still shown verbatim if it comes", () => {
+    verifyState.error = new Error('a household must be verified by someone other than the officer who registered it')
+    useVerifyQueue.mockReturnValue({ isLoading: false, error: null, data: [household({ captured_by: 'officer-2' })] })
+    render(<VerifyQueueScreen />)
+
+    expect(screen.getByTestId('error-state')).toHaveTextContent(
+      'a household must be verified by someone other than the officer who registered it',
+    )
   })
 })

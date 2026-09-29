@@ -13,6 +13,11 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }))
 
+const surveyBadge = vi.fn(() => 0)
+vi.mock('@/features/farmer/useSurveyEligibility', () => ({
+  useSurveyBadgeCount: () => surveyBadge(),
+}))
+
 const { SurfaceNav } = await import('@/app/SurfaceNav')
 const { navItemsFor } = await import('@/app/nav')
 await import('@/i18n')
@@ -54,7 +59,7 @@ describe('SurfaceNav marks its destinations', () => {
       (link) => link.textContent,
     )
 
-    expect(labels).toEqual(['My farm', 'Equipment', 'Requests', 'Opportunities'])
+    expect(labels).toEqual(['My farm', 'Equipment', 'Requests', 'Opportunities', 'Surveys'])
   })
 
   test('every icon is hidden from assistive tech, since the label already says it', () => {
@@ -118,5 +123,22 @@ describe('SurfaceNav publishes the bar height', () => {
     document.documentElement.style.removeProperty('--tab-bar-height')
     render(<SurfaceNav layout="sidebar" items={OPS} />)
     expect(read()).toBe('')
+  })
+})
+
+/** The in-app notice that a survey is waiting: the MVP sends no SMS or push. */
+describe('the Surveys tab badge', () => {
+  test('shows how many surveys the household may answer now', () => {
+    surveyBadge.mockReturnValue(2)
+    render(<SurfaceNav items={FARMER} layout="tabs" />)
+    const badge = screen.getByTestId('nav-badge-surveys')
+    expect(badge).toHaveTextContent('2')
+    expect(badge).toHaveTextContent('2 new surveys')
+  })
+
+  test('shows nothing when there is nothing to answer', () => {
+    surveyBadge.mockReturnValue(0)
+    render(<SurfaceNav items={FARMER} layout="tabs" />)
+    expect(screen.queryByTestId('nav-badge-surveys')).not.toBeInTheDocument()
   })
 })

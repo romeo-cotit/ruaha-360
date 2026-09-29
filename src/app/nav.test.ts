@@ -69,6 +69,16 @@ describe('navItemsFor', () => {
       '/farm/equipment',
       '/farm/requests',
       '/farm/opportunities',
+      '/farm/surveys',
+    ])
+  })
+
+  // In-app only: the MVP sends no SMS and no push. The badge is the whole of
+  // "farmers are notified".
+  test('the farmer Surveys tab carries the new-surveys badge, and nothing else does', () => {
+    const items = navItemsFor('farmer', [m('farmer')])
+    expect(items.filter((i) => i.badge).map((i) => [i.to, i.badge])).toEqual([
+      ['/farm/surveys', 'surveys'],
     ])
   })
 
@@ -78,6 +88,7 @@ describe('navItemsFor', () => {
       '/officer/register',
       '/officer/people',
       '/officer/verify',
+      '/officer/redeem',
     ])
   })
 
@@ -89,6 +100,7 @@ describe('navItemsFor', () => {
       '/ops/catalogue',
       '/ops/buyers',
       '/ops/villages',
+      '/ops/surveys',
       '/ops/tower',
     ])
   })

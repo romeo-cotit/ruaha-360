@@ -72,6 +72,12 @@ export const TOURS: Record<Surface, TourStep[]> = {
       titleKey: 'tour.farmer.opportunitiesTitle',
       bodyKey: 'tour.farmer.opportunitiesBody',
     },
+    {
+      route: '/farm/surveys',
+      testId: 'surveys-list',
+      titleKey: 'tour.farmer.surveysTitle',
+      bodyKey: 'tour.farmer.surveysBody',
+    },
   ],
 
   officer: [
@@ -112,6 +118,12 @@ export const TOURS: Record<Surface, TourStep[]> = {
       titleKey: 'tour.officer.verifyTitle',
       bodyKey: 'tour.officer.verifyBody',
     },
+    {
+      route: '/officer/redeem',
+      testId: 'redeem-screen',
+      titleKey: 'tour.officer.redeemTitle',
+      bodyKey: 'tour.officer.redeemBody',
+    },
   ],
 
   ops: [
@@ -139,6 +151,12 @@ export const TOURS: Record<Surface, TourStep[]> = {
       testId: 'demand-table',
       titleKey: 'tour.ops.demandTitle',
       bodyKey: 'tour.ops.demandBody',
+    },
+    {
+      route: '/ops/surveys',
+      testId: 'survey-admin-list',
+      titleKey: 'tour.ops.surveysTitle',
+      bodyKey: 'tour.ops.surveysBody',
     },
     {
       route: '/ops/tower',

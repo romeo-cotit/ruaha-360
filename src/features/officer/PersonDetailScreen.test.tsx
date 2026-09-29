@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
@@ -24,6 +24,21 @@ const verifyState = {
 
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ personId: 'p1' }) }),
+}))
+const sessionState: { data: { userId: string } | undefined } = { data: { userId: 'officer-1' } }
+vi.mock('@/app/session', () => ({ useSession: () => sessionState }))
+type HistoryRow = { issued_at: string; kind: string; issued_by_name: string; must_change_password: boolean }
+const historyState: { data: HistoryRow[] | undefined; error: Error | null; refetch: ReturnType<typeof vi.fn> } = {
+  data: [],
+  error: null,
+  refetch: vi.fn(),
+}
+vi.mock('@/features/officer/useFarmerLogin', () => ({ useLoginHistory: () => historyState }))
+// The card has its own tests; here it is a stand-in that shows what it was given.
+vi.mock('@/features/officer/FarmerLoginCard', () => ({
+  FarmerLoginCard: ({ personId, hasLogin }: { personId: string; hasLogin?: boolean }) => (
+    <div data-testid="farmer-login-card-stub" data-person={personId} data-has-login={String(Boolean(hasLogin))} />
+  ),
 }))
 vi.mock('@/features/officer/usePersonDetail', () => ({
   usePersonDetail: () => usePersonDetail(),
@@ -111,6 +126,10 @@ beforeEach(() => {
   reset.mockReset()
   editMutate.mockReset()
   editReset.mockReset()
+  sessionState.data = { userId: 'officer-1' }
+  historyState.data = []
+  historyState.error = null
+  historyState.refetch = vi.fn()
 })
 
 describe('PersonDetailScreen', () => {
@@ -235,5 +254,125 @@ describe('PersonDetailScreen', () => {
     await user.click(screen.getByTestId('screen-edit-cancel'))
     await user.click(screen.getByTestId('edit-plot-plot1'))
     await user.click(screen.getByTestId('screen-edit-cancel'))
+  })
+})
+
+/**
+ * Four eyes on households (20260929090002_household_four_eyes). The officer
+ * who registered a household may not verify it: app_verify refuses, and the
+ * screen says so instead of offering a button that can only fail.
+ */
+describe('PersonDetailScreen household four eyes', () => {
+  const withHousehold = (over: Record<string, unknown>) => {
+    const base = detail()
+    return { ...base, households: [{ ...base.households[0], ...over }] }
+  }
+
+  test('a household you registered shows the note, not Verify; the other records keep theirs', () => {
+    queryState.data = withHousehold({ verification: 'unverified', captured_by: 'officer-1' })
+    render(<PersonDetailScreen />)
+
+    expect(screen.queryByTestId('verify-household-hhold')).not.toBeInTheDocument()
+    expect(screen.getByTestId('verify-needs-second-staff-hhold')).toBeInTheDocument()
+    expect(screen.getByTestId('verify-person-p1')).toBeInTheDocument()
+    expect(screen.getByTestId('verify-farm-farm1')).toBeInTheDocument()
+    expect(screen.getByTestId('verify-plot-plot1')).toBeInTheDocument()
+  })
+
+  // The count is what the records say. The household still needs verifying —
+  // by somebody else — and hiding it would tell this officer the work is done.
+  test('the outstanding count still includes that household', () => {
+    const base = withHousehold({ verification: 'unverified', captured_by: 'officer-1' })
+    queryState.data = { ...base, person: { ...base.person, verification: 'verified' }, farms: [] }
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByTestId('person-outstanding')).toHaveTextContent('1 record still needs verifying')
+  })
+
+  test("another officer's household keeps its Verify button", () => {
+    queryState.data = withHousehold({ verification: 'pending', captured_by: 'officer-2' })
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByTestId('verify-household-hhold')).toBeInTheDocument()
+    expect(screen.queryByTestId('verify-needs-second-staff-hhold')).not.toBeInTheDocument()
+  })
+
+  test('a verified household you registered shows no note: there is nothing left to do', () => {
+    queryState.data = withHousehold({ verification: 'verified', captured_by: 'officer-1' })
+    render(<PersonDetailScreen />)
+
+    expect(screen.queryByTestId('verify-needs-second-staff-hhold')).not.toBeInTheDocument()
+  })
+
+  // Convenience, not security: with no session read yet the button is offered
+  // and the database is the one that refuses.
+  test('before the session is known, Verify is offered and the database decides', () => {
+    sessionState.data = undefined
+    queryState.data = withHousehold({ verification: 'unverified', captured_by: 'officer-1' })
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByTestId('verify-household-hhold')).toBeInTheDocument()
+  })
+})
+
+describe('PersonDetailScreen app login', () => {
+  test('no history: says so, and offers to create a login for this person', () => {
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByRole('heading', { level: 2, name: 'App login' })).toBeInTheDocument()
+    expect(screen.getByTestId('login-history-none')).toHaveTextContent('No app login yet.')
+    expect(screen.getByTestId('farmer-login-card-stub')).toHaveAttribute('data-person', 'p1')
+    expect(screen.getByTestId('farmer-login-card-stub')).toHaveAttribute('data-has-login', 'false')
+    expect(screen.queryByTestId('login-must-change')).not.toBeInTheDocument()
+  })
+
+  test('history lists who created and who reset the login, newest first, and the action becomes a reset', () => {
+    historyState.data = [
+      { issued_at: '2026-09-29T09:00:00Z', kind: 'reset', issued_by_name: 'Juma Officer', must_change_password: false },
+      { issued_at: '2026-09-20T09:00:00Z', kind: 'initial', issued_by_name: 'Asha Officer', must_change_password: false },
+    ]
+    render(<PersonDetailScreen />)
+
+    const rows = screen.getAllByTestId('login-history-row')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toHaveTextContent('Password reset by Juma Officer')
+    expect(rows[0]).toHaveTextContent('29 Sep 2026, 12:00')
+    expect(rows[1]).toHaveTextContent('Login created by Asha Officer')
+    expect(screen.getByTestId('farmer-login-card-stub')).toHaveAttribute('data-has-login', 'true')
+    expect(screen.queryByTestId('login-history-none')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('login-must-change')).not.toBeInTheDocument()
+  })
+
+  test('the newest row decides whether the farmer still has to choose a password', () => {
+    historyState.data = [
+      { issued_at: '2026-09-29T09:00:00Z', kind: 'initial', issued_by_name: 'Juma Officer', must_change_password: true },
+    ]
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByTestId('login-must-change')).toHaveTextContent(
+      'Waiting for the farmer to choose their own password.',
+    )
+  })
+
+  test('loading the history shows loading, and offers no action yet', () => {
+    historyState.data = undefined
+    render(<PersonDetailScreen />)
+
+    expect(screen.getByTestId('login-history-loading')).toBeInTheDocument()
+    expect(screen.queryByTestId('farmer-login-card-stub')).not.toBeInTheDocument()
+  })
+
+  // A failed read is not "no login": offering Create there would reset the
+  // password of a farmer who already has one.
+  test('a failed history read is an error with retry, and offers no action', async () => {
+    historyState.data = undefined
+    historyState.error = new Error('history failed')
+    render(<PersonDetailScreen />)
+
+    const section = screen.getByTestId('app-login')
+    expect(section).toHaveTextContent('history failed')
+    expect(screen.queryByTestId('farmer-login-card-stub')).not.toBeInTheDocument()
+    await userEvent.setup().click(within(section).getByTestId('error-retry'))
+    expect(historyState.refetch).toHaveBeenCalled()
   })
 })

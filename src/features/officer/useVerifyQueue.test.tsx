@@ -26,6 +26,7 @@ function seed() {
     captured_at: '2026-09-20T00:00:00Z',
   }
   responses.set('person', { error: null, data: [{ id, given_name: 'A', family_name: 'B', ...provenance }] })
+  responses.set('household', { error: null, data: [{ id: 'hh1', label: 'Kaya', captured_by: 'officer-1', ...provenance }] })
   responses.set('farm', { error: null, data: [{ id: 'f1', label: 'Farm', ...provenance }] })
   responses.set('plot', { error: null, data: [{ id: 'p1', farm_id: 'f1', label: 'Plot', ...provenance }] })
   responses.set('crop_cycle', { error: null, data: [{ id: 'c1', season_label: 'Season', crop: { name_en: 'Maize', name_sw: 'Mahindi' }, ...provenance }] })
@@ -33,12 +34,28 @@ function seed() {
 }
 
 describe('verify queue data', () => {
-  test('loads all five record types and parent IDs', async () => {
+  test('loads all six record types and parent IDs', async () => {
     seed()
     const rows = await fetchVerifyQueue()
-    expect(rows.map((row) => row.table).sort()).toEqual(['crop_cycle', 'farm', 'harvest_report', 'person', 'plot'])
+    expect(rows.map((row) => row.table).sort()).toEqual([
+      'crop_cycle', 'farm', 'harvest_report', 'household', 'person', 'plot',
+    ])
     expect(rows.find((row) => row.table === 'plot')?.farm_id).toBe('f1')
     expect(rows.find((row) => row.table === 'harvest_report')?.crop_cycle_id).toBe('c1')
+  })
+
+  // Households are verifiable too (app_verify accepts them), and a household
+  // carries who registered it: the officer who did may not verify it
+  // (20260929090002_household_four_eyes), so the screen needs to know.
+  test('a household carries its label and who registered it', async () => {
+    seed()
+    const rows = await fetchVerifyQueue()
+    expect(rows.find((row) => row.table === 'household')).toMatchObject({
+      id: 'hh1',
+      label: 'Kaya',
+      captured_by: 'officer-1',
+    })
+    expect(from).toHaveBeenCalledWith('household')
   })
 
   test('a failed read rejects instead of returning an empty queue', async () => {
@@ -48,7 +65,7 @@ describe('verify queue data', () => {
   })
 
   test('handles each missing query result as an empty list', async () => {
-    for (const table of ['person', 'farm', 'plot', 'crop_cycle', 'harvest_report']) {
+    for (const table of ['person', 'household', 'farm', 'plot', 'crop_cycle', 'harvest_report']) {
       seed()
       responses.set(table, { data: null, error: null })
       await expect(fetchVerifyQueue()).resolves.toBeDefined()
@@ -61,7 +78,7 @@ describe('verify queue data', () => {
     const { result } = renderHook(() => useVerifyQueue(), {
       wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
     })
-    await waitFor(() => expect(result.current.data).toHaveLength(5))
+    await waitFor(() => expect(result.current.data).toHaveLength(6))
     expect(result.current.data?.find((row) => row.table === 'crop_cycle')?.label).toContain('Maize')
   })
 
@@ -72,7 +89,7 @@ describe('verify queue data', () => {
     const { result } = renderHook(() => useVerifyQueue(), {
       wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
     })
-    await waitFor(() => expect(result.current.data).toHaveLength(5))
+    await waitFor(() => expect(result.current.data).toHaveLength(6))
     expect(result.current.data?.find((row) => row.table === 'crop_cycle')?.label).toBe('')
   })
 

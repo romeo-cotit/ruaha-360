@@ -28,6 +28,12 @@ vi.mock('@/lib/drafts', () => ({
   },
 }))
 vi.mock('@/lib/supabase', () => ({ supabase: { rpc: (...args: unknown[]) => rpc(...args) } }))
+// The login card has its own tests; here only WHERE and FOR WHOM it appears.
+vi.mock('@/features/officer/FarmerLoginCard', () => ({
+  FarmerLoginCard: ({ personId, autoIssue }: { personId: string; autoIssue?: boolean }) => (
+    <div data-testid="farmer-login-card" data-person={personId} data-auto={String(Boolean(autoIssue))} />
+  ),
+}))
 
 const { RegisterScreen } = await import('@/features/officer/RegisterScreen')
 const { isRegisterDraft } = await import('@/features/officer/registerSchema')
@@ -374,6 +380,29 @@ describe('a valid registration', () => {
     submit()
 
     await waitFor(() => expect(clear).toHaveBeenCalledTimes(1))
+  })
+
+  // The farmer's app login is created right away and shown once on this
+  // screen: their phone and a temporary password (business-rules §15).
+  test('shows the new farmer their app login, created straight away', async () => {
+    renderScreen()
+    await fillValid()
+    submit()
+
+    const card = await screen.findByTestId('farmer-login-card')
+    expect(card).toHaveAttribute('data-person', 'new-person')
+    expect(card).toHaveAttribute('data-auto', 'true')
+  })
+
+  // No person id, no login to create.
+  test('a registration with no person returned shows no login card', async () => {
+    rpc.mockResolvedValue({ data: {}, error: null })
+    renderScreen()
+    await fillValid()
+    submit()
+
+    await screen.findByTestId('register-success')
+    expect(screen.queryByTestId('farmer-login-card')).not.toBeInTheDocument()
   })
 })
 

@@ -13,11 +13,14 @@ import {
   Users,
   Wrench,
   ClipboardList,
+  ClipboardCheck,
+  ScanLine,
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import type { NavItem, NavLayout } from '@/app/nav'
+import type { NavBadgeSource, NavItem, NavLayout } from '@/app/nav'
+import { useSurveyBadgeCount } from '@/features/farmer/useSurveyEligibility'
 
 // navItemsFor builds paths from the route map as plain strings. The router's
 // `to` is a typed union, and this is the single place the two meet.
@@ -36,14 +39,17 @@ const ICON: Record<string, ComponentType<{ size?: number; strokeWidth?: number }
   '/farm/equipment': Wrench,
   '/farm/requests': FileText,
   '/farm/opportunities': Handshake,
+  '/farm/surveys': ClipboardCheck,
   '/officer/register': UserPlus,
   '/officer/people': Users,
   '/officer/verify': CircleCheckBig,
+  '/officer/redeem': ScanLine,
   '/ops/requests': ClipboardList,
   '/ops/demand': Package,
   '/ops/catalogue': BookOpen,
   '/ops/buyers': Briefcase,
   '/ops/villages': MapPin,
+  '/ops/surveys': ClipboardCheck,
   '/ops/tower': Gauge,
 }
 
@@ -168,6 +174,38 @@ function SurfaceLink({
     >
       {Icon && <Icon aria-hidden size={sidebar ? 18 : 22} strokeWidth={2} />}
       {label}
+      {item.badge && <NavBadge source={item.badge} />}
     </Link>
+  )
+}
+
+/** Each source is its own component, so each calls exactly one hook. */
+const BADGE_COUNT: Record<NavBadgeSource, () => number> = {
+  surveys: useSurveyBadgeCount,
+}
+
+/**
+ * A count on a nav item — the in-app notice that something new is waiting.
+ * Zero renders nothing: an empty badge is noise, not information.
+ */
+function NavBadge({ source }: { source: NavBadgeSource }) {
+  const { t } = useTranslation()
+  const count = BADGE_COUNT[source]()
+  if (count === 0) return null
+  return (
+    <span
+      data-testid={`nav-badge-${source}`}
+      className="type-note inline-flex min-w-5 items-center justify-center px-1.5"
+      style={{
+        borderRadius: 'var(--radius-pill)',
+        background: 'var(--flag-ink)',
+        color: 'var(--paper)',
+        fontWeight: 600,
+        lineHeight: '20px',
+      }}
+    >
+      <span aria-hidden>{count}</span>
+      <span className="sr-only">{t('surveys.badge', { count })}</span>
+    </span>
   )
 }

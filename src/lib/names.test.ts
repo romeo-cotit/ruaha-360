@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { localisedName, type LocalisedNames } from '@/lib/names'
+import { localisedField, localisedName, type LocalisedNames } from '@/lib/names'
 
 const maize: LocalisedNames = { name_en: 'Maize', name_sw: 'Mahindi' }
 
@@ -42,5 +42,23 @@ describe('localisedName', () => {
 
   test('an undefined language is English', () => {
     expect(localisedName(maize, undefined)).toBe('Maize')
+  })
+})
+
+describe('localisedField', () => {
+  const survey = { title_en: 'Maize storage', title_sw: 'Uhifadhi wa mahindi' }
+
+  test('picks the Swahili column in Swahili', () => {
+    expect(localisedField(survey, 'title', 'sw-TZ')).toBe('Uhifadhi wa mahindi')
+  })
+
+  test('picks English otherwise', () => {
+    expect(localisedField(survey, 'title', 'en')).toBe('Maize storage')
+  })
+
+  test('falls back to English while the Swahili is still awaiting a reviewer', () => {
+    expect(localisedField({ title_en: 'Maize storage', title_sw: null }, 'title', 'sw')).toBe(
+      'Maize storage',
+    )
   })
 })

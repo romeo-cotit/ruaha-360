@@ -53,6 +53,58 @@ describe('StatusPill for a PUE request', () => {
   })
 })
 
+describe('StatusPill for surveys and vouchers', () => {
+  const surveys = [
+    ['draft', 'Draft'],
+    ['live', 'Live'],
+    ['closed', 'Closed'],
+  ] as const
+  for (const [status, label] of surveys) {
+    test(`survey ${status} reads as "${label}"`, () => {
+      render(<StatusPill kind="survey" status={status} />)
+      expect(screen.getByTestId('status-pill')).toHaveTextContent(label)
+    })
+  }
+
+  // "expired" is derived from the expiry date; it is not a stored status.
+  const vouchers = [
+    ['issued', 'Not yet collected'],
+    ['redeemed', 'Collected'],
+    ['void', 'Cancelled'],
+    ['expired', 'Expired'],
+  ] as const
+  for (const [status, label] of vouchers) {
+    test(`voucher ${status} reads as "${label}"`, () => {
+      render(<StatusPill kind="voucher" status={status} />)
+      expect(screen.getByTestId('status-pill')).toHaveTextContent(label)
+    })
+  }
+
+  test('all four voucher states are visually distinct', () => {
+    const seen = new Set<string>()
+    for (const [status] of vouchers) {
+      const { unmount } = render(<StatusPill kind="voucher" status={status} />)
+      seen.add(signature(screen.getByTestId('status-pill')))
+      unmount()
+    }
+    expect(seen.size).toBe(4)
+  })
+
+  // A collected incentive is not an approval decision, so it is not the fill.
+  test('no voucher or survey pill uses the approval fill', () => {
+    for (const [status] of vouchers) {
+      const { unmount } = render(<StatusPill kind="voucher" status={status} />)
+      expect(isFilled(screen.getByTestId('status-pill'))).toBe(false)
+      unmount()
+    }
+    for (const [status] of surveys) {
+      const { unmount } = render(<StatusPill kind="survey" status={status} />)
+      expect(isFilled(screen.getByTestId('status-pill'))).toBe(false)
+      unmount()
+    }
+  })
+})
+
 /** Class list plus inline style — everything that decides how a pill looks. */
 function signature(element: HTMLElement): string {
   return `${element.className}|${element.getAttribute('style') ?? ''}`

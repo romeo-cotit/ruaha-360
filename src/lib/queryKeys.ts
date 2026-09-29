@@ -19,6 +19,12 @@
  *                            tower.market(village)
  *   opportunity_supply write opportunity(id), demand(demandId),
  *                            tower.market(village)
+ *   app_farmer_login_issue   loginHistory(person)
+ *   app_survey_submit        surveyEligibility, farmerVouchers, voucherTimeline(id)
+ *   survey write / publish   surveyAdmin, surveyAdminDetail(id), surveyEligibility
+ *   app_voucher_redeem       voucherTimeline(id), surveyVouchers(survey),
+ *                            surveySummary, redemptionLog
+ *   app_voucher_void         as redeem
  */
 export const queryKeys = {
   session: () => ['session'] as const,
@@ -77,6 +83,31 @@ export const queryKeys = {
   demand: (demandId: string) => ['demand', demandId] as const,
   demands: (projectId: string) => ['demands', projectId] as const,
   opportunity: (opportunityId: string) => ['opportunity', opportunityId] as const,
+
+  /**
+   * Surveys and incentive vouchers — added beyond §10's list with the survey
+   * feature (29 Sep 2026). Titles are chosen by language at render, never in
+   * a queryFn.
+   */
+  /** The farmer's list: every visible survey with its eligibility and state. */
+  surveyEligibility: () => ['surveyEligibility'] as const,
+  /** One survey and its questions, as a farmer answers it. */
+  survey: (surveyId: string) => ['survey', surveyId] as const,
+  /** The household's own vouchers. */
+  farmerVouchers: () => ['farmerVouchers'] as const,
+  /** A voucher code: read through app_voucher_code, household only. */
+  voucherCode: (voucherId: string) => ['voucherCode', voucherId] as const,
+  /** The audit trail for one voucher, filtered by who is asking. */
+  voucherTimeline: (voucherId: string) => ['voucherTimeline', voucherId] as const,
+  /** The ops survey list, with its summary figures. */
+  surveyAdmin: () => ['surveyAdmin'] as const,
+  surveyAdminDetail: (surveyId: string) => ['surveyAdmin', surveyId] as const,
+  surveyVouchers: (surveyId: string) => ['surveyVouchers', surveyId] as const,
+  surveyTally: (surveyId: string) => ['surveyTally', surveyId] as const,
+  /** Cash reconciliation: every redemption in a Tanzanian date range. */
+  redemptionLog: (from: string, to: string) => ['redemptionLog', from, to] as const,
+  /** Who issued or reset a person's app login. */
+  loginHistory: (personId: string) => ['loginHistory', personId] as const,
 
   tower: {
     production: (villageId: string) => ['tower', 'production', villageId] as const,

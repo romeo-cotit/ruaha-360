@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
+import { useSession } from '@/app/session'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
@@ -11,11 +12,13 @@ import { VerificationMark } from '@/components/marks'
 import { countUnverified, type PersonDetail, type Provenance } from '@/features/officer/personDetail'
 import { usePersonDetail, useVerify } from '@/features/officer/usePersonDetail'
 import { VerifyButton } from '@/features/officer/VerifyButton'
+import { FarmerLoginCard } from '@/features/officer/FarmerLoginCard'
+import { useLoginHistory, type LoginHistoryRow } from '@/features/officer/useFarmerLogin'
 import { OfficerEditDialog, type EditField } from '@/features/officer/OfficerEditDialog'
 import { useCrops } from '@/features/officer/useCrops'
 import { useOfficerEdit } from '@/features/officer/useOfficerEdit'
 import { selectedEditMeasure, type CropMeasure, type EditContext, type EditableTable, type EditValues } from '@/features/officer/officerEdit'
-import { formatArea, formatKg, formatPlainDate } from '@/lib/format'
+import { formatArea, formatKg, formatPlainDate, formatTimestamp } from '@/lib/format'
 
 const route = getRouteApi('/_officer/officer/people/$personId')
 
@@ -32,6 +35,7 @@ export function PersonDetailScreen() {
   const query = usePersonDetail(personId)
   const verify = useVerify(personId, query.data?.person.village_id)
   const crops = useCrops()
+  const userId = useSession().data?.userId
   const [editing, setEditing] = useState<EditState | null>(null)
   const edit = useOfficerEdit(editing?.measure)
 
@@ -126,14 +130,29 @@ export function PersonDetailScreen() {
                 record={h}
                 edit={<button type="button" data-testid={`edit-household-${h.id}`} onClick={() => openEdit(householdEdit(h, detail.person.village_id, personId))} style={EDIT_BUTTON}>{t('officerEdit.action')}</button>}
                 action={
-                  <VerifyButton
-                    table="household"
-                    id={h.id}
-                    recordLabel={h.label}
-                    verification={h.verification}
-                    onVerify={verify.mutateAsync}
-                    pending={verifying('household', h.id)}
-                  />
+                  // Four eyes on households (20260929090002_household_four_eyes):
+                  // the officer who registered one may not verify it. app_verify
+                  // refuses regardless; this spares a button that can only
+                  // fail. The outstanding count above still includes it — it
+                  // is outstanding, for somebody else.
+                  h.verification !== 'verified' && userId !== undefined && h.captured_by === userId ? (
+                    <p
+                      data-testid={`verify-needs-second-staff-${h.id}`}
+                      className="type-note max-w-56"
+                      style={{ color: 'var(--ink-2)', textWrap: 'pretty' }}
+                    >
+                      {t('verifyQueue.householdNeedsSecondStaff')}
+                    </p>
+                  ) : (
+                    <VerifyButton
+                      table="household"
+                      id={h.id}
+                      recordLabel={h.label}
+                      verification={h.verification}
+                      onVerify={verify.mutateAsync}
+                      pending={verifying('household', h.id)}
+                    />
+                  )
                 }
               />
               <p className="type-note" style={{ color: 'var(--ink-2)' }}>
@@ -251,6 +270,10 @@ export function PersonDetailScreen() {
           ))
         )}
       </Section>
+      {/* The route is officer-only (field officer, ops, admin), so every
+          viewer here is staff; app_farmer_login_issue re-checks the village. */}
+      <AppLoginSection personId={personId} />
+
       {editing && (
         <OfficerEditDialog
           table={editing.table}
@@ -269,6 +292,79 @@ export function PersonDetailScreen() {
         />
       )}
     </section>
+  )
+}
+
+/**
+ * Whether this person can sign in to the app, who issued or reset that login,
+ * and the action to create or reset it. Names and dates only — the temporary
+ * password is shown once, inside the card, from the call that made it.
+ */
+function AppLoginSection({ personId }: { personId: string }) {
+  const { t } = useTranslation()
+  const history = useLoginHistory(personId)
+
+  return (
+    <Section title={t('farmerLogin.historyTitle')}>
+      <Card testId="app-login">
+        {history.data ? (
+          <>
+            <LoginHistory rows={history.data} />
+            {/* Keyed by person: a credential shown for one farmer must never
+                survive navigation to another. */}
+            <FarmerLoginCard key={personId} personId={personId} hasLogin={history.data.length > 0} />
+          </>
+        ) : history.error ? (
+          // A failed read is not "no login": offering Create here would reset
+          // the password of a farmer who already has one.
+          <ErrorState error={history.error} onRetry={() => void history.refetch()} />
+        ) : (
+          <Loading testId="login-history-loading" />
+        )}
+      </Card>
+    </Section>
+  )
+}
+
+function LoginHistory({ rows }: { rows: LoginHistoryRow[] }) {
+  const { t } = useTranslation()
+
+  if (rows.length === 0) {
+    return (
+      <p data-testid="login-history-none" className="type-body" style={{ color: 'var(--ink-2)' }}>
+        {t('farmerLogin.historyNone')}
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {rows[0].must_change_password && (
+        <p data-testid="login-must-change" className="type-body-strong" style={{ color: 'var(--primary-ink)' }}>
+          {t('farmerLogin.mustChange')}
+        </p>
+      )}
+      <ol data-testid="login-history" className="flex flex-col">
+        {rows.map((row, index) => (
+          <li
+            key={`${row.issued_at}-${index}`}
+            data-testid="login-history-row"
+            data-kind={row.kind}
+            className="flex flex-col gap-0.5 py-2 pl-3"
+            style={{ borderLeft: '2px solid var(--rule-2)' }}
+          >
+            <span className="type-body-strong">
+              {row.kind === 'reset'
+                ? t('farmerLogin.historyReset', { name: row.issued_by_name })
+                : t('farmerLogin.historyInitial', { name: row.issued_by_name })}
+            </span>
+            <span className="type-note tabular" style={{ color: 'var(--ink-3)' }}>
+              {formatTimestamp(row.issued_at)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 

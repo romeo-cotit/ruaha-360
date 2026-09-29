@@ -265,3 +265,28 @@ describe('the session query retry policy', () => {
     await expect(sessionQuery.queryFn()).resolves.toBeNull()
   })
 })
+
+describe('passwordChangeRequired', () => {
+  const base = { userId: 'u', email: null, memberships: [] }
+  test('a farmer on a temporary password is sent to choose their own', async () => {
+    const { passwordChangeRequired } = await import('@/app/session')
+    expect(
+      passwordChangeRequired({
+        ...base,
+        appUser: { id: 'u', person_id: 'p', display_name: 'N', locale: 'sw', must_change_password: true },
+      }),
+    ).toBe(true)
+  })
+
+  test('everyone else is not', async () => {
+    const { passwordChangeRequired } = await import('@/app/session')
+    expect(passwordChangeRequired(null)).toBe(false)
+    expect(passwordChangeRequired({ ...base, appUser: null })).toBe(false)
+    expect(
+      passwordChangeRequired({
+        ...base,
+        appUser: { id: 'u', person_id: null, display_name: 'S', locale: 'en', must_change_password: false },
+      }),
+    ).toBe(false)
+  })
+})

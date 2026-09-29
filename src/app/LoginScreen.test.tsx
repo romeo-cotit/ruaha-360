@@ -92,6 +92,48 @@ test('a successful sign-in navigates to the resolved landing route', async () =>
   expect(navigate).toHaveBeenCalledWith({ to: '/ops', replace: true })
 })
 
+/**
+ * Farmers sign in with the phone number their officer registered; the login
+ * is created by app_farmer_login_issue under a hidden address derived from it.
+ */
+describe('signing in with a phone number', () => {
+  test('any spelling of the phone becomes the login address the database created', async () => {
+    signInWithPassword.mockResolvedValue({ error: null })
+    sessionFetch.mockResolvedValue({ memberships: [] })
+
+    renderLogin()
+    const user = userEvent.setup()
+    await user.type(screen.getByTestId('login-email'), '0712 345 678')
+    await user.type(screen.getByTestId('login-password'), 'k7qxm2pa')
+    await user.click(screen.getByTestId('login-submit'))
+
+    await waitFor(() =>
+      expect(signInWithPassword).toHaveBeenCalledWith({
+        email: '255712345678@farmers.ruaha360.test',
+        password: 'k7qxm2pa',
+      }),
+    )
+  })
+
+  test('staff still sign in with their email as typed', async () => {
+    signInWithPassword.mockResolvedValue({ error: null })
+    sessionFetch.mockResolvedValue({ memberships: [] })
+
+    renderLogin()
+    const user = userEvent.setup()
+    await user.type(screen.getByTestId('login-email'), 'ops@demo.ruaha360.test')
+    await user.type(screen.getByTestId('login-password'), 'demo1234')
+    await user.click(screen.getByTestId('login-submit'))
+
+    await waitFor(() =>
+      expect(signInWithPassword).toHaveBeenCalledWith({
+        email: 'ops@demo.ruaha360.test',
+        password: 'demo1234',
+      }),
+    )
+  })
+})
+
 // ── validation: the idle -> invalid edge ────────────────────
 describe('field validation', () => {
   test('an empty form reports both fields and never reaches the network', async () => {
@@ -151,7 +193,7 @@ describe('sign-in failure states', () => {
     await user.click(screen.getByTestId('login-submit'))
 
     expect(await screen.findByTestId('login-error')).toHaveTextContent(
-      'That email and password do not match an account.',
+      'That phone number or email and password do not match an account.',
     )
   })
 

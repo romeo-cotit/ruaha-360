@@ -34,3 +34,20 @@ export function localisedName(
   const swahili = language?.startsWith('sw') ?? false
   return (swahili ? (row.name_sw ?? '') : '') || (row.name_en ?? '')
 }
+
+/**
+ * The same choice for authored text that lives in `<field>_en` / `<field>_sw`
+ * columns — survey titles, questions and options. Admin writes the English;
+ * Swahili is filled in once a native reviewer has supplied it.
+ */
+export function localisedField<F extends string>(
+  row: Partial<Record<`${F}_en` | `${F}_sw`, string | null>> | null | undefined,
+  field: F,
+  language: string | undefined,
+): string {
+  if (!row) return ''
+  const swahili = language?.startsWith('sw') ?? false
+  const sw = row[`${field}_sw` as `${F}_sw`] ?? ''
+  const en = row[`${field}_en` as `${F}_en`] ?? ''
+  return (swahili ? sw : '') || en
+}

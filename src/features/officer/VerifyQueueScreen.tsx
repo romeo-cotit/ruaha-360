@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 
 import { useScopeNames } from '@/app/scope'
+import { useSession } from '@/app/session'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
@@ -26,6 +27,7 @@ export function VerifyQueueScreen() {
   const query = useVerifyQueue()
   const verify = useVerifyFromQueue()
   const scope = useScopeNames()
+  const userId = useSession().data?.userId
 
   if (query.error) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
@@ -116,19 +118,46 @@ export function VerifyQueueScreen() {
                 )
               })()}
 
-              <VerifyButton
-                table={row.table}
-                id={row.id}
-                recordLabel={row.label}
-                verification={row.verification}
-                pending={verify.isPending}
-                onVerify={(target) => verify.mutateAsync(target)}
-              />
+              {needsSecondStaff(row, userId) ? (
+                <SecondStaffNote id={row.id} />
+              ) : (
+                <VerifyButton
+                  table={row.table}
+                  id={row.id}
+                  recordLabel={row.label}
+                  verification={row.verification}
+                  pending={verify.isPending}
+                  onVerify={(target) => verify.mutateAsync(target)}
+                />
+              )}
             </li>
           ))}
         </ul>
       )}
     </section>
+  )
+}
+
+/**
+ * Four eyes on households (20260929090002_household_four_eyes): the officer
+ * who registered one may not verify it, because a household is what a survey
+ * incentive is paid to. app_verify refuses regardless; this only spares the
+ * officer a button that can only fail. Other records keep the old rule.
+ */
+function needsSecondStaff(row: QueueRow, userId: string | undefined): boolean {
+  return row.table === 'household' && userId !== undefined && row.captured_by === userId
+}
+
+function SecondStaffNote({ id }: { id: string }) {
+  const { t } = useTranslation()
+  return (
+    <p
+      data-testid={`verify-needs-second-staff-${id}`}
+      className="type-note max-w-56"
+      style={{ color: 'var(--ink-2)', textWrap: 'pretty' }}
+    >
+      {t('verifyQueue.householdNeedsSecondStaff')}
+    </p>
   )
 }
 

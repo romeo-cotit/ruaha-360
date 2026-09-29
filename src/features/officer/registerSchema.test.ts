@@ -45,15 +45,12 @@ describe('a complete registration', () => {
     expect(parse().success).toBe(true)
   })
 
-  // Everything after the name is optional in the RPC, which nullifs blanks
-  // itself. A schema that demanded more would block registrations the
-  // database accepts.
+  // Beyond the names, the RPC requires only the phone (the farmer's login
+  // name) and the farm GPS position, and nullifs every other blank itself. A
+  // schema that demanded more would block registrations the database accepts.
   test('passes with only the fields the RPC actually requires', () => {
     const result = parse({
-      phone: '',
       household_label: '',
-      farm_latitude: '',
-      farm_longitude: '',
       plot_area_ha: '',
       season_label: '',
       planted_on: '',
@@ -100,12 +97,32 @@ describe('whitespace is not a value', () => {
   })
 
   test('an optional field of spaces becomes empty, not a space', () => {
-    const result = parse({ phone: '   ', household_label: '  ' })
+    const result = parse({ household_label: '  ', season_label: ' ' })
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.phone).toBe('')
       expect(result.data.household_label).toBe('')
+      expect(result.data.season_label).toBe('')
     }
+  })
+})
+
+/**
+ * The phone is the farmer's login name, and the farm is located by the
+ * officer's GPS read (the fields fill and lock themselves; they open for
+ * typing only when GPS fails). All three are required. Whether a phone is a
+ * valid Tanzanian mobile is the database's call: `app_normalize_phone`.
+ */
+describe('phone and farm location are required', () => {
+  test.each(['phone', 'farm_latitude', 'farm_longitude'] as const)('%s cannot be empty', (field) => {
+    expect(issues(parse({ [field]: '' } as Partial<RegisterForm>))).toContain(
+      `${field}:register.required`,
+    )
+  })
+
+  test.each(['phone', 'farm_latitude', 'farm_longitude'] as const)('%s cannot be spaces', (field) => {
+    expect(issues(parse({ [field]: '  ' } as Partial<RegisterForm>))).toContain(
+      `${field}:register.required`,
+    )
   })
 
   test('a crop must be chosen', () => {
@@ -238,7 +255,7 @@ describe('numbers have to be numbers', () => {
   })
 
   test('a blank number is a blank, not a zero and not an error', () => {
-    const result = parse({ plot_area_ha: '', harvest_quantity_kg: '', farm_latitude: '' })
+    const result = parse({ plot_area_ha: '', harvest_quantity_kg: '' })
     expect(issues(result)).toEqual([])
     if (result.success) expect(result.data.plot_area_ha).toBe('')
   })

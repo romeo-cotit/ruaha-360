@@ -8,10 +8,14 @@ import {
 /** Bottom tab bar for the mobile-first surfaces, sidebar for desktop-first ops. */
 export type NavLayout = 'tabs' | 'sidebar' | 'none'
 
+/** A count shown on a nav item. In-app only: the MVP sends no SMS or push. */
+export type NavBadgeSource = 'surveys'
+
 export interface NavItem {
   to: string
   /** i18n key, resolved by the component. Never a literal string. */
   labelKey: string
+  badge?: NavBadgeSource
 }
 
 const SURFACE_PREFIX: Array<[Surface, string]> = [
@@ -94,11 +98,13 @@ const SURFACE_ITEMS: Record<Surface, NavItem[]> = {
     { to: '/farm/equipment', labelKey: 'nav.equipment' },
     { to: '/farm/requests', labelKey: 'nav.requests' },
     { to: '/farm/opportunities', labelKey: 'nav.opportunities' },
+    { to: '/farm/surveys', labelKey: 'nav.surveys', badge: 'surveys' },
   ],
   officer: [
     { to: '/officer/register', labelKey: 'nav.register' },
     { to: '/officer/people', labelKey: 'nav.people' },
     { to: '/officer/verify', labelKey: 'nav.verify' },
+    { to: '/officer/redeem', labelKey: 'nav.redeem' },
   ],
   ops: [
     { to: '/ops/requests', labelKey: 'nav.requests' },
@@ -106,6 +112,7 @@ const SURFACE_ITEMS: Record<Surface, NavItem[]> = {
     { to: '/ops/catalogue', labelKey: 'nav.catalogue' },
     { to: '/ops/buyers', labelKey: 'nav.buyers' },
     { to: '/ops/villages', labelKey: 'nav.villages' },
+    { to: '/ops/surveys', labelKey: 'nav.surveys' },
     { to: '/ops/tower', labelKey: 'nav.tower' },
   ],
 }
