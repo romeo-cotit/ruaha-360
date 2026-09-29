@@ -168,13 +168,13 @@ function SurfaceLink({
       className={
         sidebar
           ? 'flex items-center gap-[11px] rounded-[var(--radius-control)] px-3 py-2.5 text-ink-2 hover:bg-sand-2 data-[status=active]:border-l-[3px] data-[status=active]:border-l-primary data-[status=active]:bg-primary-tint data-[status=active]:pl-[9px] data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
-          : 'flex w-full min-w-0 flex-col items-center justify-center gap-[5px] break-words px-1 py-2 text-center text-wrap-balance text-ink-2 data-[status=active]:border-t-2 data-[status=active]:border-t-primary data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
+          : 'relative flex w-full min-w-0 flex-col items-center justify-center gap-[5px] break-words px-1 py-2 text-center text-wrap-balance text-ink-2 data-[status=active]:border-t-2 data-[status=active]:border-t-primary data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
       }
       style={sidebar ? { minHeight: 44, fontSize: 15 } : { minHeight: 60, fontSize: 12 }}
     >
       {Icon && <Icon aria-hidden size={sidebar ? 18 : 22} strokeWidth={2} />}
       {label}
-      {item.badge && <NavBadge source={item.badge} />}
+      {item.badge && <NavBadge source={item.badge} layout={layout} />}
     </Link>
   )
 }
@@ -188,23 +188,33 @@ const BADGE_COUNT: Record<NavBadgeSource, () => number> = {
  * A count on a nav item — the in-app notice that something new is waiting.
  * Zero renders nothing: an empty badge is noise, not information.
  */
-function NavBadge({ source }: { source: NavBadgeSource }) {
+function NavBadge({ source, layout }: { source: NavBadgeSource; layout: 'sidebar' | 'tabs' }) {
   const { t } = useTranslation()
   const count = BADGE_COUNT[source]()
   if (count === 0) return null
+  const tabs = layout === 'tabs'
   return (
     <span
       data-testid={`nav-badge-${source}`}
-      className="type-note inline-flex min-w-5 items-center justify-center px-1.5"
+      // On a tab the badge is out of flow, pinned to the icon's top-right
+      // corner: in flow it was a third row that grew this tab and pushed every
+      // other tab's centred content up. The icon is 22px and centred, so its
+      // right edge is 50% + 11px. The paper ring separates it from the glyph.
+      className={
+        tabs
+          ? 'type-note pointer-events-none absolute top-[3px] left-[calc(50%+2px)] inline-flex h-[18px] min-w-[18px] items-center justify-center px-1 tabular-nums'
+          : 'type-note ml-auto inline-flex min-w-5 items-center justify-center px-1.5 tabular-nums'
+      }
       style={{
         borderRadius: 'var(--radius-pill)',
         background: 'var(--flag-ink)',
         color: 'var(--paper)',
         fontWeight: 600,
-        lineHeight: '20px',
+        lineHeight: tabs ? '18px' : '20px',
+        ...(tabs ? { boxShadow: '0 0 0 2px var(--paper)' } : {}),
       }}
     >
-      <span aria-hidden>{count}</span>
+      <span aria-hidden>{count > 9 ? '9+' : count}</span>
       <span className="sr-only">{t('surveys.badge', { count })}</span>
     </span>
   )

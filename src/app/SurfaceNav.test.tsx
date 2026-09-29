@@ -136,6 +136,29 @@ describe('the Surveys tab badge', () => {
     expect(badge).toHaveTextContent('2 new surveys')
   })
 
+  // The badge must never change the bar's geometry. As a third flex-column
+  // child it added a row, grew the Surveys tab and pushed every other tab's
+  // centred content upward. Out of flow, it cannot. jsdom has no layout, so
+  // what is asserted is the mechanism; the measured heights are checked in a
+  // real browser.
+  test('floats over the icon corner instead of adding a row to the tab', () => {
+    surveyBadge.mockReturnValue(1)
+    render(<SurfaceNav items={FARMER} layout="tabs" />)
+    const badge = screen.getByTestId('nav-badge-surveys')
+
+    expect(badge).toHaveClass('absolute')
+    expect(badge.closest('a')).toHaveClass('relative')
+  })
+
+  test('caps the visible count at 9+ and keeps the real number for a screen reader', () => {
+    surveyBadge.mockReturnValue(12)
+    render(<SurfaceNav items={FARMER} layout="tabs" />)
+    const badge = screen.getByTestId('nav-badge-surveys')
+
+    expect(badge.querySelector('[aria-hidden]')).toHaveTextContent('9+')
+    expect(badge).toHaveTextContent('12 new surveys')
+  })
+
   test('shows nothing when there is nothing to answer', () => {
     surveyBadge.mockReturnValue(0)
     render(<SurfaceNav items={FARMER} layout="tabs" />)
