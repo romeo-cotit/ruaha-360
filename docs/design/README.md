@@ -182,9 +182,12 @@ Header: white, 1px `--rule` base, the **Ruaha Energy SVG lockup** at 26px (23px 
 surfaces) followed by a 1px divider and `360` at 15/600 `--ink-2`; then user name, language
 select, sign out at 40px.
 Ops nav (`nav-sidebar`): 216px white column, 44px items, active item `--primary-tint` +
-`--primary-ink` + a 3px primary rule + `gauge` icon. Field nav (`nav-tabs`): fixed bottom bar,
-60px items, **22px Lucide icon above a 12px label**, active item gets a 2px primary top border;
-the officer's verify tab carries a count badge.
+`--primary-ink` + a 3px primary rule + `gauge` icon. Field nav (`nav-tabs`): a **floating solid pill**
+(paper, 1px `--rule-2` border, `--radius-frame`; no blur, no shadow — `depth.test.ts`), 60px
+items, **22px Lucide icon above a 12px label**, active item is a `--primary-tint` fill; the
+officer's verify tab carries a count badge. It floats `--tab-bar-bottom` above the screen edge
+(`max(12px, safe-area-inset-bottom − 10px)`), which needs `viewport-fit=cover` in `index.html`
+or the inset reads 0 and the bar sits under the iOS home indicator / Android gesture bar.
 
 ### Control Tower — the demo's destination (§01)
 `tower`, tiles `tile-<id>`, each drill `tile-drill`. **The tiles are deliberately not uniform.**

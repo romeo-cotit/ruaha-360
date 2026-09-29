@@ -80,7 +80,7 @@ export function OfficerEditDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center p-4 sm:items-center" style={{ background: 'rgba(18, 31, 42, .42)' }}>
+    <div className="fixed inset-0 z-40 flex items-end justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center" style={{ background: 'rgba(18, 31, 42, .42)' }}>
       <form
         role="dialog"
         aria-modal="true"
@@ -88,7 +88,7 @@ export function OfficerEditDialog({
         data-testid="officer-edit-dialog"
         noValidate
         onSubmit={submit}
-        className="flex max-h-[90vh] w-full max-w-lg flex-col gap-4 overflow-y-auto p-5"
+        className="flex max-h-[90dvh] w-full max-w-lg flex-col gap-4 overflow-y-auto p-5"
         style={{
           border: '1px solid var(--rule)',
           borderRadius: 'var(--radius-card)',

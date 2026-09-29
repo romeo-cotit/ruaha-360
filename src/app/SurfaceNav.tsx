@@ -121,8 +121,13 @@ function TabBar({ items }: { items: NavItem[] }) {
 
     publish()
     window.addEventListener('resize', publish)
+    // The safe-area offset changes without a window resize on some devices, and
+    // the bar's own box is what carries it. jsdom has no ResizeObserver.
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    if (bar.current) observer?.observe(bar.current)
     return () => {
       window.removeEventListener('resize', publish)
+      observer?.disconnect()
       document.documentElement.style.removeProperty('--tab-bar-height')
     }
     // The labels are the height: a language change re-renders and re-measures.
@@ -133,10 +138,9 @@ function TabBar({ items }: { items: NavItem[] }) {
       ref={bar}
       aria-label={t('a11y.primaryNav')}
       data-testid="nav-tabs"
-      className="fixed inset-x-0 bottom-0 z-10 box-border w-full max-w-full overflow-hidden pb-[env(safe-area-inset-bottom)]"
-      style={{ background: 'var(--paper)', borderTop: '1px solid var(--rule-2)' }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-10 box-border w-full max-w-full overflow-hidden pb-[var(--tab-bar-bottom)] pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))]"
     >
-      <ul className="flex w-full min-w-0">
+      <ul className="pointer-events-auto flex w-full min-w-0 overflow-hidden rounded-[var(--radius-frame)] border border-rule-2 bg-paper p-[3px] gap-0.5">
         {items.map((item) => (
           <li key={item.to} className="min-w-0 flex-1">
             <SurfaceLink item={item} layout="tabs" label={t(item.labelKey)} />
@@ -168,7 +172,7 @@ function SurfaceLink({
       className={
         sidebar
           ? 'flex items-center gap-[11px] rounded-[var(--radius-control)] px-3 py-2.5 text-ink-2 hover:bg-sand-2 data-[status=active]:border-l-[3px] data-[status=active]:border-l-primary data-[status=active]:bg-primary-tint data-[status=active]:pl-[9px] data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
-          : 'relative flex w-full min-w-0 flex-col items-center justify-center gap-[5px] break-words px-1 py-2 text-center text-wrap-balance text-ink-2 data-[status=active]:border-t-2 data-[status=active]:border-t-primary data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
+          : 'relative flex w-full min-w-0 flex-col items-center justify-center gap-[5px] break-words px-1 py-2 text-center text-wrap-balance text-ink-2 rounded-[var(--radius-card)] data-[status=active]:bg-primary-tint data-[status=active]:font-semibold data-[status=active]:text-primary-ink'
       }
       style={sidebar ? { minHeight: 44, fontSize: 15 } : { minHeight: 60, fontSize: 12 }}
     >

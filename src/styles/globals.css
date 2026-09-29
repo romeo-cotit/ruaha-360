@@ -139,6 +139,13 @@
   --radius-frame: 14px; /* screen shells */
   --radius-pill: 999px; /* chips, meters, badges */
 
+  /* ── the floating tab bar's distance from the screen edge ─
+     A 12px floor where the hardware asks for nothing (older phones, Android
+     3-button navigation), and the system inset less 10px where it does: on an
+     iPhone the pill rides above the home indicator, which then sits in the gap
+     beneath it. Needs `viewport-fit=cover` in index.html, or env() is 0. */
+  --tab-bar-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) - 10px));
+
   /* ── derived surfaces ────────────────────────────────── */
   --background: var(--sand);
   --foreground: var(--ink);

@@ -132,7 +132,10 @@ describe('the tab bar never covers the last control', () => {
     renderLayout()
 
     const main = screen.getByTestId('outlet').closest('main')!
-    expect(main.className).toMatch(/\bpb-2[4-9]\b/)
+    // The measured bar height, which already includes the safe-area offset the
+    // bar floats by, plus a rem of breathing room. The 6rem is only the value
+    // before the bar has published its own.
+    expect(main.className).toContain('pb-[calc(var(--tab-bar-height,6rem)+1rem)]')
     expect(
       main.className,
       'a padding shorthand at any breakpoint would beat the bottom padding',

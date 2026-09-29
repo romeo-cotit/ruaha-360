@@ -34,7 +34,7 @@ export function ConfirmDialog({
   return (
     <div
       data-testid="confirm-dialog-backdrop"
-      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center"
       style={{ background: 'rgba(18, 31, 42, .42)' }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !confirming) onCancel()

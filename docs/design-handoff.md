@@ -218,8 +218,9 @@ high-value win.**
 
 ### 3.4 Layout
 
-- **Farmer / officer:** single column, bottom tab bar fixed to the viewport,
-  `main` gets `pb-20` to clear it. Mobile-first, genuinely.
+- **Farmer / officer:** single column, floating bottom tab pill fixed to the viewport
+  (clear of the system gesture area via `--tab-bar-bottom`); `main` pads by the measured
+  `--tab-bar-height` plus 1rem to clear it. Mobile-first, genuinely.
 - **Ops / Tower:** sidebar beside content at `lg` and above; below `lg` the
   sidebar becomes a horizontally scrollable strip above the content. This was a
   bug fix — at 375px the fixed sidebar squeezed the content column until figures

@@ -36,7 +36,7 @@ export function TourMenu({
   return (
     <div
       data-testid="tour-menu-backdrop"
-      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center"
       style={{ background: 'var(--scrim)' }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()

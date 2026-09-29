@@ -86,6 +86,37 @@ describe('SurfaceNav touch targets', () => {
     expect(tabs.querySelector('a')).toHaveClass('w-full', 'min-w-0')
   })
 
+  // The bar floats: a transparent, click-through strip owns the safe-area
+  // offset, and the pill inside it is the only thing that paints or takes a tap.
+  test('the strip is click-through and offsets itself from the system gesture area', () => {
+    render(<SurfaceNav layout="tabs" items={FARMER} />)
+    const tabs = screen.getByTestId('nav-tabs')
+
+    expect(tabs).toHaveClass('pointer-events-none', 'fixed', 'inset-x-0', 'bottom-0')
+    expect(tabs.className).toContain('pb-[var(--tab-bar-bottom)]')
+    expect(tabs.className).toContain('pl-[max(12px,env(safe-area-inset-left))]')
+    expect(tabs.className).toContain('pr-[max(12px,env(safe-area-inset-right))]')
+    expect(tabs.className, 'the strip paints nothing').not.toMatch(/(^|\s)(bg-|border(\s|$))/)
+  })
+
+  test('the pill paints a bordered paper surface and takes the taps', () => {
+    render(<SurfaceNav layout="tabs" items={FARMER} />)
+    const pill = screen.getByTestId('nav-tabs').querySelector('ul')!
+
+    expect(pill).toHaveClass('pointer-events-auto', 'bg-paper', 'border', 'border-rule-2')
+    expect(pill.className).toContain('rounded-[var(--radius-frame)]')
+  })
+
+  // A top rule is a straight line across a rounded end; the active tab is a
+  // tinted fill instead.
+  test('the active tab is a tinted fill, not a top rule', () => {
+    render(<SurfaceNav layout="tabs" items={FARMER} />)
+    const link = screen.getByTestId('nav-tabs').querySelector('a')!
+
+    expect(link.className).toContain('data-[status=active]:bg-primary-tint')
+    expect(link.className).not.toContain('border-t-2')
+  })
+
   test('an ops item is 44px and does not fix its height', () => {
     render(<SurfaceNav layout="sidebar" items={OPS} />)
     const style = screen.getByTestId('nav-sidebar').querySelector('a')?.getAttribute('style') ?? ''

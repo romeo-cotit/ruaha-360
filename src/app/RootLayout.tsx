@@ -44,7 +44,7 @@ export function RootLayout() {
 
   return (
     <TourProvider surface={surface} userId={session?.appUser?.id} isAdmin={isAdmin}>
-      <div className="flex min-h-dvh flex-col bg-sand font-sans text-ink">
+      <div className="flex min-h-dvh flex-col bg-sand pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] font-sans text-ink">
         <a
           href="#main"
           className="sr-only rounded-[var(--radius-control)] bg-paper px-4 py-2 font-medium text-primary-ink focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
@@ -112,7 +112,7 @@ export function RootLayout() {
             id="main"
             className={
               layout === 'tabs'
-                ? 'min-w-0 flex-1 overflow-x-hidden p-4 pb-24'
+                ? 'min-w-0 flex-1 overflow-x-hidden p-4 pb-[calc(var(--tab-bar-height,6rem)+1rem)]'
                 : 'min-w-0 flex-1 p-4 lg:p-8 xl:p-10'
             }
           >
