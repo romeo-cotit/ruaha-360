@@ -13,6 +13,7 @@ import { CONTROL_FIELD } from '@/components/controlStyles'
 import { Card } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { Button } from '@/components/ui/button'
+import { translateDbMessage } from '@/lib/dbMessages'
 import { supabase } from '@/lib/supabase'
 
 // Only "is it there, and typed twice the same" is checked here. What makes a
@@ -44,6 +45,11 @@ export function SetPasswordScreen() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [formError, setFormError] = useState<string | null>(null)
+  // The raw message is kept and read at render, so it follows a language
+  // switch. A message the app names exactly is read from the bundle; any other
+  // (a GoTrue sentence, say) is shown as written.
+  const named = formError ? translateDbMessage(formError) : null
+  const shownError = named ? t(named.key, named.values) : formError
 
   const {
     register,
@@ -118,7 +124,7 @@ export function SetPasswordScreen() {
               }}
             >
               <BangMark size={18} />
-              {formError}
+              {shownError}
             </p>
           )}
 

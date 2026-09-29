@@ -174,7 +174,7 @@ describe('VerifyQueueScreen content', () => {
     render(<VerifyQueueScreen />)
 
     expect(screen.getByTestId('error-state')).toHaveTextContent(
-      'only field staff may verify records',
+      'You do not have permission to do that.',
     )
     // The queue still renders: one failed write does not hide the work.
     expect(screen.getByTestId('verify-queue-row')).toBeInTheDocument()
@@ -238,7 +238,7 @@ describe('VerifyQueueScreen household four eyes', () => {
     render(<VerifyQueueScreen />)
 
     expect(screen.getByTestId('error-state')).toHaveTextContent(
-      'a household must be verified by someone other than the officer who registered it',
+      'A household must be verified by someone other than the officer who registered it.',
     )
   })
 })

@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
 export function Breadcrumbs({ children, className }: { children: ReactNode; className?: string }) {
+  const { t } = useTranslation()
   return (
-    <nav aria-label="Breadcrumb" className={cn('type-note text-ink-2', className)}>
+    <nav aria-label={t('a11y.breadcrumb')} className={cn('type-note text-ink-2', className)}>
       <ol className="flex flex-wrap items-center gap-1.5">{children}</ol>
     </nav>
   )

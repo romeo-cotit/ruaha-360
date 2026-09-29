@@ -4,14 +4,15 @@ import { initReactI18next } from 'react-i18next'
 import enCommon from './en/common.json'
 import swCommon from './sw/common.json'
 
-// Only `common` exists in session 1. Per-feature namespaces are added with
-// their features.
+// Only `common` exists. Per-feature namespaces are added with their features.
 //
 // CLAUDE.md: Farmer and Officer surfaces ship complete Swahili; Ops and Tower
-// may ship English for the demo. Swahili product strings DO NOT EXIST YET and
-// need a native reviewer — the only Swahili here is the language switch's own
-// labels, which are standard terms rather than invented product copy. Do not
-// add machine-translated strings to sw/.
+// may ship English for the demo. The Swahili is a DRAFT, approved by the
+// product owner on 29 Sep 2026: written from docs/i18n-glossary.md, checked by
+// blind back-translation, and NOT seen by a native reader. A string is
+// "reviewed" only when sw/reviewed.json names who reviewed it. Do not add
+// Swahili that is not in the glossary's terms without flagging it in
+// sw/flags.json.
 //
 // Reference data (crop, equipment, equipment_category names) is translated in
 // the database via name_en / name_sw, never here: those rows are created at

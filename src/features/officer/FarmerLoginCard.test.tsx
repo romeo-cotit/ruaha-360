@@ -87,7 +87,7 @@ describe('FarmerLoginCard, created by hand', () => {
 
     const failure = await screen.findByTestId('farmer-login-error')
     expect(failure).toHaveTextContent('The farmer is registered, but the app login could not be created.')
-    expect(failure).toHaveTextContent('add a phone number before issuing a login')
+    expect(failure).toHaveTextContent('Add a phone number before issuing a login.')
     expect(screen.getByRole('alert')).toBeInTheDocument()
 
     await userEvent.click(screen.getByTestId('farmer-login-retry'))
@@ -124,7 +124,7 @@ describe('FarmerLoginCard, issued on registration', () => {
     renderCard(<FarmerLoginCard personId={PERSON} autoIssue />)
 
     expect(await screen.findByTestId('farmer-login-error')).toHaveTextContent(
-      'this phone number already has an app login',
+      'This phone number already has an app login.',
     )
     expect(screen.getByTestId('farmer-login-retry')).toBeInTheDocument()
     expect(issueCalls()).toHaveLength(1)
@@ -180,7 +180,7 @@ describe('FarmerLoginCard, when a login exists', () => {
     await userEvent.click(screen.getByTestId('confirm-dialog-confirm'))
 
     const failure = await screen.findByTestId('farmer-login-error')
-    expect(failure).toHaveTextContent('this person signs in as staff: their password cannot be reset here')
+    expect(failure).toHaveTextContent('This person signs in as staff, so their password cannot be reset here.')
     expect(failure).not.toHaveTextContent('The farmer is registered')
     await waitFor(() => expect(screen.getByTestId('farmer-login-retry')).toBeEnabled())
   })

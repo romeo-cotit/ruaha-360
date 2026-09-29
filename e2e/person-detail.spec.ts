@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr } from './support/i18n'
 import { markedName } from './support/marker'
 import { markedPhone } from './support/phone'
 import { CROP } from './support/seed'
@@ -88,7 +89,7 @@ test.describe('/officer/people/$personId', () => {
     await signInAsOfficer(page)
     await registerAndOpen(page)
 
-    await expect(page.getByTestId('person-outstanding')).toContainText('6 records still need')
+    await expect(page.getByTestId('person-outstanding')).toContainText(tr('sw', 'person.unverifiedCount', { count: 6 }))
     await expect(page.locator('[data-verification="unverified"]')).toHaveCount(6)
   })
 
@@ -105,7 +106,7 @@ test.describe('/officer/people/$personId', () => {
     await confirmVerification(page)
 
     await expect(personBadge).toHaveAttribute('data-verification', 'verified')
-    await expect(page.getByTestId('person-outstanding')).toContainText('5 records still need')
+    await expect(page.getByTestId('person-outstanding')).toContainText(tr('sw', 'person.unverifiedCount', { count: 5 }))
   })
 
   test('a verified record no longer offers a verify control', async ({ page }) => {
@@ -204,9 +205,11 @@ test.describe('/officer/people/$personId', () => {
       if ((await next.count()) === 0) break
       await next.click()
       await confirmVerification(page)
-      await expect(page.getByTestId('person-outstanding')).not.toContainText(`${6 - i} records`)
+      await expect(page.getByTestId('person-outstanding')).not.toContainText(
+        tr('sw', 'person.unverifiedCount', { count: 6 - i }),
+      )
     }
-    await expect(page.getByTestId('person-outstanding')).toContainText('1 record still need')
+    await expect(page.getByTestId('person-outstanding')).toContainText(tr('sw', 'person.unverifiedCount', { count: 1 }))
     await expect(page.locator('[data-verify-table]')).toHaveCount(0)
 
     const personUrl = page.url()
@@ -216,7 +219,7 @@ test.describe('/officer/people/$personId', () => {
     await page.locator('[data-verify-table="household"]').click()
     await confirmVerification(page)
 
-    await expect(page.getByTestId('person-outstanding')).toContainText('Every record here is verified')
+    await expect(page.getByTestId('person-outstanding')).toContainText(tr('en', 'person.allVerified'))
     await expect(page.locator('[data-verify-table]')).toHaveCount(0)
   })
 

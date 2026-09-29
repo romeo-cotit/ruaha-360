@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { BreadcrumbItem, BreadcrumbLink, Breadcrumbs } from '@/components/ui/breadcrumb'
 
@@ -28,6 +29,7 @@ export function PageHeader({
   backLabel?: string
   actions?: ReactNode
 }) {
+  const { t } = useTranslation()
   return (
     <header data-testid="page-header" className="flex w-full min-w-0 flex-col gap-4">
       {(backTo || breadcrumbs?.length) && (
@@ -39,7 +41,7 @@ export function PageHeader({
               className="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] px-2 font-semibold text-primary-ink focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             >
               <ArrowLeft aria-hidden size={16} strokeWidth={2.25} />
-              {backLabel ?? 'Back'}
+              {backLabel ?? t('common.back')}
             </Link>
           )}
           {breadcrumbs?.length ? (

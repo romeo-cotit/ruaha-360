@@ -349,7 +349,7 @@ describe('RedeemScreen preview', () => {
     const card = await screen.findByTestId('redeem-preview')
     expect(within(card).getByTestId('status-pill')).toHaveTextContent('Collected')
     expect(screen.getByTestId('redeem-blocked')).toHaveTextContent(
-      'Voucher already redeemed on 01 Oct 2026 10:42 by Juma Officer',
+      'This voucher was already redeemed on 1 Oct 2026, 10:42 by Juma Officer.',
     )
   })
 
@@ -358,7 +358,7 @@ describe('RedeemScreen preview', () => {
     renderScreen()
     await lookUp()
 
-    expect(await screen.findByTestId('error-state')).toHaveTextContent('only staff may look up vouchers')
+    expect(await screen.findByTestId('error-state')).toHaveTextContent('You do not have permission to do that.')
     expect(screen.queryByTestId('redeem-preview')).not.toBeInTheDocument()
   })
 
@@ -447,7 +447,7 @@ describe('RedeemScreen hand-over', () => {
 
     await user.click(screen.getByTestId('redeem-confirm'))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('record which ID document you checked')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Record which ID document you checked.')
     expect(calls('app_voucher_redeem')).toEqual([
       ['app_voucher_redeem', { p_code: CODE, p_id_type: null, p_name_confirmed: false }],
     ])
@@ -468,7 +468,7 @@ describe('RedeemScreen hand-over', () => {
     await user.click(screen.getByTestId('redeem-confirm'))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'you verified this household, so another staff member must redeem this voucher',
+      'You verified this household, so another staff member must redeem this voucher.',
     )
   })
 

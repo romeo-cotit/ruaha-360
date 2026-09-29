@@ -2,7 +2,16 @@ import { beforeEach, describe, expect, test } from 'vitest'
 
 import en from '@/i18n/en/common.json'
 import sw from '@/i18n/sw/common.json'
-import { flatten } from '../../scripts/i18n-handover.mjs'
+import flags from '@/i18n/sw/flags.json'
+import reviewed from '@/i18n/sw/reviewed.json'
+import {
+  SURFACE_OF,
+  flatten,
+  reviewedKeysOf,
+  validateReviewed,
+  validateSwahili,
+  wordingViolations,
+} from '../../scripts/i18n-handover.mjs'
 
 const i18n = (await import('@/i18n')).default
 
@@ -16,29 +25,14 @@ beforeEach(async () => {
 /**
  * The bundles, as a fence rather than as a driver.
  *
- * These are regression guards: they pass on the day they are written, and
- * their job is to fail on the day someone adds a machine-translated string or
- * a key that renders as its own path. CLAUDE.md's rule is absolute — "never
- * invent Swahili … flag any string you invent rather than shipping machine
- * translation to Tanzanian stakeholders" — and a rule nothing enforces is a
- * rule that survives exactly as long as the person who remembers it.
+ * Until 29 Sep 2026 the rule was absolute: no Swahili the product owner had
+ * not had a native reviewer supply. The owner then approved a DRAFT Swahili so
+ * the demo works for people who do not read English. What stays absolute is
+ * honesty about it: a string is `reviewed` only when `reviewed.json` says a
+ * named person reviewed it, and everything else is a draft. These tests fail
+ * on the day the bundle stops being complete, malformed, or dishonest.
  */
-describe('the Swahili bundle contains only attested strings', () => {
-  /**
-   * The complete list, and it is short on purpose. `Kiingereza` and
-   * `Kiswahili` are the language's own names for the two languages: standard
-   * terms, not product copy invented by a developer.
-   *
-   * **Adding to this list is not a code change.** It is a claim that a native
-   * reviewer supplied the string. If that is not true, the entry does not
-   * belong here — and neither does the string.
-   */
-  const ATTESTED = ['language.en', 'language.sw']
-
-  test('and nothing else', () => {
-    expect(Object.keys(SW).sort()).toEqual([...ATTESTED].sort())
-  })
-
+describe('the Swahili bundle is complete and well formed', () => {
   test('every Swahili key exists in English, so none is orphaned', () => {
     for (const key of Object.keys(SW)) expect(EN).toHaveProperty(key)
   })
@@ -48,30 +42,116 @@ describe('the Swahili bundle contains only attested strings', () => {
       expect(value.trim(), key).not.toBe('')
     }
   })
+
+  // Placeholders that change, and a plural with only one half, break at render.
+  test('placeholders and plural variants match the English', () => {
+    expect(validateSwahili(en, sw)).toEqual([])
+  })
+
+  // CLAUDE.md: Farmer and Officer surfaces ship complete Swahili. The required
+  // surface is the farmer, the officer, and the chrome both of them render.
+  test('every required-surface key has Swahili', () => {
+    const missing = Object.keys(EN).filter(
+      (key) => SURFACE_OF(key) === 'required' && !(key in SW),
+    )
+    expect(missing, `${missing.length} required strings have no Swahili`).toEqual([])
+  })
+
+  // A value identical to its English is an untranslated copy — the exact thing
+  // this fence exists to catch — unless it has nothing to translate.
+  test('no string is an untranslated copy of the English', () => {
+    // Product names and symbols. "Control Tower" is what the product calls its
+    // ops dashboard, the same in both languages.
+    const NOTHING_TO_TRANSLATE = new Set([
+      'Ruaha',
+      'QR',
+      'PIN',
+      'GPS',
+      'kW',
+      'kWh',
+      'TZS',
+      'OK',
+      'Control Tower',
+    ])
+    const copies = Object.entries(SW)
+      .filter(([key, value]) => value === EN[key])
+      .filter(([key, value]) => key !== 'language.sw' && !NOTHING_TO_TRANSLATE.has(value))
+      .map(([key]) => key)
+    expect(copies).toEqual([])
+  })
+})
+
+describe('the Swahili bundle is honest about what has been reviewed', () => {
+  // A flag on a string that does not exist is a stale doubt, and the reviewer
+  // would go looking for it.
+  test('every flag is on a string that has Swahili', () => {
+    for (const key of Object.keys(flags)) expect(SW, key).toHaveProperty(key)
+  })
+
+  test('every flag says why', () => {
+    for (const [key, reason] of Object.entries(flags)) {
+      expect(String(reason).trim(), key).not.toBe('')
+    }
+  })
+
+  test('every reviewed batch names a reviewer and a date, and real strings', () => {
+    expect(validateReviewed(reviewed, sw)).toEqual([])
+  })
+
+  // Anything not on the list is a draft, and the list can only grow by someone
+  // putting their name on a batch.
+  test('the two language names are the only reviewed strings so far', () => {
+    expect([...reviewedKeysOf(reviewed)].sort()).toEqual(['language.en', 'language.sw'])
+  })
 })
 
 /**
- * Until a reviewer has been through the handover file, a farmer's phone shows
- * English. That is the intended state, and it has to be a CLEAN one: a missing
- * key renders as its own path — `register.harvestKg` where a label belongs —
- * which is worse than either language.
+ * CLAUDE.md: a survey incentive is "a fixed cash amount per household per
+ * survey, paid at the office. Never earnings, wallet, balance or payment."
+ *
+ * The forbidden list is DERIVED from the English rule, not taken from a
+ * Tanzanian source. It exists to make a reviewer look at a string, not to
+ * certify that the rest is right.
+ */
+describe('the incentive is never described as earnings, a wallet, a balance or a payment', () => {
+  const INCENTIVE_NAMESPACES = [
+    'surveys',
+    'voucher',
+    'redeem',
+    'auditTrail',
+    'surveyStatus',
+    'voucherStatus',
+    'farmerLogin',
+  ]
+  const FORBIDDEN = /\b(mapato|pochi|salio|malipo|mshahara)\b/i
+
+  test('no incentive string uses those words', () => {
+    expect(wordingViolations(sw, INCENTIVE_NAMESPACES, FORBIDDEN)).toEqual([])
+  })
+})
+
+/**
+ * A key missing from sw must still render English, never its own path —
+ * `register.harvestKg` where a label belongs is worse than either language.
+ * The bundle is complete for the required surface, so the fallback is proven
+ * with a key that exists only in English.
  */
 describe('Swahili falls back to English cleanly', () => {
-  test('every English key resolves under sw', async () => {
+  test('a key only English has resolves to the English wording', async () => {
+    i18n.addResource('en', 'common', '__probe.onlyEnglish', 'Only in English')
+    await i18n.changeLanguage('sw')
+
+    expect(i18n.t('__probe.onlyEnglish')).toBe('Only in English')
+  })
+
+  test('every English key resolves under sw, none to its own path', async () => {
     await i18n.changeLanguage('sw')
 
     const raw = Object.keys(EN).filter((key) => i18n.t(key) === key)
     expect(raw, 'these keys would render as their own path').toEqual([])
   })
 
-  test('and resolves to the English wording, not to emptiness', async () => {
-    await i18n.changeLanguage('sw')
-
-    expect(i18n.t('register.title')).toBe(EN['register.title'])
-    expect(i18n.t('common.loading')).toBe(EN['common.loading'])
-  })
-
-  test('while the two attested strings really are Swahili', async () => {
+  test('the two attested strings really are Swahili', async () => {
     await i18n.changeLanguage('sw')
     expect(i18n.t('language.en')).toBe('Kiingereza')
   })

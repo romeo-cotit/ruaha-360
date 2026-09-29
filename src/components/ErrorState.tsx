@@ -20,7 +20,7 @@ import { humanizeDbError } from '@/lib/errors'
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const { t } = useTranslation()
   const human = humanizeDbError(error)
-  const message = human.kind === 'verbatim' ? human.message : t(human.key)
+  const message = human.kind === 'verbatim' ? human.message : t(human.key, human.values)
 
   return (
     <div

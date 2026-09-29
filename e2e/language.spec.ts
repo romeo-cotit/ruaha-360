@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { tr } from './support/i18n'
 import { chooseSelect } from './support/select'
 
 /**
@@ -9,9 +10,12 @@ import { chooseSelect } from './support/select'
  * locale 'sw' and the ops/admin accounts 'en', so the applied locale is
  * observable straight after sign-in.
  *
- * Note these tests assert the SELECTED LOCALE, not translated copy. Swahili
- * product strings do not exist yet (CLAUDE.md requires a native reviewer), so
- * sw currently falls back to English text by design.
+ * Note these tests assert the SELECTED LOCALE, not translated copy. sw is now
+ * a draft Swahili bundle, and the language names below are asserted through
+ * tr(lng, key) so they follow it. The switch names each language in the
+ * language currently shown: under sw the English option reads
+ * tr('sw', 'language.en'), under en the Swahili option reads
+ * tr('en', 'language.sw').
  */
 const PASSWORD = 'demo1234'
 
@@ -34,7 +38,7 @@ test('the session applies app_user.locale on sign-in', async ({ page }) => {
   await signIn(page, 'officer.ilundo@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/officer$/)
 
-  await expect(page.getByTestId('language-switch')).toContainText('Kiswahili')
+  await expect(page.getByTestId('language-switch')).toContainText(tr('sw', 'language.sw'))
 })
 
 test('an account seeded as English stays English', async ({ page }) => {
@@ -42,13 +46,13 @@ test('an account seeded as English stays English', async ({ page }) => {
   await signIn(page, 'ops@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/ops$/)
 
-  await expect(page.getByTestId('language-switch')).toContainText('English')
+  await expect(page.getByTestId('language-switch')).toContainText(tr('en', 'language.en'))
 })
 
 test('a language change survives a reload, because it is stored on app_user', async ({ page }) => {
   await signIn(page, 'officer.ilundo@demo.ruaha360.test')
   await expect(page).toHaveURL(/\/officer$/)
-  await expect(page.getByTestId('language-switch')).toContainText('Kiswahili')
+  await expect(page.getByTestId('language-switch')).toContainText(tr('sw', 'language.sw'))
 
   const select = page.getByTestId('language-switch')
 
@@ -57,18 +61,18 @@ test('a language change survives a reload, because it is stored on app_user', as
   // PATCH is even sent — and a reload then cuts the write. Registered before
   // the change so the response cannot slip past.
   const toEnglish = localeSaved(page)
-  await chooseSelect(page, 'language-switch', 'Kiingereza')
-  await expect(select).toContainText('English')
+  await chooseSelect(page, 'language-switch', tr('sw', 'language.en'))
+  await expect(select).toContainText(tr('en', 'language.en'))
   expect((await toEnglish).ok()).toBe(true)
 
   await page.reload()
-  await expect(select).toContainText('English')
+  await expect(select).toContainText(tr('en', 'language.en'))
 
   // Leave the seed as it was found, so the suite is re-runnable.
   const toSwahili = localeSaved(page)
-  await chooseSelect(page, 'language-switch', 'Kiswahili')
-  await expect(select).toContainText('Kiswahili')
+  await chooseSelect(page, 'language-switch', tr('en', 'language.sw'))
+  await expect(select).toContainText(tr('sw', 'language.sw'))
   expect((await toSwahili).ok()).toBe(true)
   await page.reload()
-  await expect(select).toContainText('Kiswahili')
+  await expect(select).toContainText(tr('sw', 'language.sw'))
 })

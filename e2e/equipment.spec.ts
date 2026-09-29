@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr, trRe } from './support/i18n'
+
 /**
  * Specs 6.3, 6.4 and 6.5 — the catalogue, the request form and the list.
  *
@@ -49,7 +51,7 @@ test.describe('/farm/equipment', () => {
     const count = await prices.count()
     expect(count).toBe(5)
     for (let i = 0; i < count; i += 1) {
-      await expect(prices.nth(i)).toContainText(/indicative/i)
+      await expect(prices.nth(i)).toContainText(trRe('sw', 'equipment.indicative', undefined, { flags: 'i' }))
     }
   })
 
@@ -101,7 +103,9 @@ test.describe('/farm/equipment/$equipmentId', () => {
   test('the panel is labelled an estimate', async ({ page }) => {
     await signInAsNeema(page)
     await page.goto(`/farm/equipment/${MILL}`)
-    await expect(page.getByTestId('estimate-panel')).toContainText(/estimate, not a measurement/i)
+    await expect(page.getByTestId('estimate-panel')).toContainText(
+      trRe('sw', 'estimate.isEstimate', undefined, { flags: 'i' }),
+    )
   })
 
   // The acceptance criterion, second half: the stored row matches the preview.
@@ -142,7 +146,9 @@ test.describe('/farm/equipment/$equipmentId', () => {
     // The trigger freezes content once a request leaves draft; the UI must not
     // offer the control.
     await expect(page.getByTestId('request-edit')).toHaveCount(0)
-    await expect(page.getByTestId('request-detail')).toContainText(/cannot be changed/i)
+    await expect(page.getByTestId('request-detail')).toContainText(
+      trRe('sw', 'requests.frozen', undefined, { flags: 'i' }),
+    )
   })
 })
 
@@ -155,7 +161,7 @@ test.describe('/farm/requests', () => {
     // Neema is seeded with an approved mill request and a cold-room draft.
     const pills = page.getByTestId('status-pill')
     expect(await pills.count()).toBeGreaterThanOrEqual(2)
-    await expect(page.getByTestId('requests-list')).toContainText('Approved')
+    await expect(page.getByTestId('requests-list')).toContainText(tr('sw', 'requestStatus.approved'))
   })
 
   test('shows only this farmer requests', async ({ page }) => {
@@ -208,7 +214,9 @@ test.describe('the request form refuses impossible assumptions', () => {
     await page.getByTestId('request-hours').fill('0')
     await page.getByTestId('request-submit').click()
 
-    await expect(page.getByTestId('request-hours-error')).toContainText(/more than zero/i)
+    await expect(page.getByTestId('request-hours-error')).toContainText(
+      trRe('sw', 'equipment.moreThanZero', undefined, { flags: 'i' }),
+    )
     await expect(page.getByTestId('request-success')).toHaveCount(0)
   })
 

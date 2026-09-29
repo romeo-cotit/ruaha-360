@@ -56,24 +56,36 @@ See `supabase/README.md`.
 
 ## Known gaps, stated plainly
 
-### Swahili is not done
+### Swahili is a draft, not reviewed
 
-`CLAUDE.md` specifies that **the farmer and officer surfaces ship complete
-Swahili**, and they currently do not. Of 559 strings, 2 carry Swahili — the
-language switch's own labels, which are attested terms rather than product
-copy. Everything else renders English through i18next's fallback.
+The farmer and officer surfaces, and the chrome both render, are in Swahili.
+**No native reader has seen it.** They were drafted on
+29 September 2026 from a sourced glossary (`docs/i18n-glossary.md`),
+back-translated blind as a cross-check, and shipped so the demo is usable by
+people who do not read English. Ops and Tower are still English.
 
-This is a gap waiting on a **native Kiswahili reviewer**, not an engineering
-task. The string list is frozen and exported to `docs/i18n-handover.md`, which
-marks the 323 strings that block the demo and carries the labelling rules a
-translator needs — "estimate", "indicative price" and "planned capacity" are
-claims about what the programme does and does not promise.
+What "draft" means in the repo:
 
-Nothing in that file may be machine translated. An unreviewed guess is worse
-than English: English is visibly untranslated, and a wrong Swahili string is
-not. `src/i18n/bundles.test.ts` enforces this — the Swahili bundle is asserted
-to contain only the attested keys, and adding to that list is a claim that a
-reviewer supplied the string.
+- `src/i18n/sw/reviewed.json` lists the strings a named person has reviewed.
+  Today that is the two language names. Everything else is a draft
+- `src/i18n/sw/flags.json` holds the doubts the drafter and the cross-check
+  raised, and they appear in the Notes column of the review packet
+- `docs/i18n-handover.md` and `docs/i18n-handover.csv` are that packet: every
+  string, its draft, its status, and the labelling rules a translator needs —
+  "estimate", "indicative price" and "planned capacity" are claims about what
+  the programme does and does not promise
+- The glossary marks 80 of 176 terms `unverified`: no Tanzanian source was
+  found. Those go to the reviewer first
+
+A wrong Swahili string is worse than English, because English is visibly
+untranslated and a wrong string is not. `src/i18n/bundles.test.ts` keeps the
+bundle complete, keeps placeholders intact, and rejects the incentive being
+described as earnings, a wallet, a balance or a payment. It cannot check that
+the Swahili is right. Only a native reviewer can.
+
+Not translated, on purpose or for lack of time: the ops and Tower screens, the
+GoTrue (sign-in provider) error sentences, and any database message not listed
+in `src/lib/dbMessages.ts`, which are shown as the database wrote them.
 
 ### What is deliberately absent
 

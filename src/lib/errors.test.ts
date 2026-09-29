@@ -22,26 +22,56 @@ const key = (error: unknown) => {
  * as something no human wrote.
  */
 describe('the schema own messages pass through untouched', () => {
-  // Every `raise exception` in supabase/migrations, verbatim.
+  // The `raise exception` texts the app does not name exactly, verbatim. The
+  // ones it does name are shown in the user's language — see the next block.
   test.each([
     'a request may only be created as draft or submitted',
     'illegal transition draft -> approved',
     'only ops or admin may review a request',
     'a submitted request cannot be edited',
     'client_ref is required so a retry cannot create a duplicate farmer',
-    'only field staff may register a farmer',
-    'village_id is required',
-    'unknown crop',
-    'this crop is measured by area: area_ha is required',
-    'this crop is measured by tree count: tree_count is required',
-    'this crop is measured by unit count: unit_count is required',
     'unknown crop cycle',
-    'only field staff may verify records',
     'supply must reference a current, undeleted harvest report',
     'over-commitment: 4100.00 kg available, 4100.00 kg already committed, 100.00 kg requested',
   ])('%s', (message) => {
     const result = humanizeDbError(new Error(message))
     expect(result).toEqual({ kind: 'verbatim', message })
+  })
+
+  // The one narrow exception to "verbatim", added when Swahili became a
+  // requirement: a message the app can name EXACTLY is read from the bundle,
+  // with the values it carried. Anything it cannot name still passes through.
+  describe('the farmer and officer messages the app names exactly', () => {
+    test('map to a key, with the values they carried', () => {
+      expect(humanizeDbError(new Error('question 3 is required'))).toEqual({
+        kind: 'key',
+        key: 'dbError.questionRequired',
+        values: { position: '3' },
+      })
+    })
+
+    test('including those whose database text names a developer field', () => {
+      expect(key(new Error('this crop is measured by area: area_ha is required'))).toBe(
+        'dbError.cropNeedsArea',
+      )
+    })
+
+    test('and refusals of permission read as the not-allowed message', () => {
+      expect(key(new Error('only field staff may verify records'))).toBe('error.notAllowed')
+    })
+
+    test('while a near miss is still shown as written', () => {
+      expect(humanizeDbError(new Error('unknown crop cycle'))).toEqual({
+        kind: 'verbatim',
+        message: 'unknown crop cycle',
+      })
+    })
+
+    test('and the app-authored account error reads as a key too', () => {
+      expect(key(new Error('Your account could not be read. Try again.'))).toBe(
+        'error.accountUnreadable',
+      )
+    })
   })
 
   // The guard's message names the actual kilograms. Replacing it with "that is

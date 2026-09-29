@@ -88,7 +88,7 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
   // honest half of the sentence — changed on screen, not stored — stays.
   const human = failure ? humanizeDbError(failure) : null
   const failureMessage =
-    human === null ? undefined : human.kind === 'verbatim' ? human.message : t(human.key)
+    human === null ? undefined : human.kind === 'verbatim' ? human.message : t(human.key, human.values)
 
   return (
     <div className={cx(`inline-flex flex-col items-end gap-1`, className)}>
@@ -99,6 +99,7 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
         >
           <SelectTrigger
           data-testid="language-switch"
+            aria-label={t('a11y.language')}
             className="min-h-10 w-full min-w-28 px-2.5 sm:w-auto"
           >
             {t(`language.${i18n.resolvedLanguage}`)}

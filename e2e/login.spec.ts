@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { tr } from './support/i18n'
+
 /**
  * Spec 4.2 acceptance criterion, verbatim:
  *   "each of the six seeded accounts lands on the correct home"
@@ -131,6 +133,8 @@ test.describe('routes a signed-in user should not be shown', () => {
 
     await expect(page).toHaveURL(/\/officer$/)
     await expect(page.locator('main')).not.toContainText(/more than one role/i)
+    // Salima is a 'sw' user: the same sentence, from the bundle.
+    await expect(page.locator('main')).not.toContainText(tr('sw', 'selectRole.detail'))
   })
 
   // Signing out still has to reach the form, or there is no way back in.

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { TOURS } from '../src/app/tour/tourSteps'
+import { tr } from './support/i18n'
 
 /**
  * The guided tour, from the only angle that proves anything: a real first
@@ -21,32 +22,43 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 const PASSWORD = 'demo1234'
 
+// `lng` is the language the account is seeded with (app_user.locale): officers
+// and farmers 'sw', ops 'en'. The tour's own strings are read from that bundle
+// through tr(), so this file follows the Swahili draft as it changes.
 const WHO = {
   officer: {
     email: 'officer.ilundo@demo.ruaha360.test',
+    lng: 'sw',
     landing: /\/officer$/,
-    /** Where the last stop leaves you, and a nav link that is not it. */
+    /** Where the last stop leaves you, and (as a nav key) a link that is not it. */
     lastRoute: /\/officer\/redeem/,
-    thenClick: 'People',
+    thenClick: 'nav.people',
     thenAt: /\/officer\/people/,
   },
   ops: {
     email: 'ops@demo.ruaha360.test',
+    lng: 'en',
     landing: /\/ops$/,
     lastRoute: /\/ops\/tower/,
-    thenClick: 'Buyers',
+    thenClick: 'nav.buyers',
     thenAt: /\/ops\/buyers/,
   },
   farmer: {
     email: 'neema@demo.ruaha360.test',
+    lng: 'sw',
     landing: /\/farm$/,
     lastRoute: /\/farm\/surveys/,
-    thenClick: 'Equipment',
+    thenClick: 'nav.equipment',
     thenAt: /\/farm\/equipment/,
   },
 } as const
 
 type Role = keyof typeof WHO
+
+/** The tour's "Step n of m" counter, in the role's own language. */
+function stepOf(role: Role, step: number, total = 7) {
+  return tr(WHO[role].lng, 'tour.progress', { step, total })
+}
 
 async function signIn(page: Page, who: Role) {
   await page.goto('/login')
@@ -75,7 +87,7 @@ async function assertStepInViewport(page: Page, role: Role, stop: number, stops:
   const tooltip = page.getByTestId('tour-tooltip')
   const target = page.getByTestId(TOURS[role][stop - 1].testId)
 
-  await expect(page.getByTestId('tour-progress')).toHaveText(`Step ${stop} of ${stops}`, {
+  await expect(page.getByTestId('tour-progress')).toHaveText(stepOf(role, stop, stops), {
     timeout: 20_000,
   })
   await expect(tooltip).toBeVisible()
@@ -95,13 +107,13 @@ async function walkToTheEnd(page: Page, role: Role, stops = 7) {
 
   for (let stop = 1; stop < stops; stop += 1) {
     await assertStepInViewport(page, role, stop, stops)
-    await expect(page.getByTestId('tour-next')).toHaveText('Next')
+    await expect(page.getByTestId('tour-next')).toHaveText(tr(WHO[role].lng, 'tour.next'))
     await page.getByTestId('tour-next').click()
   }
 
   await assertStepInViewport(page, role, stops, stops)
   // The last stop finishes rather than promising more.
-  await expect(page.getByTestId('tour-next')).toHaveText('Done', wait)
+  await expect(page.getByTestId('tour-next')).toHaveText(tr(WHO[role].lng, 'tour.close'), wait)
   await expect(page.getByTestId('tour-skip')).toHaveCount(0)
 }
 
@@ -113,8 +125,10 @@ test.describe('the first visit', () => {
       await signIn(page, role)
 
       await expect(page.getByTestId('tour-tooltip')).toBeVisible()
-      await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 7')
-      await expect(page.getByTestId('tour-tooltip')).toContainText('Welcome to Ruaha 360')
+      await expect(page.getByTestId('tour-progress')).toHaveText(stepOf(role, 1))
+      await expect(page.getByTestId('tour-tooltip')).toContainText(
+        tr(WHO[role].lng, `tour.${role}.welcomeTitle`),
+      )
     })
   }
 
@@ -157,7 +171,7 @@ for (const role of ['officer', 'ops', 'farmer'] as const) {
 
       // The page responds to an ordinary click, which is what "I cannot click
       // on all the functionalities" was about.
-      await page.getByRole('link', { name: WHO[role].thenClick }).click()
+      await page.getByRole('link', { name: tr(WHO[role].lng, WHO[role].thenClick) }).click()
       await expect(page).toHaveURL(WHO[role].thenAt)
     })
 
@@ -182,16 +196,16 @@ test.describe('crossing between screens', () => {
 
     // Stops 1 and 2 are on /officer; stop 3 is not.
     await page.getByTestId('tour-next').click()
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('officer', 2))
 
     await page.getByTestId('tour-next').click()
     await expect(page).toHaveURL(/\/officer\/register/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('officer', 3))
     await expect(page.getByTestId('register-progress')).toBeVisible()
 
     await page.getByTestId('tour-back').click()
     await expect(page).toHaveURL(/\/officer$/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('officer', 2))
   })
 
   /**
@@ -209,11 +223,11 @@ test.describe('crossing between screens', () => {
     await expect(page.getByTestId('tour-tooltip')).toBeVisible()
 
     await page.getByTestId('tour-next').click()
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 2 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('ops', 2))
     await page.getByTestId('tour-next').click()
 
     await expect(page).toHaveURL(/\/ops\/requests/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 3 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('ops', 3))
   })
 })
 
@@ -252,7 +266,7 @@ test.describe('asking for it again', () => {
     await page.getByTestId('tour-restart').click()
 
     await expect(page).toHaveURL(/\/ops$/)
-    await expect(page.getByTestId('tour-progress')).toHaveText('Step 1 of 7')
+    await expect(page.getByTestId('tour-progress')).toHaveText(stepOf('ops', 1))
   })
 
   test('the button is there on every surface, and never on the login screen', async ({ page }) => {

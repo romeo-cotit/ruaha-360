@@ -175,11 +175,14 @@ describe('what the failure says, and how long it says it', () => {
 
     await chooseLanguage('Kiswahili')
 
+    // The switch just changed the screen to Swahili, so the banner reads in
+    // Swahili: the network message and the honest half both come from the
+    // bundle in the language now showing.
     const banner = await screen.findByTestId('language-error')
-    expect(banner).toHaveTextContent(/check your connection/i)
+    expect(banner).toHaveTextContent(i18n.t('error.network'))
     expect(banner).not.toHaveTextContent('TypeError')
     // The honest half stays: it changed on screen and was not stored.
-    expect(banner).toHaveTextContent(/could not be saved/i)
+    expect(banner).toHaveTextContent(i18n.t('language.notSaved'))
   })
 
   // A message the schema wrote is still shown as written.

@@ -136,10 +136,11 @@ three clicks.
 research items, and this instance holds demo data only. The demo instance and
 any live instance would be different databases — there is no flag to flip.
 
-**"Why is it in English?"** It should not be, on the farmer and officer
-screens. `docs/i18n-handover.md` is the translator's file; 323 strings block
-that. The two Swahili strings present are attested terms. We will not ship
-machine translation to Tanzanian stakeholders.
+**"Is the Swahili right?"** It is a draft. The farmer and officer screens are
+fully in Swahili, written from a sourced glossary and cross-checked, but no
+native reader has reviewed it yet. `docs/i18n-handover.md` is the reviewer's
+file, and it says which strings are still drafts and which carry a doubt. Ops
+and Tower are English.
 
 **"What does it cost to run?"** Out of scope for this demo: finance terms,
 interest, deposits and repayment are unresolved, and Bank of Tanzania Tier 2

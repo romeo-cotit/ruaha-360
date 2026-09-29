@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, test, vi } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import { PageHeader } from '@/components/PageHeader'
+
+const i18n = (await import('@/i18n')).default
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to, search, ...props }: { children: React.ReactNode; to?: string; search?: unknown } & Record<string, unknown>) => (
@@ -54,5 +56,41 @@ describe('PageHeader', () => {
     expect(screen.getByTestId('page-header')).toHaveClass('min-w-0')
     expect(screen.getByTestId('page-header-actions')).toHaveClass('w-full', 'flex-col')
     expect(screen.getByRole('listitem', { current: 'page' })).toHaveTextContent('Buyer demand')
+  })
+})
+
+/**
+ * The two labels this component supplies itself. Both were English literals,
+ * so a Swahili screen kept an English "Back" and an English landmark name for
+ * a screen reader.
+ */
+describe('PageHeader in Swahili', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en')
+  })
+
+  const parent = <PageHeader title="Kichwa" backTo="/farm" breadcrumbs={[{ label: 'Nyumbani', to: '/farm' }, { label: 'Hapa' }]} />
+
+  test('the default back link is translated, not the English literal', async () => {
+    await i18n.changeLanguage('sw')
+    render(parent)
+
+    expect(screen.getByRole('link', { name: i18n.t('common.back') })).toHaveAttribute('href', '/farm')
+    expect(i18n.t('common.back')).not.toBe('Back')
+  })
+
+  test('the breadcrumb landmark is named in the active language', async () => {
+    await i18n.changeLanguage('sw')
+    render(parent)
+
+    expect(screen.getByRole('navigation', { name: i18n.t('a11y.breadcrumb') })).toBeInTheDocument()
+    expect(i18n.t('a11y.breadcrumb')).not.toBe('Breadcrumb')
+  })
+
+  test('in English both keep their English names', () => {
+    render(parent)
+
+    expect(screen.getByRole('link', { name: 'Back' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
   })
 })

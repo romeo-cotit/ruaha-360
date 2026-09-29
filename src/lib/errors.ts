@@ -13,17 +13,27 @@
  * users raw — `pue_request_hours_per_day_check` to a farmer, in a language she
  * does not read — and they are the only thing mapped here.
  *
+ * **One narrow exception, for Swahili.** A message the app can name EXACTLY is
+ * shown from the i18n bundle, carrying every value it had (`dbMessages.ts`).
+ * A user who does not read English cannot use a sentence that is right and in
+ * the wrong language. Anything not named exactly is still verbatim.
+ *
  * **So the default is verbatim.** A message is replaced only when it is
  * recognised as something no human wrote. An unfamiliar sentence is far more
  * likely to be one of ours than machine noise, and a sentence someone wrote
  * beats "something went wrong".
  */
 
+import { translateDbMessage } from '@/lib/dbMessages'
+
 export type HumanError =
   /** One of the schema's own messages. Show as written. */
   | { kind: 'verbatim'; message: string }
-  /** Machine noise, replaced. `key` is an i18n key, resolved at render. */
-  | { kind: 'key'; key: string }
+  /**
+   * Machine noise, replaced, or a message the app names exactly. `key` is an
+   * i18n key, resolved at render with `values` when the message carried any.
+   */
+  | { kind: 'key'; key: string; values?: Record<string, string> }
 
 /** Check constraints, by the identifier Postgres puts in the message. */
 const CHECK_CONSTRAINT: Record<string, string> = {
@@ -149,6 +159,12 @@ export function humanizeDbError(error: unknown): HumanError {
   if (JS_EXCEPTION.test(message) || isRuntimeException(error)) {
     return { kind: 'key', key: 'error.unexpected' }
   }
+
+  // §9's exception, added for Swahili: a message the app can name EXACTLY is
+  // read from the bundle with the values it carried. Anything else, including
+  // a near miss, is still shown as written.
+  const named = translateDbMessage(message)
+  if (named) return { kind: 'key', key: named.key, values: named.values }
 
   return { kind: 'verbatim', message }
 }

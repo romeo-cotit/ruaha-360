@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr } from './support/i18n'
+
 /**
  * THE GATE for M1–M4: every role's landing page and every nav destination
  * renders a real screen rather than a scaffold placeholder.
@@ -140,9 +142,9 @@ test.describe('gaps shell.spec.ts does not cover', () => {
     const tabs = page.getByTestId('nav-tabs')
 
     for (const [label, path] of [
-      ['Register', '/officer/register'],
-      ['People', '/officer/people'],
-      ['Verify', '/officer/verify'],
+      [tr('sw', 'nav.register'), '/officer/register'],
+      [tr('sw', 'nav.people'), '/officer/people'],
+      [tr('sw', 'nav.verify'), '/officer/verify'],
     ] as const) {
       await tabs.getByRole('link', { name: label }).click()
       // Register adds ?draft=<id> on arrival, so the path may carry a query.

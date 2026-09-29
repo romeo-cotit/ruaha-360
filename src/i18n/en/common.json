@@ -64,7 +64,8 @@
   "a11y": {
     "primaryNav": "Primary navigation",
     "skipToContent": "Skip to content",
-    "language": "Language"
+    "language": "Language",
+    "breadcrumb": "Breadcrumb"
   },
   "error": {
     "title": "Something went wrong",
@@ -89,7 +90,52 @@
     "duplicateSupply": "That harvest figure is already attached to this opportunity.",
     "duplicateEquipmentCode": "That equipment code is already in use in this project.",
     "surveyAlreadyAnswered": "Your household has already answered this survey.",
-    "personHasLogin": "This person already has an app login."
+    "personHasLogin": "This person already has an app login.",
+    "accountUnreadable": "Your account could not be read. Try again."
+  },
+  "dbError": {
+    "surveyNotFound": "This survey could not be found.",
+    "surveyClosed": "This survey is closed.",
+    "notLinkedToFarmer": "Your account is not linked to a registered farmer.",
+    "setOwnPasswordFirst": "Set your own password before answering surveys.",
+    "householdNeedsChecking": "Your household record needs checking by an officer.",
+    "surveyNotInVillage": "This survey is not open in your village.",
+    "householdNotVerified": "Your household has not been verified yet.",
+    "householdNeedsSecondVerifier": "Your household must be verified by a second staff member.",
+    "surveyOpenedBeforeRegistration": "This survey opened before your household was registered.",
+    "surveyLimitReached": "This survey has reached its limit.",
+    "signInFirst": "Sign in first.",
+    "questionRequired": "Question {{position}} is required.",
+    "questionChooseOne": "Question {{position}}: choose one of the listed options.",
+    "questionChooseSome": "Question {{position}}: choose from the listed options.",
+    "questionEnterNumber": "Question {{position}}: enter a number.",
+    "questionTooLong": "Question {{position}}: answer in at most 2000 characters.",
+    "questionYesNo": "Question {{position}}: answer yes or no.",
+    "choosePasswordFirst": "Choose a new password first.",
+    "voucherAlreadyRedeemed": "This voucher was already redeemed on {{date}} by {{name}}.",
+    "voucherAlreadyRedeemedByOther": "This voucher was already redeemed on {{date}} by another staff member.",
+    "voucherVoided": "This voucher was voided: {{reason}}",
+    "voucherExpired": "This voucher expired on {{date}}.",
+    "redeemOwnRegistration": "You registered this household, so another staff member must redeem this voucher.",
+    "redeemOwnVerification": "You verified this household, so another staff member must redeem this voucher.",
+    "redeemOwnHousehold": "You cannot redeem a voucher for your own household.",
+    "voucherHeldForAudit": "This voucher is held for an audit: ops or admin must redeem it in person.",
+    "voucherNotFound": "Voucher not found.",
+    "recordIdDocument": "Record which ID document you checked.",
+    "confirmIdName": "Confirm that the name on the ID matches the household.",
+    "verifyOtherOfficer": "A household must be verified by someone other than the officer who registered it.",
+    "recordNotFound": "That record was not found, or it is outside your villages.",
+    "notAwaitingVerification": "That record is not awaiting verification.",
+    "phoneFormat": "The phone number must be a Tanzanian mobile number, for example +255 712 345 678.",
+    "phoneRequired": "A phone number is required so the farmer can sign in.",
+    "farmLocationRequired": "The farm location is required: capture the GPS position before saving.",
+    "cropNeedsArea": "This crop is measured by area, so the planted area is required.",
+    "cropNeedsTrees": "This crop is measured by tree count, so the number of trees is required.",
+    "cropNeedsUnits": "This crop is measured by unit count, so the number of units is required.",
+    "personNotFound": "That person was not found, or is outside your villages.",
+    "addPhoneFirst": "Add a phone number before issuing a login.",
+    "staffPasswordNotHere": "This person signs in as staff, so their password cannot be reset here.",
+    "phoneHasLogin": "This phone number already has an app login."
   },
   "empty": {
     "noAccessToThis": "Nothing to show",
@@ -105,6 +151,7 @@
     "yes": "Yes",
     "no": "No",
     "close": "Close",
+    "back": "Back",
     "optional": "optional"
   },
   "draft": {
@@ -778,7 +825,7 @@
     "progress": "Step {{step}} of {{total}}",
     "farmer": {
       "welcomeTitle": "Welcome to Ruaha 360",
-      "welcomeBody": "This is your own record. Everything here was written by a field officer who visited your farm, and every figure shows where it came from. Seven short stops.",
+      "welcomeBody": "This is your own record. Everything here was written by a field officer who visited your farm, and every figure shows where it came from. The tour button in the header (the person icon on a phone) shows you any part of the app whenever you want.",
       "summaryTitle": "What is on file for you",
       "summaryBody": "Your farm, your plots and what you expect to harvest. If something here is wrong, tell your field officer — they are the one who can correct it.",
       "recordsTitle": "Your farm, in detail",
@@ -794,7 +841,7 @@
     },
     "officer": {
       "welcomeTitle": "Welcome to Ruaha 360",
-      "welcomeBody": "This is the field officer's surface. You register farmers, verify what you recorded, and hand over survey incentives. Seven short stops, and you can take this tour again at any time.",
+      "welcomeBody": "This is the field officer's surface. You register farmers, verify what you recorded, and hand over survey incentives. The tour button in the header (the person icon on a phone) shows you any part of it again whenever you want.",
       "outstandingTitle": "What still needs verifying",
       "outstandingBody": "Everything you record starts unverified. This counts what is waiting for you. Verify only what you have seen yourself — it cannot be undone.",
       "registerTitle": "One page, one submit",
@@ -810,7 +857,7 @@
     },
     "ops": {
       "welcomeTitle": "Welcome to Ruaha 360",
-      "welcomeBody": "This is the programme surface: requests, buyer demand, surveys and the Control Tower. Seven short stops, and the tour is always available from the header.",
+      "welcomeBody": "This is the programme surface: requests, buyer demand, surveys and the Control Tower. The tour button in the header lets you pick any part of it to be shown at any time.",
       "queueTitle": "What is waiting for you",
       "queueBody": "Each tile counts one queue and opens it. They are counts of work, not performance figures.",
       "requestsTitle": "The request pipeline",

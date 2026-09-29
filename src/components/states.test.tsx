@@ -86,9 +86,17 @@ describe('ErrorState', () => {
   // The regression that matters most: the mapping must not eat the messages
   // §9 exists to protect.
   test('and the schema own messages are still untouched', () => {
-    const message = 'this crop is measured by area: area_ha is required'
+    const message =
+      'over-commitment: 4100.00 kg available, 4100.00 kg already committed, 100.00 kg requested'
     render(<ErrorState error={new Error(message)} />)
     expect(screen.getByText(message)).toBeInTheDocument()
+  })
+
+  // The exception, for a user who does not read English: a message the app
+  // names exactly is read from the bundle, carrying its values.
+  test('a message the app names exactly is shown from the bundle, values intact', () => {
+    render(<ErrorState error={new Error('question 4 is required')} />)
+    expect(screen.getByText('Question 4 is required.')).toBeInTheDocument()
   })
 
   test('handles a non-Error thrown value without crashing', () => {

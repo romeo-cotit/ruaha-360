@@ -6,6 +6,8 @@
  * coverage percentages, or any stored energy estimate (§11).
  */
 
+import i18n from '@/i18n'
+
 const HECTARES_PER_ACRE = 0.40468564224
 
 export type AreaUnit = 'hectare' | 'acre'
@@ -80,11 +82,33 @@ export function formatPercent(pct: number | null): string {
   return pct === null ? UNKNOWN : `${fixed(pct, 1)}%`
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/**
+ * Swahili short months, read from the platform's Intl (CLDR) data rather than
+ * typed here. Computed once: the twelve mid-month dates fall in the same month
+ * in every timezone, so UTC is safe.
+ */
+const MONTHS_SW = Array.from({ length: 12 }, (_, month) =>
+  new Intl.DateTimeFormat('sw', { month: 'short', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(2026, month, 15)),
+  ),
+)
+
+/**
+ * Month names for the active UI language. Read at call time, so a language
+ * switch changes the next render; every screen that formats a date also calls
+ * `useTranslation` and re-renders on the switch. Anything that is not Swahili
+ * reads English, which is also what an unsupported language falls back to.
+ */
+function monthNames(): string[] {
+  return i18n.resolvedLanguage === 'sw' ? MONTHS_SW : MONTHS_EN
+}
 
 // Parts, not a formatted string: Intl's en-GB short month renders September as
 // "Sept", which would disagree with formatPlainDate's "Sep" on the same
-// screen. The month name comes from MONTHS so both formatters always agree.
+// screen. The month name comes from monthNames() so both formatters always
+// agree.
 const timestampParts = new Intl.DateTimeFormat('en-GB', {
   timeZone: DISPLAY_TIMEZONE,
   day: '2-digit',
@@ -109,7 +133,7 @@ export function formatTimestamp(iso: string | null): string {
   const parts: Record<string, string> = {}
   for (const part of timestampParts.formatToParts(parsed)) parts[part.type] = part.value
 
-  const monthName = MONTHS[Number(parts.month) - 1]
+  const monthName = monthNames()[Number(parts.month) - 1]
   if (!monthName) return UNKNOWN
   return `${Number(parts.day)} ${monthName} ${parts.year}, ${parts.hour}:${parts.minute}`
 }
@@ -126,7 +150,23 @@ export function formatPlainDate(date: string | null): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
   if (!match) return UNKNOWN
   const [, year, month, day] = match
-  const monthName = MONTHS[Number(month) - 1]
+  const monthName = monthNames()[Number(month) - 1]
   if (!monthName) return UNKNOWN
   return `${Number(day)} ${monthName} ${year}`
+}
+
+/**
+ * A date Postgres has already written into one of its messages, with to_char:
+ * "05 Sep 2026" or "05 Sep 2026 14:30", in English and in the project's
+ * timezone. Re-read here so it follows the screen's language. Text that is not
+ * that shape is returned as it came, never guessed at.
+ */
+export function localiseDbDate(text: string): string {
+  const match = /^(\d{2}) ([A-Z][a-z]{2}) (\d{4})(?: (\d{2}:\d{2}))?$/.exec(text)
+  if (!match) return text
+  const [, day, month, year, time] = match
+  const index = MONTHS_EN.indexOf(month)
+  if (index === -1) return text
+  const date = `${Number(day)} ${monthNames()[index]} ${year}`
+  return time ? `${date}, ${time}` : date
 }

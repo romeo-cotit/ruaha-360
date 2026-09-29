@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
 
 import {
   DISPLAY_TIMEZONE,
@@ -12,7 +12,10 @@ import {
   formatPlainDate,
   formatTimestamp,
   hectaresToAcres,
+  localiseDbDate,
 } from '@/lib/format'
+
+const i18n = (await import('@/i18n')).default
 
 describe('area', () => {
   // Storage is ALWAYS hectares. area_unit is a display preference only.
@@ -122,5 +125,86 @@ describe('plain dates', () => {
 
   test('null reads as unknown', () => {
     expect(formatPlainDate(null)).toBe('—')
+  })
+})
+
+/**
+ * Dates read in the language of the screen. Numbers and units are the same in
+ * `sw` and `en-GB` (CLDR: decimal point, comma grouping, kg/ha/kW), so month
+ * names are the only part that changes.
+ *
+ * The Swahili months come from the platform's Intl data, not from a list typed
+ * here, so nothing in this file is an invented Swahili word. CLDR's short
+ * months differ from Microsoft's Tanzanian style guide ("Des" against
+ * "Disemba" in full): that is recorded in docs/i18n-glossary.md for the
+ * reviewer.
+ */
+describe('dates in Swahili', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en')
+  })
+
+  test('a plain date uses the Swahili month', async () => {
+    await i18n.changeLanguage('sw')
+    expect(formatPlainDate('2026-03-01')).toBe('1 Mac 2026')
+    expect(formatPlainDate('2026-12-05')).toBe('5 Des 2026')
+  })
+
+  test('a timestamp uses the Swahili month and keeps the project timezone', async () => {
+    await i18n.changeLanguage('sw')
+    expect(formatTimestamp('2026-05-09T21:30:00Z')).toBe('10 Mei 2026, 00:30')
+  })
+
+  test('the months that agree in both languages still agree', async () => {
+    await i18n.changeLanguage('sw')
+    expect(formatPlainDate('2026-09-30')).toBe('30 Sep 2026')
+  })
+
+  test('switching back to English restores English months', async () => {
+    await i18n.changeLanguage('sw')
+    await i18n.changeLanguage('en')
+    expect(formatPlainDate('2026-03-01')).toBe('1 Mar 2026')
+  })
+
+  test('numbers and units do not change with the language', async () => {
+    await i18n.changeLanguage('sw')
+    expect(formatKg(1234.5)).toBe('1,234.50 kg')
+    expect(formatKw(10.8)).toBe('10.800 kW')
+  })
+
+  test('an unknown language falls back to English months', async () => {
+    await i18n.changeLanguage('fr')
+    expect(formatPlainDate('2026-03-01')).toBe('1 Mar 2026')
+  })
+})
+
+/**
+ * Postgres writes dates into its own messages with to_char, in English:
+ * "05 Sep 2026 14:30". The message is translated around it, so the date has to
+ * follow the language as well or a Swahili sentence carries an English month.
+ */
+describe('dates the database has already written', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en')
+  })
+
+  test('a date with a time reads as a timestamp', () => {
+    expect(localiseDbDate('05 Sep 2026 14:30')).toBe('5 Sep 2026, 14:30')
+  })
+
+  test('a bare date reads as a plain date', () => {
+    expect(localiseDbDate('03 Mar 2026')).toBe('3 Mar 2026')
+  })
+
+  test('the month follows the active language', async () => {
+    await i18n.changeLanguage('sw')
+    expect(localiseDbDate('03 Mar 2026')).toBe('3 Mac 2026')
+    expect(localiseDbDate('12 Dec 2026 09:05')).toBe('12 Des 2026, 09:05')
+  })
+
+  // Anything else is left exactly as the database wrote it.
+  test('text it does not recognise is returned unchanged', () => {
+    expect(localiseDbDate('yesterday')).toBe('yesterday')
+    expect(localiseDbDate('03 Xyz 2026')).toBe('03 Xyz 2026')
   })
 })

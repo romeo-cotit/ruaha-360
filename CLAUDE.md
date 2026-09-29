@@ -299,9 +299,24 @@ misrepresents the programme.
   and not "indicative" — it is not a price
 
 Farmer and Officer surfaces ship complete Swahili. Ops and Tower may ship
-English for the demo. **Swahili strings do not exist yet and need a native
-reviewer** — flag any string you invent rather than shipping machine
-translation to Tanzanian stakeholders.
+English for the demo.
+
+**Swahili is a DRAFT, approved by the product owner on 29 September 2026 as an
+exception to "no machine translation"**, so people who do not read English can
+use the demo. It is written by Claude from a sourced glossary
+(`docs/i18n-glossary.md`), back-translated blind as a cross-check, and **has not
+been seen by a native reader**. Rules that still hold:
+
+- Nothing is called reviewed unless `src/i18n/sw/reviewed.json` says a named
+  person reviewed it. Every other Swahili string is a draft, and
+  `docs/i18n-handover.md` (and `.csv`) is what a reviewer receives
+- New Swahili follows the glossary's editorial decisions, and any term with no
+  Tanzanian source is marked `unverified` there. Flag it, do not guess
+- The labelling rules below survive translation. `bundles.test.ts` guards the
+  incentive wording; the rest is on whoever writes the string
+- Database messages a farmer or officer can reach are mapped in
+  `src/lib/dbMessages.ts` (exact match, values kept); every other database
+  message is still shown verbatim, per business-rules §9
 
 ---
 
@@ -329,7 +344,8 @@ Stop and ask. Do not guess at:
   item C (Bank of Tanzania Tier 2 classification) is open
 - anything touching real farmer data, consent or registration — research items
   A and B are open and this build is demo-only
-- Swahili wording
+- Swahili wording that is not in the glossary — draft it from the glossary and
+  flag it; do not invent a term silently
 - a season, grade or confidence taxonomy — all still open under Plan v2 S22
 
 A question costs minutes. A wrong assumption baked into the schema costs the

@@ -8,7 +8,6 @@ import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '@/components/controlStyles'
 import { Loading } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
 import {
-  sentence,
   useSurveyList,
   type FarmerSurvey,
   type SurveyCardState,
@@ -16,6 +15,7 @@ import {
 } from '@/features/farmer/useSurveys'
 import { voucherDisplayStatus } from '@/features/farmer/useVouchers'
 import { formatMoney, formatTimestamp } from '@/lib/format'
+import { dbReasonText } from '@/lib/dbMessages'
 import { localisedField } from '@/lib/names'
 
 /**
@@ -138,7 +138,7 @@ function SurveyCard({ row, now }: { row: SurveyListRow; now: number }) {
             textWrap: 'pretty',
           }}
         >
-          {sentence(row.reason)}
+          {dbReasonText(t, row.reason)}
         </p>
       )}
     </li>

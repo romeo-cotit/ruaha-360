@@ -24,6 +24,7 @@ import {
 } from '@/features/farmer/useSurveys'
 import { finishDraftWhenSaved } from '@/lib/drafts'
 import { humanizeDbError } from '@/lib/errors'
+import { dbReasonText } from '@/lib/dbMessages'
 import { localisedField } from '@/lib/names'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 
@@ -116,7 +117,7 @@ export function SurveyScreen() {
             textWrap: 'pretty',
           }}
         >
-          {sentence(row.reason ?? t('surveys.notAvailable'))}
+          {row.reason ? dbReasonText(t, row.reason) : t('surveys.notAvailable')}
         </p>
       )}
     </Shell>
@@ -242,7 +243,7 @@ function SubmitRefusal({ error }: { error: Error }) {
         textWrap: 'pretty',
       }}
     >
-      {human.kind === 'verbatim' ? sentence(human.message) : t(human.key)}
+      {human.kind === 'verbatim' ? sentence(human.message) : t(human.key, human.values)}
     </p>
   )
 }

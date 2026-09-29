@@ -4,9 +4,10 @@
 --
 --   psql "$(node scripts/db-url.mjs)" -v ON_ERROR_STOP=1 -f supabase/seed_surveys.sql
 --
--- Synthetic data, conspicuously labelled. Survey titles are English only:
--- Swahili copy needs a native reviewer and is left NULL, which falls back
--- to English in the app.
+-- Synthetic data, conspicuously labelled. The Swahili wording (title_sw,
+-- description_sw, prompt_sw, label_sw) is an UNREVIEWED DRAFT, written from
+-- docs/i18n-glossary.md and applied by the last block below. A native reviewer
+-- is still owed; see docs/i18n-handover.md.
 --
 -- The demo story this sets up:
 --   Salima (officer) registered the Ilundo households; Asha (ops) verified
@@ -193,6 +194,77 @@ begin
   end if;
 
   perform set_config('request.jwt.claims', '', true);
+end $$;
+
+-- ── Swahili draft for the demo surveys ───────────────────
+-- UNREVIEWED. A live or closed survey's wording is locked by survey_guard and
+-- survey_question_guard ("a live survey cannot be edited"), which exists so an
+-- answer always refers to the question a household was actually asked. Adding
+-- a translation does not change what was asked, so the two guards are
+-- disabled for the length of this one block. The block is a single
+-- transaction: if anything fails, the triggers are restored with it.
+-- Idempotent: it only fills a column that is still NULL, so it never
+-- overwrites wording a reviewer or an admin has since supplied. `value` keys
+-- in options are unchanged, so recorded answers still resolve.
+do $$
+begin
+  alter table survey disable trigger survey_guard_trg;
+  alter table survey_question disable trigger survey_question_guard_trg;
+
+  update survey s set title_sw = v.title_sw, description_sw = v.description_sw
+    from (values
+      ('f1000000-0000-4000-8000-000000000001'::uuid,
+       'Uhifadhi wa mahindi baada ya mavuno — MAJARIBIO',
+       'Jinsi kaya yako inavyohifadhi mahindi baada ya mavuno, na kiasi kinachopotea. Utafiti wa majaribio.'),
+      ('f1000000-0000-4000-8000-000000000002'::uuid,
+       'Matumizi ya nishati ya kaya — MAJARIBIO',
+       'Kile ambacho kaya yako hutumia kwa mwanga na kupoza leo. Utafiti wa majaribio.'),
+      ('f1000000-0000-4000-8000-000000000003'::uuid,
+       'Nia ya umwagiliaji — MAJARIBIO',
+       'Kama kaya yako ingemwagilia, na chanzo cha maji kiko umbali gani. Utafiti wa majaribio.'),
+      ('f1000000-0000-4000-8000-000000000004'::uuid,
+       'Aina za mbegu — MAJARIBIO',
+       'Rasimu, bado haijachapishwa. Utafiti wa majaribio.'),
+      ('f1000000-0000-4000-8000-000000000005'::uuid,
+       'Wafanyakazi wa mavuno — MAJARIBIO',
+       'Waliosaidia katika mavuno yako ya mwisho. Utafiti wa majaribio; vocha zote zinashikiliwa kwa ukaguzi.')
+    ) as v(id, title_sw, description_sw)
+   where s.id = v.id and s.title_sw is null;
+
+  update survey_question q set prompt_sw = v.prompt_sw, options = coalesce(v.options, q.options)
+    from (values
+      ('f2000000-0000-4000-8000-000000000011'::uuid,
+       'Unahifadhi wapi mahindi yako baada ya mavuno?',
+       '[{"value":"granary","label_en":"A granary at home","label_sw":"Ghala la nyumbani"},{"value":"sacks","label_en":"Sacks in the house","label_sw":"Magunia ndani ya nyumba"},{"value":"village_store","label_en":"A village store","label_sw":"Ghala la kijiji"},{"value":"sold","label_en":"I sell it straight away","label_sw":"Naiuza mara moja"}]'::jsonb),
+      ('f2000000-0000-4000-8000-000000000012'::uuid,
+       'Ulihifadhi magunia mangapi ya kilo 100 msimu uliopita?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000013'::uuid,
+       'Je, ulipoteza mahindi kwa wadudu au unyevu msimu uliopita?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000014'::uuid,
+       'Nini kingekusaidia kuhifadhi mahindi vizuri zaidi?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000021'::uuid,
+       'Unatumia nini kwa mwanga usiku?',
+       '[{"value":"kerosene","label_en":"Kerosene lamp","label_sw":"Taa ya mafuta ya taa"},{"value":"solar","label_en":"Solar lamp","label_sw":"Taa ya jua"},{"value":"torch","label_en":"Torch or phone light","label_sw":"Tochi au taa ya simu"},{"value":"grid","label_en":"Grid electricity","label_sw":"Umeme wa gridi ya taifa"}]'::jsonb),
+      ('f2000000-0000-4000-8000-000000000022'::uuid,
+       'Kwa makadirio, unatumia kiasi gani kwa mwanga kila wiki, kwa TZS?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000023'::uuid,
+       'Je, ungetumia chumba cha baridi cha pamoja kama kingekuwa karibu?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000031'::uuid,
+       'Je, ungemwagilia kama pampu ingepatikana?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000032'::uuid,
+       'Chanzo chako cha maji kilicho karibu zaidi kiko umbali gani?',
+       '[{"value":"near","label_en":"Under 100 m","label_sw":"Chini ya m 100"},{"value":"mid","label_en":"100 to 500 m","label_sw":"M 100 hadi 500"},{"value":"far","label_en":"Over 500 m","label_sw":"Zaidi ya m 500"}]'::jsonb),
+      ('f2000000-0000-4000-8000-000000000041'::uuid,
+       'Ulipanda aina gani ya mahindi msimu huu?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000051'::uuid,
+       'Watu wangapi walisaidia katika mavuno yako ya mwisho?', null::jsonb),
+      ('f2000000-0000-4000-8000-000000000052'::uuid,
+       'Je, kuna yeyote kati yao aliyelipwa?', null::jsonb)
+    ) as v(id, prompt_sw, options)
+   where q.id = v.id and q.prompt_sw is null;
+
+  alter table survey enable trigger survey_guard_trg;
+  alter table survey_question enable trigger survey_question_guard_trg;
 end $$;
 
 -- ── what you should see ──────────────────────────────────

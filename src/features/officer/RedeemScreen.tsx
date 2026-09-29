@@ -19,6 +19,7 @@ import {
   type VoucherPreview,
 } from '@/features/officer/useVoucherRedeem'
 import { Constants } from '@/lib/db.types'
+import { dbReasonText } from '@/lib/dbMessages'
 import { formatMoney, formatTimestamp } from '@/lib/format'
 import { localisedField } from '@/lib/names'
 import { formatVoucherCode, normalizeVoucherCode } from '@/lib/voucherCode'
@@ -381,7 +382,7 @@ function Preview({
           </h2>
           {voucher.blocked_reason && (
             <p className="type-body" style={{ color: 'var(--ink)', textWrap: 'pretty' }}>
-              {sentence(voucher.blocked_reason)}
+              {dbReasonText(t, voucher.blocked_reason)}
             </p>
           )}
         </div>
@@ -447,7 +448,3 @@ function Done({ voucherId, amount, onAnother }: { voucherId: string; amount: str
   )
 }
 
-/** The database writes lower-case sentences; a sentence on screen starts with a capital. */
-function sentence(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1)
-}

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr } from './support/i18n'
 import { markedName } from './support/marker'
 import { markedPhone } from './support/phone'
 import { CROP } from './support/seed'
@@ -156,7 +157,9 @@ test.describe('/officer/register', () => {
     await signInAsOfficer(page)
     await page.goto('/officer/register')
 
-    // The seeded Ilundo officer has app_user.locale = 'sw'.
+    // The seeded Ilundo officer has app_user.locale = 'sw'. The language names
+    // are read from the bundle in the language showing when they are chosen:
+    // the English option under sw, the Swahili option under en.
     await page.getByTestId('register-crop').click()
     await expect(page.getByRole('option', { name: CROP.MAIZE.sw, exact: true })).toBeVisible()
     await page.keyboard.press('Escape')
@@ -165,7 +168,7 @@ test.describe('/officer/register', () => {
     // looking idle: the officer's seeded locale must be restored before the
     // context closes, or every later test signs in as the wrong language.
     const toEnglish = localeSaved(page)
-    await chooseSelect(page, 'language-switch', 'Kiingereza')
+    await chooseSelect(page, 'language-switch', tr('sw', 'language.en'))
     expect((await toEnglish).ok()).toBe(true)
     await page.getByTestId('register-crop').click()
     await expect(page.getByRole('option', { name: CROP.MAIZE.en, exact: true })).toBeVisible()
@@ -173,7 +176,7 @@ test.describe('/officer/register', () => {
 
     // Leave the seeded locale as it was found.
     const toSwahili = localeSaved(page)
-    await chooseSelect(page, 'language-switch', 'Kiswahili')
+    await chooseSelect(page, 'language-switch', tr('en', 'language.sw'))
     expect((await toSwahili).ok()).toBe(true)
   })
 

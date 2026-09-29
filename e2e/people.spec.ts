@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr } from './support/i18n'
+
 const PASSWORD = 'demo1234'
 
 async function signInAsOfficer(page: Page) {
@@ -18,7 +20,7 @@ for (const width of [320, 375, 768, 1024, 1440] as const) {
       await signInAsOfficer(page)
       await page.goto('/officer/people')
 
-      await expect(page.getByRole('heading', { name: 'People' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: tr('sw', 'people.title') })).toBeVisible()
       await expect(page.getByTestId('people-table')).toBeVisible()
       await expect(page.getByTestId('people-row').first()).toContainText('Joseph Kimaro')
       await expect(page.getByTestId('people-search')).toBeVisible()

@@ -141,7 +141,7 @@ New English strings needing Swahili review are in `docs/i18n-handover.md`
 
 | item | owner | state |
 |---|---|---|
-| Native Kiswahili for 429 required strings (`docs/i18n-handover.md`); DB reference labels (5 crops, 4 categories, 5 equipment) carry Swahili awaiting review | native reviewer | **pending**; placeholders/plurals validated by `validateSwahili` |
+| Native review of the draft Kiswahili: every required string (`docs/i18n-handover.md`, `.csv`; the flagged ones say why); 80 of 176 glossary terms unverified; DB reference labels (5 crops, 4 categories, 5 equipment) and the survey wording carry Swahili awaiting review | native reviewer | **pending**; draft ships, placeholders/plurals/incentive wording enforced by `bundles.test.ts` |
 | Scope alignment with Plan v2 (exclusions and compressed roles in `CLAUDE.md`) | product owner | **pending** confirmation |
 | Handset/connectivity validation, real-data consent (research A, B), finance classification (C), meter provider, season/grade/confidence taxonomies (S22) | field / legal / product | deferred |
 | GitHub secrets for CI browser + RLS jobs | repository owner | required; jobs fail visibly until set |

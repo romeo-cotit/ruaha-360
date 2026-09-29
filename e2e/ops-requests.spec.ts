@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { tr } from './support/i18n'
 import { VILLAGE } from './support/seed'
 import { assertsSeededFigures } from './support/seeded'
 import { chooseSelect } from './support/select'
@@ -245,6 +246,6 @@ test.describe('/ops/requests/$requestId', () => {
 
     await signIn(page, 'neema@demo.ruaha360.test', /\/farm$/)
     await page.goto('/farm/requests')
-    await expect(page.getByTestId('requests-list')).toContainText('Approved')
+    await expect(page.getByTestId('requests-list')).toContainText(tr('sw', 'requestStatus.approved'))
   })
 })

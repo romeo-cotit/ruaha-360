@@ -98,7 +98,7 @@ describe('choosing your own password', () => {
     await fill('mango-tree-42')
 
     expect(await screen.findByTestId('set-password-error')).toHaveTextContent(
-      'choose a new password first',
+      'Choose a new password first.',
     )
     expect(navigate).not.toHaveBeenCalled()
   })

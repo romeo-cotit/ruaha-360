@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { trRe } from './support/i18n'
 import { assertsSeededFigures } from './support/seeded'
 import { chooseSelect } from './support/select'
 
@@ -266,11 +267,13 @@ test.describe('declining releases the committed supply', () => {
     // release reaches HIS screen with his own kilograms on it.
     const row = page
       .getByTestId('farmer-opportunity')
-      .filter({ hasText: /declined/i })
+      .filter({ hasText: trRe('sw', 'opportunityStatus.declined', undefined, { flags: 'i' }) })
       .first()
     await expect(row).toBeVisible()
     await expect(row.getByTestId('my-contribution')).toContainText('1,600.00 kg')
     // demand_read is staff-only. No buyer name reaches a farmer, ever.
-    await expect(row).toContainText(/field officer/i)
+    await expect(row).toContainText(
+      trRe('sw', 'farmerOpportunities.buyerWithOps', undefined, { flags: 'i' }),
+    )
   })
 })

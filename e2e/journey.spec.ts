@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { sql } from './support/db'
+import { tr, trRe } from './support/i18n'
 import { markedName } from './support/marker'
 import { markedPhone } from './support/phone'
 import { CROP, VILLAGE } from './support/seed'
@@ -159,7 +160,9 @@ test.describe('the acceptance journey', () => {
       // One submit, six records: person, household, farm, plot, cycle,
       // expected harvest.
       await expect(page.getByTestId('provenance-badge')).toHaveCount(6)
-      await expect(page.getByTestId('person-outstanding')).toContainText('6 records still need')
+      await expect(page.getByTestId('person-outstanding')).toContainText(
+        tr('sw', 'person.unverifiedCount', { count: 6 }),
+      )
     })
 
     await test.step('2 · officer verifies the records, and a second staff member the household', async () => {
@@ -172,10 +175,12 @@ test.describe('the acceptance journey', () => {
         await next.click()
         await page.getByTestId('confirm-dialog-confirm').click()
         await expect(page.getByTestId('person-outstanding')).not.toContainText(
-          `${6 - i} records still need`,
+          tr('sw', 'person.unverifiedCount', { count: 6 - i }),
         )
       }
-      await expect(page.getByTestId('person-outstanding')).toContainText('1 record still need')
+      await expect(page.getByTestId('person-outstanding')).toContainText(
+        tr('sw', 'person.unverifiedCount', { count: 1 }),
+      )
 
       // Ops is the second pair of eyes on the household.
       await signOut(page)
@@ -185,7 +190,7 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId('confirm-dialog-confirm').click()
 
       await expect(page.getByTestId('person-outstanding')).toContainText(
-        'Every record here is verified',
+        tr('en', 'person.allVerified'),
       )
       await expect(page.locator('[data-verification="unverified"]')).toHaveCount(0)
       await expect(page.locator('[data-verification="verified"]')).toHaveCount(6)
@@ -475,7 +480,7 @@ test.describe('the acceptance journey', () => {
       await expect(card).toContainText('TZS 5,000.00')
       await card.getByTestId('survey-open').click()
 
-      await page.getByTestId('survey-question').getByLabel('Yes').check()
+      await page.getByTestId('survey-question').getByLabel(tr('sw', 'surveys.yes')).check()
       await page.getByTestId('survey-submit').click()
 
       const voucher = page.getByTestId('voucher-card')
@@ -497,7 +502,9 @@ test.describe('the acceptance journey', () => {
       await page.goto('/officer/redeem')
       await page.getByTestId('redeem-code').fill(voucherCode)
       await page.getByTestId('redeem-lookup').click()
-      await expect(page.getByTestId('redeem-blocked')).toContainText(/you registered this household/i)
+      await expect(page.getByTestId('redeem-blocked')).toContainText(
+        trRe('sw', 'dbError.redeemOwnRegistration', undefined, { flags: 'i' }),
+      )
       await expect(page.getByTestId('redeem-confirm')).toHaveCount(0)
 
       await signOut(page)
@@ -517,7 +524,9 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId('redeem-another').click()
       await page.getByTestId('redeem-code').fill(voucherCode)
       await page.getByTestId('redeem-lookup').click()
-      await expect(page.getByTestId('redeem-blocked')).toContainText(/already redeemed .* by Juma Officer/i)
+      await expect(page.getByTestId('redeem-blocked')).toContainText(
+        trRe('sw', 'dbError.voucherAlreadyRedeemed', { name: 'Juma Officer' }, { flags: 'i', any: ['date'] }),
+      )
     })
 
     await test.step('13 · the farmer sees who handed it over; ops sees every name', async () => {

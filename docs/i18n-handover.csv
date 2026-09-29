@@ -1,0 +1,983 @@
+key,surface,english,swahili,status,notes
+a11y.breadcrumb,required,Breadcrumb,Njia ya kurasa,draft,Flag: Drafter: 'Njia ya kurasa' composed; no glossary term for breadcrumb (screen-reader label only).
+a11y.language,required,Language,Lugha,draft,Flag: Drafter: 'Lugha' unverified as UI label.
+a11y.primaryNav,required,Primary navigation,Urambazaji mkuu,draft,
+a11y.skipToContent,required,Skip to content,Ruka hadi kwenye maudhui,draft,Flag: Drafter: 'Ruka hadi kwenye maudhui' composed; 'Ruka' unverified.
+auditTrail.blocked,required,Could not redeem: {{reason}},Haikuweza kukabidhiwa: {{reason}},draft,"Flag: Drafter: 'Could not redeem' -> 'Haikuweza kukabidhiwa' (redeem = kabidhi, glossary UNVERIFIED). Subject concord assumes 'vocha/motisha' unspecified; may need adjusting."
+auditTrail.empty,required,Nothing recorded yet.,Bado hakuna kilichorekodiwa.,draft,
+auditTrail.heldForAudit,required,Held for an in-person audit,Imeshikiliwa kwa ukaguzi wa ana kwa ana,draft,Flag: Drafter: 'in-person audit' -> 'ukaguzi wa ana kwa ana' (composed; 'ukaguzi' UNVERIFIED).
+auditTrail.idSeen,required,ID checked: {{type}},Kitambulisho kilichokaguliwa: {{type}},draft,
+auditTrail.idType.driving_licence,required,Driving licence,Leseni ya udereva,draft,Flag: Drafter: 'Leseni ya udereva' UNVERIFIED in glossary.
+auditTrail.idType.nida,required,NIDA card,Kitambulisho cha Taifa (NIDA),draft,
+auditTrail.idType.village_letter,required,Village letter,Barua ya kijiji,draft,Flag: Drafter: 'Barua ya kijiji' is a composed name for the ID-substitute document; exact Tanzanian name unknown.
+auditTrail.idType.voter,required,Voter card,Kadi ya mpiga kura,draft,
+auditTrail.kind.answered,required,Survey answered,Dodoso limejibiwa,draft,
+auditTrail.kind.household_registered,required,Household registered,Kaya imesajiliwa,draft,
+auditTrail.kind.household_verified,required,Household verified,Kaya imehakikiwa,draft,
+auditTrail.kind.issued,required,Voucher issued,Vocha imetolewa,draft,
+auditTrail.kind.login_initial,required,App login created,Akaunti ya programu imeundwa,draft,
+auditTrail.kind.login_reset,required,App password reset,Neno la siri la programu limerudishwa,draft,
+auditTrail.kind.redeemed,required,Incentive handed over,Motisha imekabidhiwa,draft,
+auditTrail.kind.refused,required,Scan refused,Skani imekataliwa,draft,Flag: Drafter: 'Scan refused' -> 'Skani imekataliwa'; glossary suggests 'imezuiwa' for policy blocks. Chose imekataliwa to match 'refused'.
+auditTrail.kind.scanned,required,Voucher scanned,Vocha imeskaniwa,draft,Flag: Drafter: 'imeskaniwa' passive of loan 'skani'; unattested.
+auditTrail.kind.survey_published,required,Survey published,Dodoso limechapishwa,draft,"Flag: Drafter: 'published' -> 'limechapishwa'; 'kuchapisha' is print/publish, may read as printed. Alternative 'limetolewa'. Cross-check (natural): 'limechapishwa' back-translates as 'printed/issued'; for a survey made live in the app it may read as printed on paper (drafter also flagged)."
+auditTrail.kind.voided,required,Voucher cancelled,Vocha imeghairiwa,draft,
+auditTrail.reason,required,Reason: {{reason}},Sababu: {{reason}},draft,
+auditTrail.role.admin,required,Admin,Msimamizi,draft,Flag: Drafter: 'Msimamizi' (glossary UNVERIFIED).
+auditTrail.role.farmer,required,Farmer,Mkulima,draft,
+auditTrail.role.field_officer,required,Field officer,Afisa wa uwandani,draft,"Flag: Drafter: 'Afisa wa uwandani' per glossary decision (composed, unverified)."
+auditTrail.role.ops,required,Ops,Uendeshaji,draft,"Flag: Drafter: 'Ops' role -> 'Uendeshaji' (glossary UNVERIFIED, means 'operations')."
+auditTrail.role.unknown,required,Unknown role,Jukumu halijulikani,draft,
+auditTrail.title,required,Audit trail,Kumbukumbu za ukaguzi,draft,"Flag: Drafter: 'Audit trail' = 'Kumbukumbu za ukaguzi' (glossary UNVERIFIED). Cross-check (natural): 'Kumbukumbu za ukaguzi' back-translates as 'audit records (records of checking)'; it reads as a list of inspections rather than a who-did-what trail. Glossary-locked, so only for the native reviewer."
+capacityBasis.nameplate,required,Nameplate,Kibao cha mashine,draft,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis. Flag: Drafter: 'Kibao cha mashine' (machine plate) is a short label; glossary only has a long unverified phrase. Must stay distinct from 'Uliopangwa' and never read as measured. Cross-check (meaning): 'Kibao cha mashine' (back: 'Machine plate') names the object, not a rated/nameplate figure, and 'kibao' alone can mean signboard or tablet; it may not read as a stated rating that is not measured. Native/energy reviewer should confirm."
+capacityBasis.planned,required,Planned,Uliopangwa,draft,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis. Flag: Drafter: 'Uliopangwa' agrees with 'uwezo' (capacity), since this label sits next to a capacity figure. May need a different class agreement if used beside another noun."
+common.back,required,Back,Rudi nyuma,draft,
+common.close,required,Close,Funga,draft,
+common.loading,required,Loading…,Inapakia…,draft,Flag: Drafter: 'Inapakia…' unverified per glossary.
+common.no,required,No,Hapana,draft,
+common.optional,required,optional,si lazima,draft,Flag: Drafter: 'si lazima' unverified per glossary (alt 'hiari').
+common.yes,required,Yes,Ndiyo,draft,
+confidence.high,required,High,Juu,draft,Confidence level recorded with a figure. Low / medium / high.
+confidence.low,required,Low,Chini,draft,Confidence level recorded with a figure. Low / medium / high. Flag: Drafter: 'Chini/Wastani/Juu' scale words not attested for confidence.
+confidence.medium,required,Medium,Wastani,draft,Confidence level recorded with a figure. Low / medium / high.
+cycleDetail.harvests,required,Harvest figures,Kiasi cha mavuno,draft,
+cycleDetail.measure,required,Planted,Kiasi kilichopandwa,draft,"Flag: Drafter: Label 'Planted' whose value is area, tree count or unit count; 'Kilichopandwa' composed. Cross-check (meaning): ""Kilichopandwa"" reads as ""What was planted"", which a farmer may take to mean the crop name, but the value is a quantity (area, trees or units)."
+cycleDetail.noHarvestsDetail,required,Nobody has recorded an expected or actual figure for this cycle.,Hakuna aliyerekodi kiasi kinachotarajiwa wala halisi kwa msimu huu wa zao.,draft,Flag: Drafter: 'cycle' = 'msimu wa zao' (glossary UNVERIFIED).
+cycleDetail.noHarvestsTitle,required,No harvest figure yet,Bado hakuna kiasi cha mavuno,draft,
+cycleDetail.notFoundDetail,required,"It may not exist, or it may be outside your villages.","Huenda haupo, au uko nje ya vijiji vyako.",draft,
+cycleDetail.notFoundTitle,required,Crop cycle not found,Msimu wa zao haukupatikana,draft,
+cycleDetail.season,required,Season,Msimu,draft,"Flag: Drafter: 'Season' = 'Msimu'; free-text value from officer, taxonomy open (S22)."
+cycleDetail.seriesNote,required,A harvest figure is a series. A revised estimate does not erase the one it replaced.,Kiasi cha mavuno ni mfululizo wa rekodi. Makadirio yaliyorekebishwa hayafuti yale ya awali.,draft,
+cycleDetail.status,required,Status,Hali,draft,
+cycleDetail.superseded,required,superseded,imebadilishwa na mpya,draft,"Flag: Replaced after the cross-check. Meaning: this figure was replaced by a newer one and is excluded from totals. Drafter: 'imepitwa na mpya' (overtaken by a newer one) is my composition; agreement varies with the noun. Cross-check (meaning): ""imepitwa na mpya"" was read as ""overtaken by a new one""; it does not clearly say the figure was replaced and is excluded from totals (superseded), and the agreement is fixed to one noun class."
+cycleDetail.trees_one,required,1 tree,mti 1,draft,
+cycleDetail.trees_other,required,{{count}} trees,miti {{count}},draft,
+cycleDetail.units_one,required,1 unit,kitengo 1,draft,"Flag: Drafter: 'Unit' as a crop count (not equipment) rendered 'kitengo'/'vitengo'; unsure what the unit is (e.g. hives, beds). Also unused in source."
+cycleDetail.units_other,required,{{count}} units,vitengo {{count}},draft,
+cycleDetail.window,required,Harvest window,Kipindi cha kuvuna,draft,
+cycleStatus.abandoned,required,Abandoned,Imeachwa,draft,"Flag: Drafter: 'Imeachwa' for Abandoned cycle; plain word, not in glossary."
+cycleStatus.growing,required,Growing,Inakua,draft,
+cycleStatus.harvested,required,Harvested,Imevunwa,draft,
+cycleStatus.planned,required,Planned,Imepangwa,draft,
+dbError.addPhoneFirst,required,Add a phone number before issuing a login.,Ongeza namba ya simu kabla ya kutoa akaunti ya kuingia.,draft,"Flag: Drafter: 'Login' (issuing a login) rendered 'akaunti ya kuingia' (composed); consistent across personHasLogin, phoneHasLogin. Glossary has 'kadi ya kuingia' for the printed card."
+dbError.choosePasswordFirst,required,Choose a new password first.,Chagua neno la siri jipya kwanza.,draft,
+dbError.confirmIdName,required,Confirm that the name on the ID matches the household.,Thibitisha kwamba jina kwenye kitambulisho linalingana na kaya.,draft,
+dbError.cropNeedsArea,required,"This crop is measured by area, so the planted area is required.","Zao hili hupimwa kwa eneo, kwa hiyo eneo lililopandwa linahitajika.",draft,
+dbError.cropNeedsTrees,required,"This crop is measured by tree count, so the number of trees is required.","Zao hili hupimwa kwa idadi ya miti, kwa hiyo idadi ya miti inahitajika.",draft,
+dbError.cropNeedsUnits,required,"This crop is measured by unit count, so the number of units is required.","Zao hili hupimwa kwa idadi ya vitengo, kwa hiyo idadi ya vitengo inahitajika.",draft,Flag: Drafter: 'Unit count' rendered 'idadi ya vitengo' (composed).
+dbError.farmLocationRequired,required,The farm location is required: capture the GPS position before saving.,Mahali shamba lilipo panahitajika: rekodi mahali kwa kutumia GPS kabla ya kuhifadhi.,draft,Flag: Drafter: 'Capture the GPS position' rendered 'chukua nafasi ya GPS' (composed; 'nafasi' = position/space). Reviewer to check.
+dbError.householdNeedsChecking,required,Your household record needs checking by an officer.,Rekodi ya kaya yako inahitaji kukaguliwa na afisa.,draft,Flag: Drafter: 'Checking' rendered 'kukaguliwa' (not 'kuhakikiwa') to keep it distinct from formal verification; reviewer may prefer hakiki.
+dbError.householdNeedsSecondVerifier,required,Your household must be verified by a second staff member.,Kaya yako lazima ihakikiwe na mfanyakazi wa pili.,draft,Flag: Drafter: 'Staff member' rendered 'mfanyakazi' (not in glossary). Also used in voucher and staffPasswordNotHere strings.
+dbError.householdNotVerified,required,Your household has not been verified yet.,Kaya yako bado haijahakikiwa.,draft,
+dbError.notAwaitingVerification,required,That record is not awaiting verification.,Rekodi hiyo haisubiri kuhakikiwa.,draft,
+dbError.notLinkedToFarmer,required,Your account is not linked to a registered farmer.,Akaunti yako haijaunganishwa na mkulima aliyesajiliwa.,draft,
+dbError.personNotFound,required,"That person was not found, or is outside your villages.","Mtu huyo hakupatikana, au yuko nje ya vijiji vyako.",draft,
+dbError.phoneFormat,required,"The phone number must be a Tanzanian mobile number, for example +255 712 345 678.","Namba ya simu lazima iwe namba ya simu ya mkononi ya Tanzania, kwa mfano +255 712 345 678.",draft,
+dbError.phoneHasLogin,required,This phone number already has an app login.,Namba hii ya simu tayari ina akaunti ya kuingia kwenye programu.,draft,
+dbError.phoneRequired,required,A phone number is required so the farmer can sign in.,Namba ya simu inahitajika ili mkulima aweze kuingia.,draft,
+dbError.questionChooseOne,required,Question {{position}}: choose one of the listed options.,Swali {{position}}: chagua mojawapo ya chaguo zilizoorodheshwa.,draft,
+dbError.questionChooseSome,required,Question {{position}}: choose from the listed options.,Swali {{position}}: chagua kutoka kwenye chaguo zilizoorodheshwa.,draft,
+dbError.questionEnterNumber,required,Question {{position}}: enter a number.,Swali {{position}}: andika namba.,draft,
+dbError.questionRequired,required,Question {{position}} is required.,Swali {{position}} ni lazima.,draft,
+dbError.questionTooLong,required,Question {{position}}: answer in at most 2000 characters.,Swali {{position}}: jibu lisizidi herufi 2000.,draft,
+dbError.questionYesNo,required,Question {{position}}: answer yes or no.,Swali {{position}}: jibu ndiyo au hapana.,draft,
+dbError.recordIdDocument,required,Record which ID document you checked.,Andika aina ya kitambulisho ulichokagua.,draft,
+dbError.recordNotFound,required,"That record was not found, or it is outside your villages.","Rekodi hiyo haikupatikana, au iko nje ya vijiji vyako.",draft,
+dbError.redeemOwnHousehold,required,You cannot redeem a voucher for your own household.,Huwezi kukabidhi vocha ya kaya yako mwenyewe.,draft,
+dbError.redeemOwnRegistration,required,"You registered this household, so another staff member must redeem this voucher.","Ulisajili kaya hii, kwa hiyo mfanyakazi mwingine lazima akabidhi vocha hii.",draft,
+dbError.redeemOwnVerification,required,"You verified this household, so another staff member must redeem this voucher.","Ulihakiki kaya hii, kwa hiyo mfanyakazi mwingine lazima akabidhi vocha hii.",draft,
+dbError.setOwnPasswordFirst,required,Set your own password before answering surveys.,Weka neno la siri lako mwenyewe kabla ya kujibu madodoso.,draft,
+dbError.signInFirst,required,Sign in first.,Ingia kwanza.,draft,
+dbError.staffPasswordNotHere,required,"This person signs in as staff, so their password cannot be reset here.","Mtu huyu huingia kama mfanyakazi, kwa hiyo neno lake la siri haliwezi kurudishwa hapa.",draft,"Flag: Cross-check (natural): 'kurudishwa' alone reads as 'returned', not 'reset' (back-translation lost 'reset'); follows the glossary 'Rudisha neno la siri' but is ambiguous in a sentence."
+dbError.surveyClosed,required,This survey is closed.,Dodoso hili limefungwa.,draft,
+dbError.surveyLimitReached,required,This survey has reached its limit.,Dodoso hili limefikia kikomo chake.,draft,
+dbError.surveyNotFound,required,This survey could not be found.,Dodoso hili halikupatikana.,draft,
+dbError.surveyNotInVillage,required,This survey is not open in your village.,Dodoso hili halijafunguliwa katika kijiji chako.,draft,
+dbError.surveyOpenedBeforeRegistration,required,This survey opened before your household was registered.,Dodoso hili lilifunguliwa kabla kaya yako haijasajiliwa.,draft,
+dbError.verifyOtherOfficer,required,A household must be verified by someone other than the officer who registered it.,"Kaya lazima ihakikiwe na mtu mwingine, si afisa aliyeisajili.",draft,
+dbError.voucherAlreadyRedeemed,required,This voucher was already redeemed on {{date}} by {{name}}.,Motisha ya vocha hii ilishakabidhiwa tarehe {{date}} na {{name}}.,draft,"Flag: Drafter: 'Redeemed' rendered 'imekabidhiwa' (handed over) for officer-facing errors; farmer-facing status elsewhere is 'imechukuliwa'. Confirm which wording the reviewer wants across the app. Applies also to ...ByOther, redeemOwn*, voucherHeldForAudit. Cross-check (meaning): 'Redeemed' is rendered 'kabidhiwa' (handed over), so the back-translation reads as the voucher itself being handed over rather than redeemed for cash; the same verb is used for ByOther, redeemOwnRegistration, redeemOwnVerification, redeemOwnHousehold, voucherHeldForAudit and tour.officer.redeemBody, and differs from the farmer-facing 'imechukuliwa'."
+dbError.voucherAlreadyRedeemedByOther,required,This voucher was already redeemed on {{date}} by another staff member.,Motisha ya vocha hii ilishakabidhiwa tarehe {{date}} na mfanyakazi mwingine.,draft,Flag: Changed after the cross-check; unreviewed.
+dbError.voucherExpired,required,This voucher expired on {{date}}.,Vocha hii iliisha muda wake tarehe {{date}}.,draft,Flag: Drafter: 'iliisha muda wake' from glossary 'imeisha muda wake' [UNVERIFIED].
+dbError.voucherHeldForAudit,required,This voucher is held for an audit: ops or admin must redeem it in person.,Vocha hii imeshikiliwa kwa ukaguzi: mtu wa uendeshaji au msimamizi lazima aikabidhi ana kwa ana.,draft,
+dbError.voucherNotFound,required,Voucher not found.,Vocha haikupatikana.,draft,
+dbError.voucherVoided,required,This voucher was voided: {{reason}},Vocha hii imebatilishwa: {{reason}},draft,Flag: Drafter: 'Voided' rendered 'imebatilishwa' (cancelled/annulled); not in glossary.
+demoBanner.detail,required,Every figure here is invented. Nothing is a measured Ruaha result.,Kila takwimu hapa ni ya kubuni. Hakuna hata moja ambayo ni matokeo yaliyopimwa ya Ruaha.,draft,Flag: Drafter: Reworded to 'takwimu ... ya kubuni' (invented figures); native check that 'ya kubuni' reads as fictitious and not 'creative'. 'Si matokeo yaliyopimwa' keeps the not-measured meaning.
+demoBanner.label,required,Demo data,Taarifa za majaribio,draft,Flag: Drafter: 'Taarifa za majaribio' unverified per glossary.
+draft.earlierVersionSaved,required,An earlier version of this form was already saved. Open it from the list to check it.,Toleo la awali la fomu hii lilishahifadhiwa. Lifungue kutoka kwenye orodha ili kulikagua.,draft,Flag: Changed after the cross-check; unreviewed.
+draft.notSubmitted,required,Not yet submitted,Haijawasilishwa bado,draft,"Flag: Drafter: 'Haijawasilishwa bado' from glossary, unsourced."
+draft.storageError,required,Could not save this draft on this device. Keep this page open until you submit.,Rasimu hii haikuweza kuhifadhiwa kwenye kifaa hiki. Acha ukurasa huu wazi hadi uwasilishe.,draft,Flag: Drafter: 'Rasimu' (draft) and 'kifaa' (device) ; 'Acha ukurasa huu wazi' for 'Keep this page open' composed.
+empty.noAccessDetail,required,"You may not have access to these records, or there are none yet.","Huenda huna ruhusa ya kuona rekodi hizi, au bado hakuna.",draft,
+empty.noAccessToThis,required,Nothing to show,Hakuna cha kuonyesha,draft,
+equipment.days,required,Days per week,Siku kwa wiki,draft,
+equipment.daysDecimals,required,Use at most 1 decimal place.,Tumia desimali isiyozidi 1.,draft,
+equipment.daysRange,required,Days per week run from 0 to 7.,Siku kwa wiki ni kuanzia 0 hadi 7.,draft,
+equipment.estimateBlockedDetail,required,"Fill in how many, hours per day and days per week, and the estimate appears here.","Jaza idadi, saa kwa siku na siku kwa wiki, na makadirio yataonekana hapa.",draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+equipment.estimateBlockedTitle,required,No estimate yet,Bado hakuna makadirio,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+equipment.estimateImpossibleDetail,required,"One of the figures above is outside what is possible, so no estimate is shown for it. Correct it and the estimate returns.","Moja ya namba zilizo hapo juu iko nje ya kinachowezekana, kwa hiyo hakuna makadirio yanayoonyeshwa kwake. Irekebishe, na makadirio yatarudi.",draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Drafter: Idiom 'nje ya kinachowezekana' for 'outside what is possible' is composed; check naturalness."
+equipment.estimateImpossibleTitle,required,This cannot be estimated,Hili haliwezi kukadiriwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+equipment.hours,required,Hours per day,Saa kwa siku,draft,
+equipment.hoursDecimals,required,Use at most 2 decimal places.,Tumia desimali zisizozidi 2.,draft,
+equipment.hoursRange,required,Hours per day run from 0 to 24.,Saa kwa siku ni kuanzia 0 hadi 24.,draft,
+equipment.indicative,required,Indicative,Ya makadirio,draft,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+equipment.indicativePrice,required,Indicative price,Bei ya makadirio,draft,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+equipment.intro,required,Powered equipment available through the programme.,Vifaa vya umeme vinavyopatikana kupitia mradi.,draft,"Flag: Drafter: 'Programme' = 'programu' also means 'app' in Tanzanian Swahili; reviewer to choose 'mpango' or 'programu'. Also 'powered equipment' = 'vifaa vya umeme' (assumed electric). Cross-check (natural): ""programu"" also means ""app"" in Tanzanian Swahili (the back-translator flagged both readings), and ""vifaa vya umeme"" narrows ""powered equipment"" to electric. The same applies to ""programu"" in equipment.noneDetail."
+equipment.moreThanZero,required,This must be more than zero.,Hii lazima iwe zaidi ya sifuri.,draft,
+equipment.noneDetail,required,Equipment appears here once the programme adds it.,Vifaa vitaonekana hapa mradi utakapoviongeza.,draft,"Flag: Cross-check (natural): ""programu itakapoviongeza"" can read as ""when the app adds them""."
+equipment.noneTitle,required,No equipment listed yet,Bado hakuna vifaa vilivyoorodheshwa,draft,
+equipment.notANumber,required,Enter a number.,Weka namba.,draft,
+equipment.notAQuotation,required,"Prices are indicative, not quotations.","Bei ni ya makadirio, si nukuu ya bei.",draft,Flag: Drafter: Kept 'si nukuu ya bei' per glossary; 'Bei ni ya makadirio' number agreement is generic.
+equipment.notFoundDetail,required,"It may no longer be listed, or you may not have access to it.","Huenda hakiorodheshwi tena, au huna ruhusa ya kukifikia.",draft,
+equipment.notFoundTitle,required,Equipment not found,Kifaa hakikupatikana,draft,
+equipment.price,required,Price,Bei ya makadirio,draft,"Prices are INDICATIVE, never quotations. Must not read as a firm offer. Flag: Drafter: Labelled 'Bei ya makadirio' (glossary decision) because the note requires indicative wording; English label is just 'Price'."
+equipment.purpose,required,What will you use it for?,Utakitumia kwa ajili ya nini?,draft,Flag: Drafter: Assumes equipment noun class 7 ('kifaa' -> 'Utakitumia').
+equipment.quantity,required,How many,Idadi,draft,
+equipment.ratedPower,required,Rated power,Nguvu iliyoandikwa,draft,"Flag: Cross-check (glossary): Same as estimate.ratedPower: shortened nameplate term ""nguvu iliyoandikwa"" is ambiguous, and ""iliyoandikwa iliyorekodiwa"" in requests.noEstimateDetail is clumsy."
+equipment.requestThis,required,Request this,Omba kifaa hiki,draft,
+equipment.required,required,This is required.,Ni lazima.,draft,Flag: Drafter: 'Ni lazima.' short form; the English 'This is required.' has no clear subject.
+equipment.submit,required,Submit request,Wasilisha ombi,draft,"Flag: Drafter: Submit vs send: 'Wasilisha ombi' here (matches status 'Imewasilishwa') but 'Tuma ombi hili' for requests.action.submit and 'haijatumwa' in draftNote, following glossary Tuma=send. Reviewer to unify."
+equipment.submitting,required,Submitting…,Inawasilisha…,draft,
+equipment.successDetail,required,Ops will review it. You can follow it under Requests.,Timu ya uendeshaji italipitia. Unaweza kulifuatilia chini ya Maombi.,draft,Flag: Drafter: 'Ops' rendered 'Timu ya uendeshaji' (glossary 'Uendeshaji' role UNVERIFIED).
+equipment.successTitle,required,Request submitted,Ombi limewasilishwa,draft,
+equipment.title,required,Equipment,Vifaa,draft,
+equipment.viewRequest,required,View the request,Tazama ombi,draft,
+equipment.wholeNumber,required,Enter a whole number.,Weka namba nzima.,draft,
+error.accountUnreadable,required,Your account could not be read. Try again.,Akaunti yako haikuweza kusomwa. Jaribu tena.,draft,
+error.badId,required,That record reference is not valid.,Rejea ya rekodi hiyo si sahihi.,draft,
+error.badReference,required,That refers to a record that does not exist.,Hiyo inarejelea rekodi ambayo haipo.,draft,
+error.contributionPositive,required,A contribution must be more than zero.,Kiasi kinachochangiwa lazima kiwe zaidi ya sifuri.,draft,Flag: Drafter: 'Contribution' (quantity attached from a harvest figure to an opportunity) rendered 'kiasi kinachochangiwa' (composed).
+error.daysRange,required,Days per week must be between 0 and 7.,Siku kwa wiki lazima ziwe kati ya 0 na 7.,draft,
+error.duplicate,required,That record already exists.,Rekodi hiyo tayari ipo.,draft,
+error.duplicateBuyer,required,A buyer with that name already exists in this project.,Mnunuzi mwenye jina hilo tayari yupo katika mradi huu.,draft,
+error.duplicateEquipmentCode,required,That equipment code is already in use in this project.,Msimbo huo wa kifaa tayari unatumika katika mradi huu.,draft,
+error.duplicateSupply,required,That harvest figure is already attached to this opportunity.,Kiasi hicho cha mavuno tayari kimeambatishwa kwenye fursa hii.,draft,
+error.hoursRange,required,Hours per day must be between 0 and 24.,Saa kwa siku lazima ziwe kati ya 0 na 24.,draft,
+error.invalidValue,required,One of the values is not allowed here. Check the form and try again.,Moja ya thamani haikubaliki hapa. Angalia fomu kisha ujaribu tena.,draft,
+error.missingValue,required,A required value is missing.,Thamani inayohitajika haipo.,draft,
+error.network,required,Could not reach the server. Check your connection and try again.,Imeshindwa kuwasiliana na seva. Angalia mtandao wako kisha ujaribu tena.,draft,
+error.notAllowed,required,You do not have permission to do that.,Huna ruhusa ya kufanya hivyo.,draft,
+error.numericOverflow,required,One of the numbers is too large for the field it was typed into. Check the figures and try again.,Moja ya namba ni kubwa mno kwa kisanduku ulichoiandikia. Angalia namba kisha ujaribu tena.,draft,
+error.oneCurrentHarvest,required,A crop cycle can only have one current harvest figure. Supersede the existing one instead.,"Msimu wa zao unaweza kuwa na kiasi kimoja tu cha sasa cha mavuno. Badala yake, weka kiasi kipya kuchukua nafasi ya kilichopo.",draft,Flag: Drafter: 'Supersede' rendered 'chukua nafasi ya kilichopo kwa kiasi kipya' (replace the existing with a new figure); no glossary term.
+error.personHasLogin,required,This person already has an app login.,Mtu huyu tayari ana akaunti ya kuingia kwenye programu.,draft,
+error.quantityNotNegative,required,The quantity cannot be negative.,Idadi haiwezi kuwa chini ya sifuri.,draft,
+error.quantityPositive,required,The quantity must be more than zero.,Idadi lazima iwe zaidi ya sifuri.,draft,
+error.retry,required,Try again,Jaribu tena,draft,
+error.surveyAlreadyAnswered,required,Your household has already answered this survey.,Kaya yako tayari imejibu dodoso hili.,draft,
+error.title,required,Something went wrong,Kuna tatizo,draft,Flag: Drafter: 'Kuna tatizo' [UNVERIFIED glossary term]; 'error.retry' uses 'Jaribu tena' [UNVERIFIED].
+error.unexpected,required,"Something went wrong that should not have. Try again, and tell the programme team if it keeps happening.","Kumetokea hitilafu isiyotarajiwa. Jaribu tena, na uiambie timu ya mradi ikiendelea kutokea.",draft,Flag: Drafter: 'Programme team' rendered 'timu ya programu'; sentence composed [UNVERIFIED like 'Kuna tatizo' glossary row].
+error.windowBackwards,required,The window must end on or after it starts.,Kipindi lazima kiishe siku ile ile kinapoanza au baada yake.,draft,"Flag: Drafter: 'Window' rendered 'kipindi' (glossary: harvest window = kipindi cha kuvuna); the error does not say which kind of window, so check context."
+estimate.aDay,required,a day,kwa siku,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.aWeek,required,a week,kwa wiki,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.basis,required,Calculated from rated power and the operating assumptions below (Level 1).,Imekokotolewa kutokana na nguvu iliyoandikwa na dhana za matumizi zilizo hapa chini (Kiwango cha 1).,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Drafter: 'operating assumptions' = 'dhana za matumizi', 'Level 1' = 'Kiwango cha 1'; both composed. 'Rated power' = 'nguvu iliyoandikwa' (nameplate, glossary UNVERIFIED)."
+estimate.days,required,Days per week,Siku kwa wiki,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.daysAWeek,required,days a week,siku kwa wiki,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.hours,required,Hours per day,Saa kwa siku,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.hoursADay,required,hours a day,saa kwa siku,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.isEstimate,required,"This is an estimate, not a measurement.","Haya ni makadirio, si kipimo.",draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.peak,required,Estimated peak,Kilele kilichokadiriwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Drafter: 'Kilele kilichokadiriwa' composed (glossary UNVERIFIED); estimate.peakNote uses 'nguvu ya juu zaidi' for peak power, also UNVERIFIED."
+estimate.peakNote,required,Peak power does not change with hours of use.,Nguvu ya juu zaidi haibadiliki kulingana na saa za matumizi.,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.perDay,required,Estimated per day,Makadirio kwa siku,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.perWeek,required,Estimated per week,Makadirio kwa wiki,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.quantity,required,Quantity,Idadi,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.rated,required,rated,iliyoandikwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Drafter: Appears as a unit label after a kW figure ('15 kW iliyoandikwa'); glossary nameplate wording shortened. Needs energy reviewer."
+estimate.ratedPower,required,Rated power,Nguvu iliyoandikwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Cross-check (glossary): The glossary nameplate wording ""nguvu iliyoandikwa kwenye kibao cha mashine"" was cut to ""nguvu iliyoandikwa"", which the blind translator read as ""written-down (rated) power"" and which loses the idea of the manufacturer rating on the equipment. The same short form is used in estimate.basis and estimate.rated."
+estimate.tag,required,Estimate,Makadirio,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.title,required,Energy estimate,Makadirio ya nishati,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+estimate.units_one,required,unit,kifaa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment. Flag: Drafter: Unit noun for equipment items ('kifaa'/'vifaa'). Unused in source (usedIn empty); appears after a number in the equation."
+estimate.units_other,required,units,vifaa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+farmDetail.gps,required,GPS point,Alama ya GPS,draft,
+farmDetail.noGps,required,Not captured,Haijarekodiwa,draft,Flag: Drafter: 'Haijachukuliwa' (not captured); could read as 'not taken'. Alternative 'Haijarekodiwa'.
+farmDetail.noPlotsDetail,required,This farm has no plots yet.,Shamba hili bado halina vipande vya shamba.,draft,
+farmDetail.noPlotsTitle,required,No plots recorded,Hakuna kipande cha shamba kilichorekodiwa,draft,
+farmDetail.notFoundDetail,required,"It may not exist, or it may be outside your villages.","Huenda halipo, au liko nje ya vijiji vyako.",draft,
+farmDetail.notFoundTitle,required,Farm not found,Shamba halikupatikana,draft,
+farmDetail.plotCount,required,Plots,Vipande vya shamba,draft,
+farmDetail.plots,required,Plots,Vipande vya shamba,draft,
+farmerLogin.cancel,required,Cancel,Ghairi,draft,Flag: Drafter: 'Ghairi' is UNVERIFIED in glossary; also used in voucherStatus.void 'Imeghairiwa' and voucher.voided/auditTrail.kind.voided.
+farmerLogin.detail,required,Give these to the farmer. They sign in with their phone number and must choose their own password straight away.,Mpe mkulima taarifa hizi. Ataingia kwa namba yake ya simu na lazima achague neno lake la siri papo hapo.,draft,Flag: Changed after the cross-check; unreviewed.
+farmerLogin.done,required,Done,Maliza,draft,Flag: Drafter: 'Done' button rendered 'Maliza' (glossary UNVERIFIED).
+farmerLogin.failed,required,"The farmer is registered, but the app login could not be created.","Mkulima amesajiliwa, lakini akaunti ya programu haikuweza kuundwa.",draft,
+farmerLogin.historyInitial,required,Login created by {{name}},Akaunti iliundwa na {{name}},draft,
+farmerLogin.historyNone,required,No app login yet.,Bado hakuna akaunti ya programu.,draft,
+farmerLogin.historyReset,required,Password reset by {{name}},Neno la siri lilirudishwa na {{name}},draft,
+farmerLogin.historyTitle,required,App login,Akaunti ya programu,draft,
+farmerLogin.issue,required,Create app login,Unda akaunti ya programu,draft,
+farmerLogin.issuing,required,Creating login…,Inaunda akaunti…,draft,
+farmerLogin.mustChange,required,Waiting for the farmer to choose their own password.,Inasubiri mkulima achague neno lake la siri mwenyewe.,draft,
+farmerLogin.password,required,Temporary password,Neno la siri la muda,draft,
+farmerLogin.phone,required,Phone number,Namba ya simu,draft,
+farmerLogin.reset,required,Reset app password,Rudisha neno la siri la programu,draft,
+farmerLogin.resetConfirm,required,Reset password,Rudisha neno la siri,draft,
+farmerLogin.resetConfirmDetail,required,Their current password stops working and anyone signed in with it is signed out. You will get a new temporary password to give them.,"Neno lake la siri la sasa litaacha kufanya kazi, na yeyote aliyeingia nalo atatolewa kwenye programu. Utapata neno la siri la muda jipya la kumpa.",draft,Flag: Drafter: 'new temporary password' written 'neno jipya la siri la muda' (jipya agrees with neno). Glossary 'neno la siri jipya' agrees with the closer noun; reviewer to settle agreement.
+farmerLogin.resetConfirmTitle,required,Reset this farmer's app password?,Rudisha neno la siri la programu la mkulima huyu?,draft,
+farmerLogin.resetting,required,Resetting…,Inarudisha…,draft,
+farmerLogin.retry,required,Try again,Jaribu tena,draft,
+farmerLogin.shownOnce,required,Shown once. Write it down for the farmer now; it cannot be shown again.,Huonyeshwa mara moja. Liandike sasa kwa ajili ya mkulima; haliwezi kuonyeshwa tena.,draft,Flag: Drafter: Object concord 'li-' refers to 'neno la siri'; check reads naturally to a farmer/officer.
+farmerLogin.title,required,App login for the farmer,Akaunti ya programu ya mkulima,draft,Flag: Drafter: 'App login' rendered as 'Akaunti ya programu' (app account). 'login' as a noun has no glossary term; also affects issue/history/audit strings. 'programu' for 'app' is common but unverified.
+farmerOpportunities.buyerWithOps,required,Your field officer holds the buyer details.,Afisa wako wa uwandani ana taarifa za mnunuzi.,draft,
+farmerOpportunities.noneDetail,required,None of your harvest has been put forward to a buyer yet.,Bado hakuna mavuno yako yaliyopendekezwa kwa mnunuzi.,draft,
+farmerOpportunities.noneTitle,required,No opportunities yet,Bado hakuna fursa,draft,
+farmerOpportunities.notASale,required,"An opportunity is not a sale, a delivery or a payment. It records that your harvest has been put forward to a buyer. Nothing has moved and nothing is owed.","Fursa si mauzo, si uwasilishaji wa mazao wala si malipo. Inaonyesha kwamba mavuno yako yamependekezwa kwa mnunuzi. Hakuna kilichohamishwa na hakuna deni lolote.",draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking. Flag: Drafter: Glossary bans 'mauzo' for the opportunity itself, but the negation 'not a sale' needs a word for sale; 'mauzo' used only inside the negation. 'delivery' rendered 'uwasilishaji wa mazao' (collides with 'wasilisha'=submit). 'Nothing is owed' = 'hakuna anayedaiwa chochote' unverified. Same in farmHome.notASale."
+farmerOpportunities.opportunityTotal,required,Opportunity total,Jumla katika fursa hii,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking. Flag: Cross-check (meaning): ""Jumla ya fursa"" can be read as the total number of opportunities, not the total quantity within this one opportunity."
+farmerOpportunities.title,required,Opportunities,Fursa,draft,
+farmerOpportunities.yourShare,required,Your share,Sehemu yako,draft,
+farmHome.browseEquipment,required,Browse equipment,Angalia vifaa,draft,
+farmHome.cycles,required,Crops growing,Mazao yanayokua,draft,
+farmHome.farms,required,Farms,Mashamba,draft,
+farmHome.latestRequest,required,Latest equipment request,Ombi la karibuni la vifaa,draft,
+farmHome.noFarmDetail,required,Your field officer has not registered your farm yet. Ask them to add it.,Afisa wako wa uwandani bado hajasajili shamba lako. Mwombe alisajili.,draft,
+farmHome.noFarmTitle,required,No farm recorded yet,Bado hakuna shamba lililorekodiwa,draft,
+farmHome.noOpportunities,required,None of your harvest has been put forward to a buyer yet.,Bado hakuna mavuno yako yaliyopendekezwa kwa mnunuzi.,draft,
+farmHome.noRequests,required,You have not asked for any equipment yet.,Bado hujaomba kifaa chochote.,draft,
+farmHome.notASale,required,"An opportunity is not a sale, a delivery or a payment.","Fursa si mauzo, si uwasilishaji wa mazao wala si malipo.",draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking. Flag: Drafter: Same as farmerOpportunities.notASale: 'mauzo' appears only in the negation."
+farmHome.openMyFarm,required,See my records,Tazama taarifa zangu,draft,
+farmHome.openOpportunities,required,See opportunities,Tazama fursa,draft,
+farmHome.opportunities,required,Opportunities,Fursa,draft,
+farmHome.opportunityCount_one,required,Your harvest is in 1 opportunity.,Mavuno yako yamo katika fursa 1.,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+farmHome.opportunityCount_other,required,Your harvest is in {{count}} opportunities.,Mavuno yako yamo katika fursa {{count}}.,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+farmHome.plots,required,Plots,Vipande vya shamba,draft,
+farmHome.title,required,My farm,Shamba langu,draft,
+harvestKind.actual,required,Actual,Halisi,draft,
+harvestKind.expected,required,Expected,Yanayotarajiwa,draft,
+language.en,required,English,Kiingereza,reviewed,
+language.notSaved,required,"Language changed for now, but could not be saved.","Lugha imebadilishwa kwa sasa, lakini haikuweza kuhifadhiwa.",draft,
+language.sw,required,Kiswahili,Kiswahili,reviewed,
+login.email,required,Phone number or email,Namba ya simu au barua pepe,draft,Flag: Drafter: Key name says email but string is 'phone number or email'; 'barua pepe' is standard for email.
+login.emailInvalid,required,"Enter a Tanzanian mobile number, for example 0712 345 678, or an email address.","Weka namba ya simu ya mkononi ya Tanzania, kwa mfano 0712 345 678, au anwani ya barua pepe.",draft,Flag: Drafter: Example number 0712 345 678 kept as is.
+login.emailRequired,required,Enter your phone number or email address.,Weka namba yako ya simu au anwani ya barua pepe.,draft,
+login.invalid,required,That phone number or email and password do not match an account.,Namba ya simu au barua pepe na neno la siri havilingani na akaunti yoyote.,draft,
+login.network,required,Could not reach the server. Check your connection and try again.,Seva haikupatikana. Angalia mtandao wako kisha ujaribu tena.,draft,
+login.password,required,Password,Neno la siri,draft,
+login.passwordRequired,required,Enter your password.,Weka neno lako la siri.,draft,
+login.submit,required,Sign in,Ingia,draft,
+login.submitting,required,Signing in…,Inaingia…,draft,
+login.title,required,Sign in,Ingia,draft,
+login.unexpected,required,Something went wrong signing in.,Kuna tatizo wakati wa kuingia.,draft,
+myFarm.expected,required,Expected harvest,Mavuno yanayotarajiwa,draft,
+myFarm.noCycles,required,No crops recorded on this plot yet,Bado hakuna zao lililorekodiwa katika kipande hiki,draft,
+myFarm.noFarmDetail,required,A field officer will register your farm and it will appear here.,Afisa wa uwandani atasajili shamba lako na litaonekana hapa.,draft,
+myFarm.noFarmTitle,required,No farm recorded yet,Bado hakuna shamba lililorekodiwa,draft,
+myFarm.noPlots,required,No plots recorded on this farm yet,Bado hakuna kipande cha shamba kilichorekodiwa katika shamba hili,draft,
+myFarm.plots,required,Plots,Vipande vya shamba,draft,Flag: Drafter: 'Kipande cha shamba' for plot is glossary UNVERIFIED; used throughout.
+myFarm.readOnly,required,This is a record of what has been registered. Ask your field officer to change anything.,Hizi ni taarifa za kile kilichosajiliwa. Mwombe afisa wako wa uwandani abadilishe chochote.,draft,
+myFarm.title,required,My farm,Shamba langu,draft,
+myFarm.window,required,Harvest window,Kipindi cha kuvuna,draft,
+nav.buyers,required,Buyers,Wanunuzi,draft,
+nav.catalogue,required,Catalogue,Katalogi,draft,Flag: Drafter: 'Katalogi' unverified; alternative 'Orodha ya vifaa'.
+nav.demand,required,Demand,Mahitaji,draft,
+nav.equipment,required,Equipment,Vifaa,draft,
+nav.myFarm,required,My farm,Shamba langu,draft,
+nav.opportunities,required,Opportunities,Fursa,draft,
+nav.people,required,People,Watu,draft,
+nav.redeem,required,Redeem,Kabidhi,draft,"Flag: Drafter: 'Kabidhi' (hand over) per glossary for the officer redeem action; unverified, sense is handing cash over at the office. Cross-check (meaning): 'Kabidhi' back-translates to 'Hand over', dropping the voucher/redeem sense; as a bare nav label it does not say what is being handed over or that it is a voucher claim at the office."
+nav.register,required,Register,Sajili,draft,
+nav.requests,required,Requests,Maombi,draft,
+nav.signingOut,required,Signing out…,Inatoka…,draft,Flag: Drafter: 'Inatoka…' follows 'Toka'; could read as 'is leaving'. Alternative 'Inakutoa…' is not natural.
+nav.signOut,required,Sign out,Toka,draft,"Flag: Drafter: 'Toka' chosen, unverified (alt 'Ondoka')."
+nav.surveys,required,Surveys,Madodoso,draft,"Flag: Drafter: 'Madodoso' (plural of dodoso, questionnaire) used as the nav label; alternative 'Tafiti'."
+nav.tower,required,Control Tower,Control Tower,draft,Flag: Drafter: Kept 'Control Tower' in English as a product/screen name; no glossary term. Reviewer may prefer a Swahili name.
+nav.userMenu,required,Account menu,Menyu ya akaunti,draft,
+nav.verify,required,Verify,Hakiki,draft,
+nav.villages,required,Villages,Vijiji,draft,
+noAccess.detail,required,Your account is not attached to a project yet. Ask your programme manager to add you.,Akaunti yako bado haijaunganishwa na mradi. Muulize meneja wa mradi akuongeze.,draft,Flag: Changed after the cross-check; unreviewed.
+noAccess.nothingDetail,required,"This is a real screen with a next step — never a blank page, and never an error.","Hii ni skrini halisi yenye hatua inayofuata — kamwe si ukurasa mtupu, wala hitilafu.",draft,"Flag: Drafter: Meta/developer-style English sentence; translated faithfully, native reviewer may simplify."
+noAccess.nothingTitle,required,Nothing to show yet,Bado hakuna cha kuonyesha,draft,
+noAccess.signOut,required,Sign out,Toka,draft,
+noAccess.title,required,No access yet,Bado huna ufikiaji,draft,Flag: Drafter: 'ufikiaji' for 'access' not in glossary; plain wording. Alternative 'ruhusa'.
+notFound.detail,required,The link may be out of date.,Huenda kiungo hicho kimepitwa na wakati.,draft,
+notFound.home,required,Go to your home screen,Nenda kwenye skrini yako ya mwanzo,draft,
+notFound.title,required,That page does not exist,Ukurasa huo haupo,draft,
+officerEdit.action,required,Edit,Hariri,draft,Flag: Drafter: 'Hariri' UNVERIFIED (MS guide only). 'Rekebisha' used for 'Correct harvest figure' per glossary.
+officerEdit.cancel,required,Cancel,Ghairi,draft,
+officerEdit.fields.confidence,required,Confidence,Kiwango cha uhakika,draft,Confidence level recorded with a figure. Low / medium / high.
+officerEdit.fields.crop_id,required,Crop,Zao,draft,
+officerEdit.fields.cycle_area_ha,required,Planted area (ha),Eneo lililopandwa (ha),draft,"Flag: Same open question as register.cycleArea. Cross-check (glossary): The same English 'Planted area (ha)' (register.cycleArea, person.plantedArea) is 'Jumla ya eneo lililopandwa katika mazao yote' elsewhere but the short 'Eneo lililopandwa (ha)' here, so the across-cycles qualifier is dropped in the edit form and the same field has two labels."
+officerEdit.fields.family_name,required,Family name,Jina la ukoo,draft,
+officerEdit.fields.farm_label,required,Farm name,Jina la shamba,draft,
+officerEdit.fields.given_name,required,First name,Jina la kwanza,draft,
+officerEdit.fields.harvest_end,required,Harvest window ends,Mwisho wa kipindi cha kuvuna,draft,
+officerEdit.fields.harvest_start,required,Harvest window starts,Mwanzo wa kipindi cha kuvuna,draft,
+officerEdit.fields.household_label,required,Household name,Jina la kaya,draft,
+officerEdit.fields.latitude,required,Latitude,Latitudo,draft,
+officerEdit.fields.longitude,required,Longitude,Longitudo,draft,
+officerEdit.fields.phone,required,Phone,Namba ya simu,draft,
+officerEdit.fields.planted_on,required,Planted on,Tarehe ya kupanda,draft,
+officerEdit.fields.plot_area_ha,required,Plot area (ha),Eneo la kipande cha shamba (ha),draft,
+officerEdit.fields.plot_label,required,Plot name,Jina la kipande cha shamba,draft,
+officerEdit.fields.quantity_kg,required,Quantity (kg),Kiasi (kg),draft,Flag: Drafter: 'Kiasi (kg)' per glossary for amounts.
+officerEdit.fields.reported_for,required,Reported for,Taarifa kwa tarehe,draft,"Flag: Cross-check said the first draft meant ""date of the report"". Replacement is not confident. Field means the date or period the figure applies to. Drafter: Field is a date; rendered 'Tarehe ya taarifa' (date of the report). Literal 'reported for' has no clean equivalent. Cross-check (meaning): 'Reported for' names the date or period the figure applies to. 'Tarehe ya taarifa' (date of the report) reads as the date the report was made, which is a different fact."
+officerEdit.fields.season_label,required,Season,Msimu,draft,"Flag: Drafter: 'Msimu' (season). Free-text field; season taxonomy open under S22. Cross-check (meaning): 'Season' is 'Msimu' while 'Crop cycle' is 'Msimu wa zao' (and 'Misimu ya mazao'). In the same crop-cycle edit form the two different fields end up with near-identical names, which is confusing. The glossary locks the cycle term, so this needs a native decision."
+officerEdit.fields.status,required,Status,Hali,draft,
+officerEdit.fields.tree_count,required,Number of trees,Idadi ya miti,draft,
+officerEdit.fields.unit_count,required,Number of units,Idadi ya vitengo,draft,
+officerEdit.save,required,Save changes,Hifadhi mabadiliko,draft,
+officerEdit.saving,required,Saving…,Inahifadhi…,draft,
+officerEdit.titles.crop_cycle,required,Edit crop cycle,Hariri msimu wa zao,draft,
+officerEdit.titles.farm,required,Edit farm details,Hariri taarifa za shamba,draft,
+officerEdit.titles.harvest_report,required,Correct harvest figure,Rekebisha kiasi cha mavuno,draft,
+officerEdit.titles.household,required,Edit household details,Hariri taarifa za kaya,draft,
+officerEdit.titles.person,required,Edit farmer details,Hariri taarifa za mkulima,draft,
+officerEdit.titles.plot,required,Edit plot details,Hariri taarifa za kipande cha shamba,draft,
+officerHome.farms,required,Farms,Mashamba,draft,
+officerHome.nothingOutstanding,required,Every record in your villages is verified.,Rekodi zote katika vijiji vyako zimehakikiwa.,draft,
+officerHome.noVillagesDetail,required,Your account is on the project but not yet attached to a village. Ask your programme manager to assign one.,Akaunti yako iko kwenye mradi lakini bado haijaunganishwa na kijiji. Muulize meneja wa mradi akupangie kimoja.,draft,Flag: Changed after the cross-check; unreviewed.
+officerHome.noVillagesTitle,required,No village assigned yet,Bado hujapangiwa kijiji,draft,
+officerHome.openVerifyQueue,required,Open the verify queue,Fungua orodha ya kuhakiki,draft,
+officerHome.outstanding_one,required,1 record still needs verifying.,Rekodi 1 bado inahitaji kuhakikiwa.,draft,"Flag: Drafter: Plural pairs: '1' form uses class 9 'Rekodi 1 ... inahitaji', other uses 'zinahitaji'. 'Rekodi' is invariable so both read correctly."
+officerHome.outstanding_other,required,{{count}} records still need verifying.,Rekodi {{count}} bado zinahitaji kuhakikiwa.,draft,
+officerHome.people,required,People,Watu,draft,
+officerHome.register,required,Register a farmer,Sajili mkulima,draft,
+officerHome.requests,required,Equipment requests,Maombi ya vifaa,draft,
+officerHome.title,required,Your villages,Vijiji vyako,draft,
+officerHome.villageOutstanding_one,required,1 record here still needs verifying,Rekodi 1 hapa bado inahitaji kuhakikiwa,draft,
+officerHome.villageOutstanding_other,required,{{count}} records here still need verifying,Rekodi {{count}} hapa bado zinahitaji kuhakikiwa,draft,
+officerHome.villages,required,Assigned villages,Vijiji ulivyopangiwa,draft,Flag: Drafter: 'Vijiji ulivyopangiwa' (villages you were assigned to).
+opportunityStatus.accepted,required,Accepted,Imekubaliwa,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunityStatus.declined,required,Declined,Mnunuzi amekataa,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunityStatus.lapsed,required,Lapsed,Imeisha muda wake,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking. Flag: Drafter: 'Imeisha muda wake' glossary UNVERIFIED."
+opportunityStatus.proposed,required,Proposed,Imependekezwa,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunityStatus.shared,required,Shared,Imeshirikishwa,draft,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking. Flag: Drafter: 'Imeshirikishwa' (shared with buyer) composed; not in glossary."
+people.allVerifications,required,All,Wote,draft,
+people.colName,required,Name,Jina,draft,
+people.colPhone,required,Phone,Simu,draft,
+people.colProvenance,required,Provenance,Chanzo cha taarifa,draft,Flag: Drafter: 'Chanzo cha taarifa' unverified per glossary.
+people.colVillage,required,Village,Kijiji,draft,
+people.filterVerification,required,Verification,Uhakiki,draft,Flag: Drafter: 'Uhakiki' (noun for verification) derived from 'hakiki'.
+people.noneDetail,required,Try a different name or clear the verification filter.,Jaribu jina lingine au ondoa kichujio cha uhakiki.,draft,
+people.noneTitle,required,No people match,Hakuna watu wanaolingana,draft,
+people.search,required,Search by name,Tafuta kwa jina,draft,
+people.searchPlaceholder,required,Given or family name,Jina la kwanza au la ukoo,draft,Flag: Drafter: 'Jina la kwanza au la ukoo' for 'Given or family name'.
+people.title,required,People,Watu,draft,
+person.actual,required,Actual,Halisi,draft,
+person.allVerified,required,Every record here is verified,Kila rekodi hapa imehakikiwa,draft,
+person.cycles,required,Crop cycles,Misimu ya mazao,draft,Flag: Drafter: 'Misimu ya mazao' plural of composed term 'msimu wa zao'.
+person.expected,required,Expected,Inatarajiwa,draft,
+person.farms,required,Farms,Mashamba,draft,
+person.harvests,required,Harvest figures,Kiasi cha mavuno,draft,
+person.households,required,Households,Kaya,draft,
+person.members,required,Members,Wanakaya,draft,"Flag: Drafter: 'Wanakaya' (household members, glossary 'mwanakaya')."
+person.noFarms,required,No farms recorded yet,Bado hakuna shamba lililorekodiwa,draft,
+person.noFarmsDetail,required,Farms appear here once one is registered.,Mashamba yataonekana hapa baada ya shamba kusajiliwa.,draft,
+person.noHouseholds,required,No household recorded,Hakuna kaya iliyorekodiwa,draft,
+person.notFoundDetail,required,"This record may not exist, or you may not have access to it.","Rekodi hii huenda haipo, au huenda huna ruhusa ya kuiona.",draft,Flag: Changed after the cross-check; unreviewed.
+person.notFoundTitle,required,Person not found,Mtu hajapatikana,draft,
+person.plantedArea,required,Planted area,Eneo lililopandwa,draft,"This is planted area ACROSS CYCLES, never ""land area"": intercropping means it can exceed the village’s hectares. Flag: Same open question as register.cycleArea: on this screen the figure may be summed across cycles. Drafter: Glossary across-cycles phrase (UNVERIFIED); shortened form used in the edit field for the same concept."
+person.plots,required,Plots,Vipande vya shamba,draft,
+person.superseded,required,Superseded,Imebadilishwa na mpya,draft,Flag: Drafter: 'Imebadilishwa na mpya' (replaced by a newer one); shown in parentheses after a harvest figure. No glossary term; could be confused with 'edited'.
+person.trees,required,Trees,Miti,draft,
+person.units,required,Units,Vitengo,draft,
+person.unverifiedCount_one,required,{{count}} record still needs verifying,Rekodi {{count}} bado haijahakikiwa,draft,
+person.unverifiedCount_other,required,{{count}} records still need verifying,Rekodi {{count}} bado hazijahakikiwa,draft,Flag: Drafter: Plural agreement 'rekodi ... hazijahakikiwa' vs singular 'haijahakikiwa' (rekodi class 9/10); 'haijahakikiwa' UNVERIFIED in glossary. Chose 'bado haijahakikiwa' over 'bado inahitaji kuhakikiwa' for brevity; reviewer decide.
+person.verified,required,Verified,Imehakikiwa,draft,
+person.verify,required,Verify,Hakiki,draft,
+person.verifying,required,Verifying…,Inahakiki…,draft,
+person.window,required,Harvest window,Kipindi cha kuvuna,draft,Flag: Drafter: 'Kipindi cha kuvuna' UNVERIFIED composition. Date-field labels use 'Mwanzo/Mwisho wa kipindi cha kuvuna' (my construction).
+provenance.capturedAt,required,Captured,Ilikusanywa,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Ilikusanywa' (was collected) for 'Captured'; alternative 'Ilirekodiwa' (was recorded). Shown next to a date and 'na' + name."
+provenance.capturedBy,required,by,na,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: Bare 'na' (by) reads oddly alone but works between a date and a name."
+provenance.confidenceLabel,required,Confidence,Kiwango cha uhakika,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Kiwango cha uhakika' unverified per glossary."
+redeem.amount,required,Incentive to hand over,Motisha ya kukabidhi,draft,
+redeem.another,required,Redeem another,Kabidhi nyingine,draft,Flag: Drafter: 'Redeem another' shortened to 'Vocha nyingine' (another voucher) for button length; reviewer may want a full verb.
+redeem.cameraUnavailable,required,The camera is not available on this device. Type the code instead.,Kamera haipatikani kwenye kifaa hiki. Andika namba ya vocha badala yake.,draft,
+redeem.cannotRedeem,required,You cannot redeem this voucher,Huwezi kukabidhi vocha hii,draft,
+redeem.code,required,Voucher code,Namba ya vocha,draft,
+redeem.confirm,required,Confirm and hand over {{amount}},Thibitisha na ukabidhi {{amount}},draft,Flag: Drafter: Uses 'Thibitisha' (Confirm) per glossary; fine since verify=hakiki is a different concept.
+redeem.confirming,required,Redeeming…,Inakabidhi…,draft,
+redeem.done,required,Redeemed,Imekabidhiwa,draft,
+redeem.doneDetail,required,{{amount}} handed over. This voucher cannot be used again.,{{amount}} imekabidhiwa. Vocha hii haiwezi kutumika tena.,draft,
+redeem.expires,required,Valid until {{date}},Inatumika hadi {{date}},draft,
+redeem.head,required,Head of household,Mkuu wa kaya,draft,
+redeem.household,required,Household,Kaya,draft,
+redeem.idType,required,ID document you checked,Kitambulisho ulichokagua,draft,
+redeem.idTypePlaceholder,required,Choose the document,Chagua kitambulisho,draft,
+redeem.intro,required,"Scan the farmer's QR code, or type the code printed under it.","Skani msimbo wa QR wa mkulima, au andika namba iliyochapishwa chini yake.",draft,
+redeem.lookingUp,required,Looking up…,Inatafuta…,draft,
+redeem.lookUp,required,Look up,Tafuta,draft,
+redeem.nameConfirm,required,The name on the ID matches the household above,Jina kwenye kitambulisho linalingana na kaya iliyo hapo juu,draft,Flag: Drafter: Checkbox text; 'linalingana na' (matches) composed.
+redeem.needsOps,required,Held for audit: ops or admin must redeem this voucher in person.,Imeshikiliwa kwa ukaguzi: mfanyakazi wa uendeshaji au msimamizi lazima akabidhi vocha hii ana kwa ana.,draft,Flag: Drafter: 'ops or admin' -> 'timu ya uendeshaji au msimamizi' (composed); 'Held for audit' UNVERIFIED in glossary.
+redeem.notAVoucher,required,That is not a Ruaha voucher code.,Hiyo si namba ya vocha ya Ruaha.,draft,
+redeem.notFound,required,No voucher with this code in your villages.,Hakuna vocha yenye namba hii katika vijiji vyako.,draft,
+redeem.respondent,required,Answered by,Imejibiwa na,draft,Flag: Drafter: 'Answered by' -> 'Imejibiwa na' (class 9 concord for a label; may need 'Alijibu' if it names a person).
+redeem.scan,required,Scan QR code,Skani msimbo wa QR,draft,
+redeem.stopScan,required,Stop camera,Zima kamera,draft,
+redeem.survey,required,Survey,Dodoso,draft,
+redeem.title,required,Redeem a voucher,Kabidhi motisha ya vocha,draft,"Flag: Drafter: 'Redeem a voucher' has no Tanzanian term. Rendered 'Kabidhi motisha ya vocha' (hand over the voucher's incentive); glossary options kabidhi/chukua are UNVERIFIED. Also drives redeem.confirm, done, doneDetail, cannotRedeem."
+register.chooseCrop,required,Choose a crop,Chagua zao,draft,
+register.confidence,required,Confidence,Kiwango cha uhakika,draft,Confidence level recorded with a figure. Low / medium / high. Flag: Drafter: 'Kiwango cha uhakika' UNVERIFIED (glossary). Low/medium/high option strings are in another batch.
+register.crop,required,Crop,Zao,draft,
+register.cycleArea,required,Planted area (ha),Eneo lililopandwa (ha),draft,"This is planted area ACROSS CYCLES, never ""land area"": intercropping means it can exceed the village’s hectares. Flag: Wording changed after the cross-check to the short, English-faithful label. Open question: this field is planted area for one crop cycle, and business-rules says it is never ""land area"". Reviewer to confirm the label and whether ""across cycles"" belongs here. Drafter: Note requires 'planted area across cycles'; used the glossary full phrase (UNVERIFIED). But this is a single-cycle form field, so 'katika mazao yote' (across all crops) may read oddly; reviewer decide. officerEdit.fields.cycle_area_ha (no note) uses the short 'Eneo lililopandwa (ha)'. Cross-check (rule): The locked phrase says 'total area planted across all the crops' but this field records ONE crop cycle's area; an officer may enter a sum over all crops, and 'across crops' is not the same as the note's 'across cycles'. Also 49 characters for a 17-character English label. Needs native decision, not a silent change."
+register.familyName,required,Family name,Jina la ukoo,draft,
+register.farmLabel,required,Farm name,Jina la shamba,draft,
+register.givenName,required,First name,Jina la kwanza,draft,
+register.gpsDenied,required,"Location access was declined. Enter the coordinates yourself, or","Ruhusa ya kupata mahali ilikataliwa. Andika viwianishi mwenyewe, au",draft,"Flag: Drafter: Sentence ends with 'au' because a 'Jaribu tena' button follows; 'viwianishi' (coordinates) is my word choice, not in glossary. Same for gpsUnsupported and gpsError."
+register.gpsDetecting,required,Finding this farm's location…,Inatafuta mahali lilipo shamba hili…,draft,
+register.gpsError,required,"Couldn't get a location just now. Enter the coordinates yourself, or","Imeshindwa kupata mahali kwa sasa. Andika viwianishi mwenyewe, au",draft,
+register.gpsNote,required,"The farm's position is required. It comes from this phone's GPS; if GPS is not available, type it in.","Mahali pa shamba ni lazima. Hupatikana kupitia GPS ya simu hii; ikiwa GPS haipatikani, paandike mwenyewe.",draft,Flag: Drafter: 'Mahali pa shamba' (location of farm) used for 'position'; class-16 agreement 'paandike' is natural but check.
+register.gpsRetry,required,Try again,Jaribu tena,draft,
+register.gpsUnsupported,required,"This browser can't detect location. Enter the coordinates yourself, or","Kivinjari hiki hakiwezi kutambua mahali. Andika viwianishi mwenyewe, au",draft,
+register.groupsComplete,required,{{done}} of {{total}} groups complete · saved on this phone only,Makundi {{done}} kati ya {{total}} yamekamilika · yamehifadhiwa kwenye simu hii pekee,draft,Flag: Drafter: 'Makundi' for 'groups' (form sections); 'kwenye simu hii pekee' composed.
+register.harvestEnd,required,Harvest window ends,Mwisho wa kipindi cha kuvuna,draft,
+register.harvestKg,required,Expected harvest (kg),Mavuno yanayotarajiwa (kg),draft,
+register.harvestStart,required,Harvest window starts,Mwanzo wa kipindi cha kuvuna,draft,
+register.householdLabel,required,Household name,Jina la kaya,draft,
+register.intro,required,"One page, one submit. Everything below is created together.","Ukurasa mmoja, uwasilishaji mmoja. Kila kitu kilicho hapa chini kinaundwa pamoja.",draft,
+register.isHead,required,This person heads the household,Mtu huyu ni mkuu wa kaya,draft,
+register.latitude,required,Latitude,Latitudo,draft,Flag: Drafter: 'Latitudo'/'Longitudo' are standard loanwords I chose; no glossary entry. Not verified for Tanzanian usage.
+register.latitudeRange,required,Latitude runs from -90 to 90.,Latitudo ni kati ya -90 na 90.,draft,
+register.longitude,required,Longitude,Longitudo,draft,
+register.longitudeRange,required,Longitude runs from -180 to 180.,Longitudo ni kati ya -180 na 180.,draft,
+register.measuredBy,required,{{crop}} is measured this way,{{crop}} hupimwa kwa njia hii,draft,Flag: Drafter: Hint under area/trees/units meaning 'this crop is counted by this measure'. Meaning is my reading of the screen; wording 'hupimwa kwa njia hii' may be unclear.
+register.notANumber,required,Enter a number.,Andika namba.,draft,
+register.notNegative,required,This cannot be negative.,Hii haiwezi kuwa chini ya sifuri.,draft,
+register.noVillage,required,No village to register into,Hakuna kijiji cha kusajili,draft,
+register.noVillageDetail,required,Registration needs a village assignment. Ask your programme manager.,"Ili kusajili, unahitaji kupangiwa kijiji. Muulize meneja wako wa mradi.",draft,Flag: Drafter: 'Usajili unahitaji ugawiwe kijiji' (assigned a village) is composed; 'meneja wa programu' not in glossary.
+register.phone,required,Phone,Namba ya simu,draft,
+register.phoneHint,required,"Include the country code, for example +255700000101.","Weka msimbo wa nchi, kwa mfano +255700000101.",draft,
+register.plantedOn,required,Planted on,Tarehe ya kupanda,draft,Flag: Drafter: Used 'Tarehe ya kupanda' rather than 'Ilipopandwa'; glossary notes sources disagree on kupanda vs kuotesha.
+register.plotArea,required,Plot area (ha),Eneo la kipande cha shamba (ha),draft,
+register.plotLabel,required,Plot name,Jina la kipande cha shamba,draft,
+register.provenanceNote,required,"Recorded as field-verified, captured by you. This is not a choice.","Itarekodiwa kama imehakikiwa shambani, na imeingizwa nawe. Hili si chaguo.",draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Field-verified' rendered 'imehakikiwa shambani' (UNVERIFIED glossary); 'imeingizwa nawe' for 'captured by you'; 'Hili si chaguo' for 'This is not a choice'."
+register.registerAnother,required,Register another,Sajili mwingine,draft,
+register.required,required,This is required.,Hii ni lazima.,draft,Flag: Drafter: Used 'Sehemu hii ni lazima.' (glossary gives 'ni lazima'; sentence form composed).
+register.roundedNote,required,This will be stored as {{value}}.,Itahifadhiwa kama {{value}}.,draft,
+register.sections.cycle,required,Crop cycle,Msimu wa zao,draft,"Flag: Drafter: Crop cycle = 'msimu wa zao' (UNVERIFIED, composed)."
+register.sections.farm,required,Farm,Shamba,draft,
+register.sections.harvest,required,Expected harvest,Mavuno yanayotarajiwa,draft,Flag: Drafter: 'Mavuno yanayotarajiwa' UNVERIFIED (glossary). person.expected uses 'Inatarajiwa' for the short column label; person.actual 'Halisi' unchecked.
+register.sections.household,required,Household,Kaya,draft,
+register.sections.person,required,Person,Mtu,draft,
+register.sections.plot,required,Plot,Kipande,draft,"Flag: Drafter: Plot = 'kipande cha shamba' (UNVERIFIED, glossary). Used in full everywhere; long for a wizard rail label, may want 'Kipande'."
+register.submit,required,Register,Sajili,draft,Flag: Drafter: 'Sajili' as imperative for registering someone else (glossary). registerAnother 'Sajili mwingine' assumes 'mkulima' understood.
+register.submitting,required,Registering…,Inasajili…,draft,
+register.successDetail,required,The records were created together.,Rekodi zimeundwa pamoja.,draft,
+register.successTitle,required,Registered,Imesajiliwa,draft,
+register.title,required,Register a farmer,Sajili mkulima,draft,
+register.tooLarge,required,This number is too large for the field.,Namba hii ni kubwa mno kwa sehemu hii.,draft,
+register.treeCount,required,Number of trees,Idadi ya miti,draft,
+register.unitCount,required,Number of units,Idadi ya vitengo,draft,Flag: Drafter: 'Vitengo' for 'units' (generic counted units); not in glossary. Also person.units and officerEdit.fields.unit_count.
+register.viewPerson,required,Open the record,Fungua rekodi,draft,
+register.wholeNumber,required,Enter a whole number.,Andika namba nzima.,draft,
+register.windowBackwards,required,The harvest window must end on or after it starts.,Kipindi cha kuvuna lazima kiishe siku kinapoanza au baada yake.,draft,Flag: Drafter: Long composed validation sentence; check grammar and naturalness.
+requests.action.submit,required,Send this request,Tuma ombi hili,draft,
+requests.action.withdraw,required,Withdraw,Ondoa ombi,draft,"Flag: Cross-check: ""Ondoa ombi"" may read as deleting the request. Withdraw means the farmer takes it back and the record remains. Drafter: 'Withdraw' = 'Ondoa ombi' (glossary 'remove'); may read as delete rather than withdraw. Cross-check (meaning): ""Ondoa ombi"" back-translates as ""Remove request"", which reads like deleting; English Withdraw means the farmer takes the request back but the record remains."
+requests.assumptions,required,Assumptions,Dhana,draft,
+requests.decision,required,Decision,Uamuzi,draft,
+requests.draftNote,required,This request has not been sent yet. Nobody is reviewing it until you send it.,Ombi hili bado halijatumwa. Hakuna anayelipitia hadi utakapolituma.,draft,
+requests.frozen,required,A submitted request cannot be changed. Ask your field officer if something needs correcting.,Ombi lililowasilishwa haliwezi kubadilishwa. Mwombe afisa wako wa uwandani ikiwa kuna kitu cha kurekebisha.,draft,
+requests.noEstimate,required,No estimate stored for this request,Hakuna makadirio yaliyohifadhiwa kwa ombi hili,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+requests.noEstimateDetail,required,"This equipment has no rated power recorded, so no estimate could be calculated.","Kifaa hiki hakina nguvu iliyoandikwa iliyorekodiwa, kwa hiyo makadirio hayakuweza kukokotolewa.",draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+requests.noneDetail,required,Requests you submit will appear here.,Maombi utakayowasilisha yataonekana hapa.,draft,
+requests.noneTitle,required,No requests yet,Bado hakuna maombi,draft,
+requests.notFoundDetail,required,"It may not exist, or you may not have access to it.","Huenda halipo, au huna ruhusa ya kulifikia.",draft,
+requests.notFoundTitle,required,Request not found,Ombi halikupatikana,draft,
+requests.storedEstimate,required,Stored estimate,Makadirio yaliyohifadhiwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+requests.submittedOn,required,Submitted,Imewasilishwa,draft,
+requests.title,required,My requests,Maombi yangu,draft,
+requestStatus.approved,required,Approved,Imeidhinishwa,draft,
+requestStatus.draft,required,Draft,Rasimu,draft,
+requestStatus.rejected,required,Rejected,Imekataliwa,draft,
+requestStatus.submitted,required,Submitted,Imewasilishwa,draft,
+requestStatus.under_review,required,Under review,Inapitiwa,draft,Flag: Drafter: 'Inapitiwa' glossary UNVERIFIED.
+requestStatus.withdrawn,required,Withdrawn,Imeondolewa,draft,"Flag: Cross-check: ""Imeondolewa"" may read as removed or deleted, and does not say who withdrew it. Drafter: 'Imeondolewa' (removed) for Withdrawn; unverified, could read as deleted. Cross-check (meaning): ""Imeondolewa"" back-translates as ""Removed"", which does not say who withdrew it and may read as deleted or taken away by ops."
+role.admin,required,Administrator,Msimamizi,draft,Flag: Drafter: 'Msimamizi' unverified role label.
+role.farmer,required,Farmer,Mkulima,draft,
+role.field_officer,required,Field officer,Afisa wa uwandani,draft,"Flag: Drafter: 'Afisa wa uwandani' composed, unverified; avoids 'Afisa Ugani'."
+role.ops,required,Operations,Uendeshaji,draft,Flag: Drafter: 'Uendeshaji' unverified role label.
+selectRole.continue,required,Continue,Endelea,draft,
+selectRole.detail,required,You hold more than one role. Pick the one you want to work in.,Una majukumu zaidi ya moja. Chagua unalotaka kufanyia kazi.,draft,
+selectRole.noneDetail,required,Your access may have changed. Ask your programme manager.,Ufikiaji wako huenda umebadilika. Muulize meneja wa mradi.,draft,Flag: Drafter: 'meneja wa programu' for 'programme manager' is not in glossary; also used in noAccess.detail and officerHome.noVillagesDetail.
+selectRole.noneTitle,required,No roles to choose from,Hakuna majukumu ya kuchagua,draft,
+selectRole.title,required,Choose a role,Chagua jukumu,draft,Flag: Drafter: 'Jukumu' used for 'role'; not in glossary.
+selectRole.wholeProject,required,Whole project,Mradi mzima,draft,
+setPassword.confirm,required,Type it again,Liandike tena,draft,
+setPassword.detail,required,You signed in with a temporary password from your officer. Choose a new one that only you know.,Uliingia kwa neno la siri la muda kutoka kwa afisa wako. Chagua neno la siri jipya ambalo unalijua wewe tu.,draft,Flag: Drafter: 'wewe tu' used for emphasis (only you know it); acceptable per tone rule but reviewer may prefer 'ambalo ni wewe pekee unalijua'.
+setPassword.mismatch,required,The two passwords are not the same.,Maneno mawili ya siri hayafanani.,draft,
+setPassword.password,required,New password,Neno la siri jipya,draft,
+setPassword.required,required,Enter a new password.,Weka neno la siri jipya.,draft,
+setPassword.submit,required,Save password,Hifadhi neno la siri,draft,
+setPassword.submitting,required,Saving…,Inahifadhi…,draft,
+setPassword.title,required,Choose your own password,Chagua neno lako la siri mwenyewe,draft,Flag: Changed after the cross-check; unreviewed.
+setPassword.unexpected,required,Something went wrong saving your password.,Kuna tatizo katika kuhifadhi neno lako la siri.,draft,
+source.farmer_reported,required,Farmer reported,Imeripotiwa na mkulima,draft,"Provenance wording: where a record came from, and who verified it."
+source.field_verified,required,Field verified,Imehakikiwa shambani,draft,"Provenance wording: where a record came from, and who verified it."
+source.model_estimated,required,Estimated,Imekadiriwa,draft,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+source.sensor_derived,required,Sensor measured,Imepimwa na kihisi,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Imepimwa na kihisi' composed; 'kihisi' (sensor) not in glossary."
+source.transaction_derived,required,From a transaction,Kutoka kwenye muamala,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Kutoka kwenye muamala' composed; 'muamala' (transaction) used by Airtel per glossary but not a glossary row."
+surveys.answered,required,Answered,Limejibiwa,draft,"Flag: Drafter: 'Limejibiwa' (class 5 agreement with dodoso), not attested; 'Answered' may also label a card on a survey. Same for 'Halipatikani' (Not available)."
+surveys.badge_one,required,{{count}} new survey,dodoso jipya {{count}},draft,Flag: Drafter: 'dodoso jipya {{count}}' / 'madodoso mapya {{count}}': agreement chosen by me.
+surveys.badge_other,required,{{count}} new surveys,madodoso mapya {{count}},draft,
+surveys.closes,required,Closes {{date}},Linafungwa {{date}},draft,
+surveys.emptyDetail,required,New surveys will appear here.,Madodoso mapya yataonekana hapa.,draft,
+surveys.emptyTitle,required,No surveys right now,Hakuna madodoso kwa sasa,draft,
+surveys.incentive,required,Incentive,Motisha,draft,
+surveys.incentiveNote,required,Paid in cash at the Ruaha office,Hukabidhiwa kwa fedha taslimu katika ofisi ya Ruaha,draft,"Flag: Drafter: 'Paid in cash' -> 'Hukabidhiwa kwa fedha taslimu' (handed over in cash) deliberately, to avoid payment vocabulary."
+surveys.intro,required,"Answer a survey and your household receives a fixed cash incentive, once per survey, paid at the Ruaha office.","Jibu dodoso na kaya yako itapokea motisha ya kiasi maalum cha fedha taslimu, mara moja kwa kila dodoso, inayokabidhiwa katika ofisi ya Ruaha.",draft,Flag: Drafter: Incentive expressed as 'motisha ya kiasi maalum cha fedha taslimu' (glossary; 'kiasi maalum' UNVERIFIED). Avoided 'kulipwa' entirely; 'kukabidhiwa' (handed over) used for 'paid at the office'.
+surveys.new,required,New,Jipya,draft,"Flag: Drafter: 'New' is the badge on a survey (dodoso, class 5): 'Jipya' agrees with dodoso; if used for other nouns it would need to change."
+surveys.no,required,No,Hapana,draft,
+surveys.notAvailable,required,Not available,Halipatikani,draft,
+surveys.notFound,required,This survey is not available.,Dodoso hili halipatikani.,draft,
+surveys.onceNote,required,Your household can answer this survey once. Check your answers before you submit.,Kaya yako inaweza kujibu dodoso hili mara moja. Kagua majibu yako kabla ya kuwasilisha.,draft,
+surveys.open,required,Answer survey,Jibu dodoso,draft,
+surveys.optional,required,Optional,Si lazima,draft,Flag: Drafter: 'Si lazima' UNVERIFIED in glossary; 'hiari' alternative.
+surveys.questionCount_one,required,{{count}} question,swali {{count}},draft,Flag: Drafter: Number placed after noun ('swali {{count}}') to work for count=1 and !=1; reviewer may prefer 'Swali {{count}}'.
+surveys.questionCount_other,required,{{count}} questions,maswali {{count}},draft,
+surveys.required,required,Required,Lazima,draft,
+surveys.submit,required,Submit answers,Wasilisha majibu,draft,
+surveys.submitting,required,Submitting…,Inawasilisha…,draft,
+surveys.title,required,Surveys,Madodoso,draft,"Flag: Drafter: 'Surveys' as 'Madodoso' (dodoso = questionnaire, glossary). 'Utafiti' considered but means research."
+surveys.view,required,View voucher,Angalia vocha,draft,
+surveys.yes,required,Yes,Ndiyo,draft,
+surveyStatus.closed,required,Closed,Limefungwa,draft,Flag: Changed after the cross-check; unreviewed.
+surveyStatus.draft,required,Draft,Rasimu,draft,
+surveyStatus.live,required,Live,Linaendelea,draft,Flag: Drafter: 'Live' for a survey: 'Inaendelea' (ongoing) is my choice; not in glossary. Reviewer to confirm.
+table.emptyDetail,required,No records match.,Hakuna rekodi zinazolingana.,draft,
+table.emptyTitle,required,Nothing to show,Hakuna cha kuonyesha,draft,
+tour.back,required,Back,Rudi nyuma,draft,
+tour.close,required,Done,Maliza,draft,Flag: Drafter: 'Maliza' [UNVERIFIED] for Done; alternative 'Funga'.
+tour.farmer.equipmentBody,required,"Browse what is available and what it would cost to run. Every price here is indicative — it is a guide, not a quotation, and nothing is ordered from this screen.","Angalia vifaa vilivyopo na gharama ya kuviendesha. Kila bei hapa ni bei ya makadirio — ni mwongozo tu, si nukuu ya bei, na hakuna kinachoagizwa kutoka skrini hii.",draft,
+tour.farmer.equipmentTitle,required,Equipment you can ask for,Vifaa unavyoweza kuomba,draft,
+tour.farmer.opportunitiesBody,required,"An opportunity is a buyer looking for a crop, matched to what your village expects to harvest. It is not a sale, a delivery or a payment — nothing is owed either way.","Fursa ni mnunuzi anayetafuta zao, aliyelinganishwa na mavuno ambayo kijiji chako kinatarajia. Si uuzaji, si uwasilishaji wala malipo — hakuna anayedaiwa upande wowote.",draft,"Flag: Drafter: Must say 'not a sale, a delivery or a payment'. Used 'uuzaji' for sale (avoiding mauzo/mkataba per glossary), 'uwasilishaji' for delivery, 'malipo' for payment. Native reviewer to confirm wording; 'malipo' is fine here (not an incentive string) but check any test scanning the whole file."
+tour.farmer.opportunitiesTitle,required,Opportunities near you,Fursa karibu nawe,draft,
+tour.farmer.recordsBody,required,Each record carries a badge saying who recorded it and whether an officer has verified it. Unverified does not mean wrong; it means nobody has checked it yet.,Kila rekodi ina lebo inayoonyesha nani aliiandika na kama afisa ameihakiki. Haijahakikiwa haimaanishi si sahihi; inamaanisha bado hakuna aliyeikagua.,draft,"Flag: Drafter: 'Badge' rendered as 'lebo' (my choice, not in glossary); glossary's ProvenanceBadge wording is 'chanzo cha taarifa'. 'Haijahakikiwa' [UNVERIFIED]."
+tour.farmer.recordsTitle,required,"Your farm, in detail",Shamba lako kwa undani,draft,
+tour.farmer.requestsBody,required,"Every request you send appears here with its current status, so you can see whether it is waiting, under review, approved or turned down — and why.","Kila ombi unalotuma linaonekana hapa likiwa na hali yake ya sasa, ili uone kama linasubiri, linapitiwa, limeidhinishwa au limekataliwa — na kwa nini.",draft,
+tour.farmer.requestsTitle,required,What you have asked for,Ulichoomba,draft,
+tour.farmer.summaryBody,required,"Your farm, your plots and what you expect to harvest. If something here is wrong, tell your field officer — they are the one who can correct it.","Shamba lako, vipande vya shamba lako na mavuno yanayotarajiwa. Kama kuna kitu kisicho sahihi hapa, mwambie afisa wako wa uwandani — ndiye anayeweza kukirekebisha.",draft,
+tour.farmer.summaryTitle,required,What is on file for you,Kilichoandikwa kukuhusu,draft,
+tour.farmer.surveysBody,required,"Answer a survey and your household receives a fixed cash incentive, once per survey. You get a voucher code; show it at the Ruaha office to collect the cash. The number on this tab is how many surveys are waiting for you.","Jibu dodoso na kaya yako itapokea motisha ya kiasi maalum cha fedha taslimu, mara moja kwa kila dodoso. Utapata namba ya vocha; ionyeshe kwenye ofisi ya Ruaha ili uchukue fedha hizo. Namba iliyo kwenye kichupo hiki ni idadi ya madodoso yanayokusubiri.",draft,"Flag: Drafter: Incentive string: motisha, vocha, kiasi maalum cha fedha taslimu used; none of the banned words present. 'Namba ya vocha' and 'kichupo' (tab) are composed [UNVERIFIED]."
+tour.farmer.surveysTitle,required,"Surveys, and the incentive for answering","Madodoso, na motisha ya kujibu",draft,
+tour.farmer.welcomeBody,required,"This is your own record. Everything here was written by a field officer who visited your farm, and every figure shows where it came from. The tour button in the header (the person icon on a phone) shows you any part of the app whenever you want.","Hii ni rekodi yako mwenyewe. Kila kitu hapa kiliandikwa na afisa wa uwandani aliyetembelea shamba lako, na kila kiasi kinaonyesha chanzo chake. Hatua saba fupi.",draft,
+tour.farmer.welcomeTitle,required,Welcome to Ruaha 360,Karibu Ruaha 360,draft,
+tour.next,required,Next,Endelea,draft,"Flag: Changed to the imperative ""Endelea"" (also ""Continue""). Reviewer may prefer another word for ""Next"". Drafter: Glossary gives 'Inayofuata' [UNVERIFIED]; it is not a bare imperative. 'Endelea' (continue) is the attested alternative. Cross-check (glossary): 'Inayofuata' is not a bare imperative (back-translation 'The next one'), against the editorial decision that buttons are bare imperatives; drafter also flagged it."
+tour.officer.oneSubmitBody,required,"Press this once. If the signal drops the form stays saved on this phone, and pressing it again after a failure replays the same registration rather than creating a second farmer.","Bonyeza kitufe hiki mara moja. Mtandao ukikatika, fomu inabaki imehifadhiwa kwenye simu hii, na ukibonyeza tena baada ya kushindwa, usajili ule ule unarudiwa badala ya kuunda mkulima wa pili.",draft,
+tour.officer.oneSubmitTitle,required,Registering creates all six records,Kusajili kunaunda rekodi zote sita,draft,
+tour.officer.outstandingBody,required,Everything you record starts unverified. This counts what is waiting for you. Verify only what you have seen yourself — it cannot be undone.,Kila unachorekodi huanza kikiwa hakijahakikiwa. Namba hii inaonyesha kinachokusubiri. Hakiki tu ulichokiona mwenyewe — haiwezi kutenduliwa.,draft,
+tour.officer.outstandingTitle,required,What still needs verifying,Kinachosubiri kuhakikiwa,draft,
+tour.officer.peopleBody,required,"Search by name or phone, or filter by whether records are verified. Opening a person shows every record attached to them and who recorded each one.","Tafuta kwa jina au namba ya simu, au chuja kulingana na kama rekodi zimehakikiwa. Ukifungua mtu, unaona kila rekodi iliyoambatishwa kwake na nani aliyeirekodi.",draft,
+tour.officer.peopleTitle,required,Everyone you have registered,Wote uliowasajili,draft,
+tour.officer.redeemBody,required,"Scan the farmer's voucher, check their ID and hand over the cash. You cannot redeem a voucher for a household you registered or verified, and some vouchers are held for ops to redeem in person. Every scan is recorded with your name.","Skani vocha ya mkulima, angalia kitambulisho chake kisha kabidhi fedha taslimu. Huwezi kukabidhi vocha ya kaya uliyoisajili au kuihakiki, na baadhi ya vocha zimeshikiliwa ili uendeshaji uzikabidhi ana kwa ana. Kila skani inarekodiwa pamoja na jina lako.",draft,Flag: Drafter: Officer-side redeem rendered as 'kabidhi' (hand over) per glossary; 'ops' rendered 'uendeshaji' [UNVERIFIED role label]. 'Skani' per glossary.
+tour.officer.redeemTitle,required,Hand over a survey incentive,Kabidhi motisha ya dodoso,draft,
+tour.officer.registerBody,required,"Six groups — person, household, farm, plot, crop cycle, expected harvest — created together in a single step. These chips show which groups you have filled in.","Makundi sita — mtu, kaya, shamba, kipande cha shamba, msimu wa zao, mavuno yanayotarajiwa — yanaundwa pamoja kwa kuwasilisha mara moja. Alama hizi zinaonyesha makundi uliyojaza.",draft,"Flag: Drafter: 'Chips' rendered as 'alama' (marks); six group names composed from glossary terms (msimu wa zao, kipande cha shamba, mavuno yanayotarajiwa are all [UNVERIFIED])."
+tour.officer.registerTitle,required,"One page, one submit","Ukurasa mmoja, kuwasilisha mara moja",draft,
+tour.officer.verifyBody,required,"Everything awaiting verification, in one list. Verifying says you have seen the record yourself. There is no way to un-verify, so leave anything you are unsure of.","Kila kinachosubiri kuhakikiwa, kwenye orodha moja. Kuhakiki kunamaanisha umeiona rekodi mwenyewe. Hakuna njia ya kubatilisha, kwa hiyo acha chochote ambacho huna uhakika nacho.",draft,
+tour.officer.verifyTitle,required,The verify queue,Foleni ya kuhakiki,draft,Flag: Drafter: 'Foleni' (queue) is my choice; alternative 'Orodha ya kuhakiki'.
+tour.officer.welcomeBody,required,"This is the field officer's surface. You register farmers, verify what you recorded, and hand over survey incentives. The tour button in the header (the person icon on a phone) shows you any part of it again whenever you want.","Hii ni sehemu ya afisa wa uwandani. Unasajili wakulima, unahakiki ulichorekodi, na unakabidhi motisha za madodoso. Hatua saba fupi, na unaweza kurudia ziara hii wakati wowote.",draft,
+tour.officer.welcomeTitle,required,Welcome to Ruaha 360,Karibu Ruaha 360,draft,
+tour.progress,required,Step {{step}} of {{total}},Hatua {{step}} kati ya {{total}},draft,
+tour.restart,required,Take the tour again,Rudia ziara,draft,Flag: Changed after the cross-check; unreviewed.
+tour.skip,required,Skip the tour,Ruka ziara,draft,
+tour.start,required,Take the tour,Anza ziara,draft,Flag: Drafter: Uses glossary 'ziara ya mwongozo' [UNVERIFIED] for tour; longer than English button. Also tour.restart and tour.skip ('Ruka' [UNVERIFIED]).
+verification.disputed,required,Disputed,Imepingwa,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Imepingwa' (contested) is not in glossary; plain wording chosen. Alternative 'Ina mgogoro'."
+verification.pending,required,Pending,Inasubiri,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Inasubiri' unverified per glossary."
+verification.unverified,required,Unverified,Haijahakikiwa,draft,"Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Haijahakikiwa' unverified per glossary."
+verification.verified,required,Verified,Imehakikiwa,draft,"Provenance wording: where a record came from, and who verified it."
+verifyDialog.cancel,required,Cancel,Ghairi,draft,Flag: Drafter: 'Ghairi' UNVERIFIED (glossary). Same for officerEdit.cancel.
+verifyDialog.confirm,required,Verify record,Hakiki rekodi,draft,
+verifyDialog.detail,required,"You are confirming {{record}}. Your name will be attached, and this action cannot be undone.","Unahakiki {{record}}. Jina lako litaambatishwa, na kitendo hiki hakiwezi kutenguliwa.",draft,"Flag: Drafter: 'Jina lako litaambatishwa' and 'hakiwezi kutenguliwa' composed; check natural phrasing for 'cannot be undone'. Cross-check (glossary): English says 'confirming' (Thibitisha in the glossary) but Swahili uses 'Unahakiki' (Hakiki = verify). This keeps the dialog consistent with its Verify title and button, but breaks the locked Hakiki/Thibitisha split, so the product owner should decide deliberately."
+verifyDialog.title,required,Verify this record?,Hakiki rekodi hii?,draft,
+verifyQueue.householdNeedsSecondStaff,required,"You registered this household, so another staff member must verify it.","Ulisajili kaya hii, kwa hiyo mfanyakazi mwingine lazima aihakiki.",draft,Flag: Drafter: 'Mfanyakazi' used for 'staff member'; alternative 'mwenzako wa kazi'. Avoided 'wewe' via verb prefix.
+verifyQueue.intro,required,Records captured in your villages that nobody has checked yet. Verifying attaches your name to the record.,Rekodi zilizokusanywa katika vijiji vyako ambazo bado hakuna aliyezikagua. Kuhakiki kunaambatisha jina lako kwenye rekodi.,draft,Flag: Drafter: 'Kuhakiki kunaambatisha jina lako' composed; 'ambatisha' (attach) not in glossary.
+verifyQueue.noneDetail,required,Every record in your villages has been checked.,Rekodi zote katika vijiji vyako zimekaguliwa.,draft,
+verifyQueue.noneTitle,required,Nothing waiting to be verified,Hakuna kinachosubiri kuhakikiwa,draft,
+verifyQueue.outstanding_one,required,1 record waiting,Rekodi 1 inasubiri,draft,
+verifyQueue.outstanding_other,required,{{count}} records waiting,Rekodi {{count}} zinasubiri,draft,
+verifyQueue.table.crop_cycle,required,Crop cycle,Msimu wa zao,draft,Flag: Drafter: 'Msimu wa zao' unverified per glossary.
+verifyQueue.table.farm,required,Farm,Shamba,draft,
+verifyQueue.table.harvest_report,required,Harvest figure,Kiasi cha mavuno,draft,
+verifyQueue.table.household,required,Household,Kaya,draft,
+verifyQueue.table.person,required,Person,Mtu,draft,
+verifyQueue.table.plot,required,Plot,Kipande,draft,Flag: Drafter: 'Kipande cha shamba' unverified per glossary.
+verifyQueue.title,required,Verify,Hakiki,draft,
+voucher.amount,required,Incentive,Motisha,draft,
+voucher.code,required,Voucher code,Namba ya vocha,draft,
+voucher.expired,required,This voucher expired on {{date}}.,Vocha hii iliisha muda wake tarehe {{date}}.,draft,Flag: Drafter: 'expired' phrasing 'iliisha muda wake' UNVERIFIED in glossary.
+voucher.expires,required,Valid until {{date}},Inatumika hadi {{date}},draft,Flag: Drafter: 'Valid until' -> 'Inatumika hadi' (usable until); composed.
+voucher.qrLabel,required,QR code for voucher {{code}},Msimbo wa QR wa vocha {{code}},draft,
+voucher.redeemedBy,required,Collected {{date}} · handed over by {{name}},Imechukuliwa {{date}} · imekabidhiwa na {{name}},draft,Flag: Drafter: 'Collected' = 'Imechukuliwa' (glossary UNVERIFIED) paired with 'imekabidhiwa' (handed over) for the officer; 'Collected/handed over' distinction mirrors English.
+voucher.showAtOffice,required,Show this code at the Ruaha office. A staff member scans it and hands over the incentive. It can be used once.,Onyesha msimbo huu katika ofisi ya Ruaha. Mfanyakazi ataskani na kukukabidhi motisha. Vocha hii inaweza kutumika mara moja.,draft,Flag: Drafter: 'staff member' -> 'Mfanyakazi' (no glossary term); 'ataskani' verb form from loan 'skani' unattested. 'Vocha hii inaweza kutumika mara moja' used for 'It can be used once'.
+voucher.title,required,Your incentive voucher,Vocha yako ya motisha,draft,
+voucher.voided,required,Cancelled: {{reason}},Imeghairiwa: {{reason}},draft,
+voucherStatus.expired,required,Expired,Imeisha muda wake,draft,
+voucherStatus.issued,required,Not yet collected,Haijachukuliwa bado,draft,
+voucherStatus.redeemed,required,Collected,Imechukuliwa,draft,
+voucherStatus.void,required,Cancelled,Imeghairiwa,draft,
+buyers.channel.afm,optional,AFM,,missing,
+buyers.channel.direct,optional,Direct,,missing,
+buyers.channel.other,optional,Other,,missing,
+buyers.channelNote,optional,Channel is a label describing how the buyer was reached. 'AFM' records that origin only — there is no integration and no partnership implied.,,missing,
+buyers.colActive,optional,Active,,missing,
+buyers.colChannel,optional,Channel,,missing,
+buyers.colContact,optional,Contact note,,missing,
+buyers.colName,optional,Buyer,,missing,
+buyers.create,optional,Add buyer,,missing,
+buyers.createTitle,optional,Add a buyer,,missing,
+buyers.creating,optional,Adding…,,missing,
+buyers.nameRequired,optional,A buyer needs a name.,,missing,
+buyers.noneDetail,optional,Add the first buyer to record demand against them.,,missing,
+buyers.noneTitle,optional,No buyers yet,,missing,
+buyers.title,optional,Buyers,,missing,
+catalogue.colCategory,optional,Category,,missing,
+catalogue.colDays,optional,Typical days/week,,missing,
+catalogue.colHours,optional,Typical h/day,,missing,
+catalogue.colName,optional,Equipment,,missing,
+catalogue.colPower,optional,Rated power,,missing,
+catalogue.colPrice,optional,Indicative price,,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+catalogue.title,optional,Equipment catalogue,,missing,
+coverage.available,optional,Available,,missing,
+coverage.availableNow,optional,Available now,,missing,
+coverage.committed,optional,Already committed,,missing,
+coverage.committedNote,optional,Committed supply is promised to a live opportunity and is not available again.,,missing,
+coverage.coverageOf,optional,Coverage of {{total}},,missing,
+coverage.demand,optional,Demand,,missing,
+coverage.label,optional,Coverage,,missing,
+coverage.notCoveredOf,optional,Not covered of {{total}},,missing,
+demand.buyer,optional,Buyer,,missing,
+demand.chooseBuyer,optional,Choose a buyer,,missing,
+demand.chooseCrop,optional,Choose a crop,,missing,
+demand.colAvailable,optional,Available,,missing,
+demand.colBuyer,optional,Buyer,,missing,
+demand.colCoverable,optional,Coverable,,missing,
+demand.colCoverage,optional,Coverage,,missing,
+demand.colCrop,optional,Crop,,missing,
+demand.colOpportunity,optional,Opportunity,,missing,
+demand.colPrice,optional,Indicative price/kg,,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+demand.colQuantity,optional,Quantity,,missing,
+demand.colStatus,optional,Status,,missing,
+demand.colVillage,optional,Village,,missing,
+demand.colWindow,optional,Window,,missing,
+demand.create,optional,Record demand,,missing,
+demand.createOpportunity,optional,Create opportunity,,missing,
+demand.createTitle,optional,Record a demand,,missing,
+demand.creating,optional,Recording…,,missing,
+demand.creatingOpportunity,optional,Creating…,,missing,
+demand.crop,optional,Crop,,missing,
+demand.deliveryPoint,optional,Delivery point,,missing,
+demand.matches,optional,Villages that could supply this,,missing,
+demand.noneDetail,optional,Record a buyer requirement above and it will appear here.,,missing,
+demand.noneTitle,optional,No demand recorded yet,,missing,
+demand.noSupplyDetail,optional,"No village has available supply of this crop in this window. That is an honest zero, not a missing row.",,missing,
+demand.noSupplyTitle,optional,No matching supply,,missing,
+demand.notANumber,optional,Enter a number.,,missing,
+demand.notASale,optional,"An opportunity is not a sale, a delivery or a payment. It records that a village could supply a buyer.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+demand.notFoundDetail,optional,"It may not exist, or you may not have access to it.",,missing,
+demand.notFoundTitle,optional,Demand not found,,missing,
+demand.priceNotANumber,optional,"Enter a number, using a point for decimals (for example 12.5).",,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+demand.pricePerKg,optional,Indicative price per kg,,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+demand.qualityNote,optional,Quality note,,missing,
+demand.quantity,optional,Quantity (kg),,missing,
+demand.required,optional,This is required.,,missing,
+demand.title,optional,Buyer demand,,missing,
+demand.twoDecimals,optional,Use at most 2 decimal places.,,missing,
+demand.window,optional,Window,,missing,
+demand.windowEnd,optional,Window ends,,missing,
+demand.windowStart,optional,Window starts,,missing,
+demandStatus.cancelled,optional,Cancelled,,missing,
+demandStatus.closed,optional,Closed,,missing,
+demandStatus.matched,optional,Matched,,missing,
+demandStatus.open,optional,Open,,missing,
+opportunity.actionAccept,optional,Buyer accepted,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.actionDecline,optional,Buyer declined,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.actionLapse,optional,Mark lapsed,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.actionShare,optional,Share with buyer,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attach,optional,Attach,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attachClosedDetail,optional,"This opportunity is closed, so its supply no longer counts as committed. A line attached here would record a commitment against nothing.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attachClosedTitle,optional,Nothing more can be attached,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attachHarvest,optional,Available harvest,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attaching,optional,Attaching…,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attachKg,optional,Contribute (kg),,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.attachTitle,optional,Attach supply,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.chooseHarvest,optional,Choose a harvest figure,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.chooseHarvestRequired,optional,Choose a harvest figure to attach.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.colContributed,optional,Contributed,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.colCycle,optional,Crop cycle,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.colFarmer,optional,Farmer,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.colPlot,optional,Plot,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.demandQuantity,optional,Buyer's demand,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.harvestOption,optional,{{expected}} expected · {{available}} available,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.kgDecimals,optional,Use at most 2 decimal places.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.kgMoreThanZero,optional,A contribution has to be more than zero.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.kgNotANumber,optional,Enter a number.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.kgRequired,optional,Enter how many kilograms.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.kgTooLarge,optional,This number is too large for the field.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.moving,optional,Saving…,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.noneAvailableDetail,optional,"Every current harvest figure for this village, crop and window is already committed.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.noneAvailableTitle,optional,Nothing available to attach,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.noSupplyDetail,optional,Attach available harvest figures below.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.noSupplyTitle,optional,No supply attached yet,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.notASale,optional,"An opportunity is not a sale, a delivery or a payment. Accepted means both sides agreed to keep talking; nothing has moved.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.notFoundDetail,optional,"It may not exist, or you may not have access to it.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.notFoundTitle,optional,Opportunity not found,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.offered,optional,Offered,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.offeredNote,optional,This total is re-summed by the database from the supply lines below. It cannot drift from them.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.releaseDetail,optional,"{{kg}} returns to available supply for this village, and the buyer's coverage falls. This cannot be undone: a declined or lapsed opportunity cannot be reopened.",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.releasedNote,optional,Closed. Its {{kg}} has gone back to available supply for this village. The supply lines below stay on the record — nothing was deleted.,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.releaseNo,optional,Cancel,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.releaseTitle,optional,Release the committed supply?,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.releaseYes,optional,"Yes, release the supply",,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.supplyLines,optional,Supply,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+opportunity.title,optional,Opportunity,,missing,"An opportunity is NOT a sale, a delivery or a payment. ""Accepted"" means both sides agreed to keep talking."
+ops.allStatuses,optional,All statuses,,missing,
+ops.allVillages,optional,All villages,,missing,
+ops.applicant,optional,Applicant,,missing,
+ops.approve,optional,Approve,,missing,
+ops.approvedPeak,optional,Approved peak,,missing,
+ops.capacity,optional,Planned capacity,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+ops.capacityBasis,optional,Basis,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+ops.colApplicant,optional,Applicant,,missing,
+ops.colEquipment,optional,Equipment,,missing,
+ops.colEstKw,optional,Est. kW,,missing,
+ops.colStatus,optional,Status,,missing,
+ops.colSubmitted,optional,Submitted,,missing,
+ops.colVillage,optional,Village,,missing,
+ops.decisionNote,optional,Decision note,,missing,
+ops.decisionNoteRequired,optional,A decision needs a note explaining it.,,missing,
+ops.farm,optional,Farm,,missing,
+ops.filterStatus,optional,Status,,missing,
+ops.filterVillage,optional,Village,,missing,
+ops.headroom,optional,Village headroom,,missing,
+ops.neverSummed,optional,Prospective and approved demand are separate figures and are never added together.,,missing,
+ops.noActions,optional,No actions are available in this state.,,missing,
+ops.noHeadroom,optional,No capacity recorded for this village,,missing,
+ops.noHeadroomDetail,optional,A current village_capacity row is needed before headroom can be shown.,,missing,
+ops.noRequestsDetail,optional,Try a different status or village.,,missing,
+ops.noRequestsTitle,optional,No requests match,,missing,
+ops.notFoundDetail,optional,"It may not exist, or you may not have access to it.",,missing,
+ops.notFoundTitle,optional,Request not found,,missing,
+ops.prospectivePeak,optional,Prospective peak,,missing,Prospective and approved demand are separate figures and are NEVER summed.
+ops.reject,optional,Reject,,missing,
+ops.requestsTitle,optional,Request pipeline,,missing,
+ops.reviewTitle,optional,Review request,,missing,
+ops.simultaneity,optional,Simultaneity factor,,missing,
+ops.snapshotted,optional,Snapshotted inputs,,missing,
+ops.snapshottedNote,optional,These are the assumptions as they were when the estimate was calculated.,,missing,
+ops.startReview,optional,Start review,,missing,
+ops.village,optional,Village,,missing,
+ops.working,optional,Working…,,missing,
+opsHome.awaitingReview,optional,Requests awaiting review,,missing,
+opsHome.awaitingReviewDetail,optional,Submitted or under review,,missing,
+opsHome.lead,optional,"Three queues. Every figure is a link, because a count nobody can act on is a statistic.",,missing,
+opsHome.openDemands,optional,Open buyer demands,,missing,
+opsHome.openDemandsDetail,optional,Still looking for supply,,missing,
+opsHome.openOrderBook,optional,Open the order book,,missing,
+opsHome.openPipeline,optional,Open the pipeline,,missing,
+opsHome.openVerifyQueue,optional,Open the verify queue,,missing,
+opsHome.outstandingRecords,optional,Records to verify,,missing,
+opsHome.outstandingRecordsDetail,optional,Captured but not yet checked,,missing,
+opsHome.title,optional,Today,,missing,
+surveyAdmin.addQuestion,optional,Add question,,missing,
+surveyAdmin.adminOnly,optional,Only an admin can author surveys.,,missing,
+surveyAdmin.answerCount_one,optional,{{count}} answer,,missing,
+surveyAdmin.answerCount_other,optional,{{count}} answers,,missing,
+surveyAdmin.auditNote,optional,"A random share of vouchers can only be redeemed by ops or admin, face to face. Nobody can tell in advance which.",,missing,
+surveyAdmin.auditRate,optional,Vouchers held for audit,,missing,
+surveyAdmin.average,optional,Average {{value}},,missing,
+surveyAdmin.close,optional,Close survey,,missing,
+surveyAdmin.closeDetail,optional,Farmers can no longer answer it. Vouchers already issued stay valid until they expire.,,missing,
+surveyAdmin.closesOn,optional,Closes on,,missing,
+surveyAdmin.closeTitle,optional,Close this survey?,,missing,
+surveyAdmin.columns.outstanding,optional,Not yet collected,,missing,
+surveyAdmin.columns.redeemed,optional,Collected,,missing,
+surveyAdmin.columns.responses,optional,Households,,missing,
+surveyAdmin.columns.reward,optional,Incentive,,missing,
+surveyAdmin.columns.status,optional,Status,,missing,
+surveyAdmin.columns.title,optional,Survey,,missing,
+surveyAdmin.createdBy,optional,Created by {{name}},,missing,
+surveyAdmin.empty,optional,No surveys yet.,,missing,
+surveyAdmin.fields.audit_rate,optional,Vouchers held for audit (%),,missing,
+surveyAdmin.fields.closes_at,optional,Closes on (optional),,missing,
+surveyAdmin.fields.description_en,optional,Description (English),,missing,
+surveyAdmin.fields.description_sw,optional,Description (Swahili),,missing,
+surveyAdmin.fields.max_households,optional,Most households (optional),,missing,
+surveyAdmin.fields.reward_amount,optional,Incentive per household (TZS),,missing,
+surveyAdmin.fields.title_en,optional,Title (English),,missing,
+surveyAdmin.fields.title_sw,optional,Title (Swahili),,missing,
+surveyAdmin.from,optional,From,,missing,
+surveyAdmin.goBack,optional,Go back,,missing,
+surveyAdmin.held,optional,Held,,missing,
+surveyAdmin.highest,optional,Highest {{value}},,missing,
+surveyAdmin.intro,optional,Surveys for farmers. Each household can answer a survey once and collects the incentive in cash at the office.,,missing,
+surveyAdmin.kinds.multi_choice,optional,Several choices,,missing,
+surveyAdmin.kinds.number,optional,A number,,missing,
+surveyAdmin.kinds.single_choice,optional,One choice,,missing,
+surveyAdmin.kinds.text,optional,Free text,,missing,
+surveyAdmin.kinds.yes_no,optional,Yes or no,,missing,
+surveyAdmin.logColumns.amount,optional,Incentive,,missing,
+surveyAdmin.logColumns.household,optional,Household,,missing,
+surveyAdmin.logColumns.idType,optional,ID checked,,missing,
+surveyAdmin.logColumns.officer,optional,Handed over by,,missing,
+surveyAdmin.logColumns.survey,optional,Survey,,missing,
+surveyAdmin.logColumns.village,optional,Village,,missing,
+surveyAdmin.logColumns.when,optional,When,,missing,
+surveyAdmin.lowest,optional,Lowest {{value}},,missing,
+surveyAdmin.maxHouseholds,optional,Most households,,missing,
+surveyAdmin.new,optional,New survey,,missing,
+surveyAdmin.noQuestions,optional,No questions yet.,,missing,
+surveyAdmin.noRedemptions,optional,Nothing handed over in these dates,,missing,
+surveyAdmin.noRedemptionsDetail,optional,Try a wider date range.,,missing,
+surveyAdmin.noVouchers,optional,No vouchers yet,,missing,
+surveyAdmin.noVouchersDetail,optional,A voucher is issued when a household answers this survey.,,missing,
+surveyAdmin.publish,optional,Publish,,missing,
+surveyAdmin.publishDetail,optional,"Farmers see it straight away. Once published, the questions and the incentive cannot be changed.",,missing,
+surveyAdmin.publishedBy,optional,Published {{date}} by {{name}},,missing,
+surveyAdmin.publishTitle,optional,Publish this survey?,,missing,
+surveyAdmin.question.addOption,optional,Add option,,missing,
+surveyAdmin.question.kind,optional,Answer type,,missing,
+surveyAdmin.question.moveDown,optional,Move down,,missing,
+surveyAdmin.question.moveUp,optional,Move up,,missing,
+surveyAdmin.question.optionLabel,optional,Option (English),,missing,
+surveyAdmin.question.optionLabelSw,optional,Option (Swahili),,missing,
+surveyAdmin.question.options,optional,Options,,missing,
+surveyAdmin.question.prompt_en,optional,Question (English),,missing,
+surveyAdmin.question.prompt_sw,optional,Question (Swahili),,missing,
+surveyAdmin.question.remove,optional,Remove,,missing,
+surveyAdmin.question.required,optional,Required,,missing,
+surveyAdmin.questions,optional,Questions,,missing,
+surveyAdmin.redemptions,optional,Redemptions,,missing,
+surveyAdmin.redemptionsIntro,optional,"Every incentive handed over, for reconciling cash each day.",,missing,
+surveyAdmin.results,optional,Results,,missing,
+surveyAdmin.save,optional,Save draft,,missing,
+surveyAdmin.saved,optional,Saved,,missing,
+surveyAdmin.saving,optional,Saving…,,missing,
+surveyAdmin.selectVoucher,optional,Choose a voucher to see its audit trail.,,missing,
+surveyAdmin.summary.expired,optional,Expired,,missing,
+surveyAdmin.summary.issued,optional,Issued,,missing,
+surveyAdmin.summary.outstanding,optional,Not yet collected,,missing,
+surveyAdmin.summary.redeemed,optional,Collected,,missing,
+surveyAdmin.summary.responses,optional,Households answered,,missing,
+surveyAdmin.summary.void,optional,Cancelled,,missing,
+surveyAdmin.swahiliNote,optional,Swahili text needs a native reviewer before farmers see it. Leave it blank to show English.,,missing,
+surveyAdmin.tally,optional,Answers,,missing,
+surveyAdmin.textNotTallied,optional,Free-text answers are not counted here.,,missing,
+surveyAdmin.title,optional,Surveys,,missing,
+surveyAdmin.to,optional,To,,missing,
+surveyAdmin.totals,optional,Per officer per day,,missing,
+surveyAdmin.totalsColumns.amount,optional,Total,,missing,
+surveyAdmin.totalsColumns.day,optional,Day,,missing,
+surveyAdmin.totalsColumns.officer,optional,Handed over by,,missing,
+surveyAdmin.totalsColumns.vouchers,optional,Vouchers,,missing,
+surveyAdmin.void,optional,Cancel voucher,,missing,
+surveyAdmin.voidConfirm,optional,Cancel voucher,,missing,
+surveyAdmin.voidDetail,optional,The household will not be able to collect this incentive. The reason is kept on the audit trail.,,missing,
+surveyAdmin.voidReason,optional,Reason,,missing,
+surveyAdmin.voidTitle,optional,Cancel this voucher?,,missing,
+surveyAdmin.voucherColumns.amount,optional,Incentive,,missing,
+surveyAdmin.voucherColumns.audit,optional,Audit,,missing,
+surveyAdmin.voucherColumns.household,optional,Household,,missing,
+surveyAdmin.voucherColumns.redeemedBy,optional,Handed over by,,missing,
+surveyAdmin.voucherColumns.respondent,optional,Answered by,,missing,
+surveyAdmin.voucherColumns.status,optional,Status,,missing,
+surveyAdmin.voucherColumns.submitted,optional,Answered,,missing,
+surveyAdmin.voucherFor,optional,Voucher for {{household}},,missing,
+surveyAdmin.vouchers,optional,Vouchers,,missing,
+tour.ops.demandBody,optional,"What buyers are asking for, and how much of it a village could cover. Prices are indicative throughout. Creating an opportunity records a match — it is not a sale.",,missing,
+tour.ops.demandTitle,optional,Buyer demand,,missing,
+tour.ops.queueBody,optional,"Each tile counts one queue and opens it. They are counts of work, not performance figures.",,missing,
+tour.ops.queueTitle,optional,What is waiting for you,,missing,
+tour.ops.requestsBody,optional,"Every equipment request, filterable by status and village. Opening one shows the farmer's own words, the energy estimate and the decision controls.",,missing,
+tour.ops.requestsTitle,optional,The request pipeline,,missing,
+tour.ops.surveysBody,optional,"Admin writes and publishes surveys here. Each household answers once and collects a fixed cash incentive at the office. You see who answered, which vouchers are collected, and the full trail of names behind each one; Redemptions totals the cash handed over per officer per day.",,missing,
+tour.ops.surveysTitle,optional,Surveys and their incentives,,missing,
+tour.ops.towerBody,optional,"Production, energy, market and data quality for one village. Every figure is read from the database and drills down to the record it came from.",,missing,
+tour.ops.towerTitle,optional,The Control Tower,,missing,
+tour.ops.towerVillageBody,optional,The Tower is always about one village. Capacity here is planned and always shown with its basis — never measured — and prospective and approved demand are separate figures that are never added together.,,missing,
+tour.ops.towerVillageTitle,optional,Pick a village first,,missing,
+tour.ops.welcomeBody,optional,"This is the programme surface: requests, buyer demand, surveys and the Control Tower. The tour button in the header lets you pick any part of it to be shown at any time.",,missing,
+tour.ops.welcomeTitle,optional,Welcome to Ruaha 360,,missing,
+tower.actual,optional,Actual,,missing,
+tower.approvedNote,optional,Decided yes. Still not measured consumption.,,missing,
+tower.approvedPeak,optional,Approved peak,,missing,
+tower.approvedPerWeek,optional,"Approved, estimated per week",,missing,
+tower.available,optional,Available,,missing,
+tower.backToTower,optional,Back to the Tower,,missing,
+tower.basis,optional,Basis,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+tower.capacity,optional,Planned capacity,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+tower.chooseVillage,optional,Choose a village,,missing,
+tower.colActual,optional,Actual,,missing,
+tower.colActualKg,optional,Actual kg,,missing,
+tower.colApplicant,optional,Applicant,,missing,
+tower.colApplicantEquipment,optional,Applicant · equipment,,missing,
+tower.colAvailable,optional,Available,,missing,
+tower.colBuyer,optional,Buyer,,missing,
+tower.colBuyerCrop,optional,Buyer · crop,,missing,
+tower.colCoverage,optional,Coverage,,missing,
+tower.colCrop,optional,Crop,,missing,
+tower.colCropFarmerPlot,optional,Crop · farmer · plot,,missing,
+tower.colCropWindow,optional,Crop · window,,missing,
+tower.colCycles,optional,Cycles,,missing,
+tower.colDemand,optional,Demand,,missing,
+tower.colEquipment,optional,Equipment,,missing,
+tower.colExpected,optional,Expected,,missing,
+tower.colExpectedKg,optional,Expected kg,,missing,
+tower.colOpportunity,optional,Opportunity,,missing,
+tower.colPeak,optional,Est. peak,,missing,
+tower.colPlanted,optional,Planted,,missing,
+tower.colStatus,optional,Status,,missing,
+tower.colVerified,optional,Verified cycles,,missing,
+tower.colWindow,optional,Window,,missing,
+tower.coverage,optional,Coverage,,missing,
+tower.cycles,optional,Cycles,,missing,
+tower.cyclesWithEstimate,optional,Cycles with an estimate,,missing,"Always labelled an ESTIMATE. Not a measurement, not a commitment."
+tower.drill,optional,See the records,,missing,
+tower.energy,optional,Energy,,missing,
+tower.energyDrill,optional,Requests behind the energy figures,,missing,
+tower.excludedFromFigures_one,optional,"1 more request in this village is draft, rejected or withdrawn. It feeds neither figure — the equipment pipeline tile counts every status.",,missing,
+tower.excludedFromFigures_other,optional,"{{count}} more requests in this village are draft, rejected or withdrawn. They feed neither figure — the equipment pipeline tile counts every status.",,missing,
+tower.expected,optional,Expected,,missing,
+tower.expectedWeightFor,optional,"Expected weight, {{crop}} · {{window}}",,missing,
+tower.farmsWithGps,optional,Farms with GPS,,missing,
+tower.figureOnTile,optional,"{{crop}}, {{window}} — the figure on the tile",,missing,
+tower.headroom,optional,Headroom,,missing,
+tower.headroomLeft,optional,Headroom left,,missing,
+tower.headroomNote,optional,Approved peak against planned capacity. Prospective requests are not on this bar; they are not a load.,,missing,
+tower.indicativeValue,optional,Indicative value,,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+tower.indicativeValueNote,optional,Indicative catalogue value: price times quantity. Not financed value and not a loan book.,,missing,"Prices are INDICATIVE, never quotations. Must not read as a firm offer."
+tower.lead,optional,Every headline here drills to the records underneath it.,,missing,
+tower.market,optional,Market,,missing,
+tower.marketDrill,optional,Demand against available supply,,missing,
+tower.marketNote,optional,Open demand against supply that is still available.,,missing,
+tower.neverSummed,optional,Prospective and approved are separate figures and are never added together.,,missing,
+tower.noCapacityDetail,optional,A current village_capacity row is needed before energy figures can be shown.,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+tower.noCapacityTitle,optional,No capacity recorded,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+tower.noDataDetail,optional,This tile fills in as records are created.,,missing,
+tower.noDataTitle,optional,Nothing recorded yet,,missing,
+tower.noneInFigure,optional,No requests in this figure.,,missing,
+tower.noVillageDetail,optional,The Tower reports on one village at a time.,,missing,
+tower.noVillageTitle,optional,Choose a village,,missing,
+tower.openDemand,optional,Open demand,,missing,
+tower.personsVerified,optional,Persons verified,,missing,
+tower.plantedArea,optional,Planted area across cycles,,missing,"This is planted area ACROSS CYCLES, never ""land area"": intercropping means it can exceed the village’s hectares."
+tower.plantedAreaNote,optional,"The sum of cycle areas. Intercropping means several cycles share a plot, so this can exceed the village’s hectares. It is not land area.",,missing,"This is planted area ACROSS CYCLES, never ""land area"": intercropping means it can exceed the village’s hectares."
+tower.production,optional,Production,,missing,
+tower.productionDrill,optional,Production by crop and window,,missing,
+tower.productionNote,optional,Expected and actual harvest by crop and window.,,missing,
+tower.prospectiveNote,optional,"Requests submitted or under review. An application, not a load.",,missing,Prospective and approved demand are separate figures and are NEVER summed.
+tower.prospectivePeak,optional,Prospective peak,,missing,Prospective and approved demand are separate figures and are NEVER summed.
+tower.pue,optional,Equipment pipeline,,missing,
+tower.pueNote,optional,"Requests by status, with the catalogue value they represent.",,missing,
+tower.quality,optional,Data quality,,missing,
+tower.qualityCounted,optional,Counted,,missing,
+tower.qualityDrill,optional,Records behind data quality,,missing,
+tower.qualityMetrics,optional,Data quality measures,,missing,
+tower.qualityMissing,optional,Not counted,,missing,
+tower.qualityNote,optional,How much of what has been recorded has been checked.,,missing,
+tower.qualityRecord,optional,Record,,missing,
+tower.qualityState,optional,In measure,,missing,
+tower.requestCount_one,optional,1 request,,missing,
+tower.requestCount_other,optional,{{count}} requests,,missing,
+tower.requests,optional,Requests,,missing,
+tower.simultaneity,optional,Simultaneity factor,,missing,
+tower.simultaneityNote,optional,Applied to the peaks above. Village peak is not the sum of rated power.,,missing,
+tower.stillFree,optional,Still free,,missing,
+tower.sumOfPeaks,optional,Sum of estimated peaks,,missing,
+tower.timesFactor,optional,× {{factor}} simultaneity =,,missing,
+tower.title,optional,Control Tower,,missing,
+tower.trees,optional,Trees,,missing,
+tower.village,optional,Village,,missing,
+villages.colBasis,optional,Basis,,missing,
+villages.colCapacity,optional,Planned capacity,,missing,"Capacity is PLANNED or NAMEPLATE, never measured. Always shown with its basis."
+villages.colCode,optional,Code,,missing,
+villages.colEffectiveFrom,optional,Effective from,,missing,
+villages.colName,optional,Village,,missing,
+villages.colSimultaneity,optional,Simultaneity factor,,missing,
+villages.noneDetail,optional,No villages are visible for this project.,,missing,
+villages.noneTitle,optional,No villages,,missing,
+villages.plannedNote,optional,"Capacity is planned, never measured. Every figure is shown with the basis it was planned on.",,missing,
+villages.simultaneityNote,optional,The simultaneity factor is applied to village peaks. Village peak is not the sum of rated power.,,missing,
+villages.title,optional,Villages,,missing,
