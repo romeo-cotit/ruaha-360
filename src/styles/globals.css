@@ -133,16 +133,6 @@
      so the dimmed page still reads as this product. */
   --scrim: rgba(12, 31, 91, 0.55);
 
-  /* ── the provisional mark ────────────────────────────── */
-  /* Hatching means estimated / planned / superseded / not-yet-covered,
-     everywhere in the system. `.hatch` lays it over whatever ground the
-     element already has. */
-  --hatch: repeating-linear-gradient(
-    135deg,
-    rgba(12, 31, 91, 0.16) 0 3px,
-    transparent 3px 7px
-  );
-
   /* ── radii ───────────────────────────────────────────── */
   --radius-control: 8px; /* buttons, inputs, selects */
   --radius-card: 12px; /* cards, tiles, tables, panels */
@@ -220,12 +210,6 @@
      `EnergyEstimatePanel.test.tsx` reads this class name off an element. */
   .tabular {
     font-variant-numeric: tabular-nums;
-  }
-
-  /* Provisional. Lays the 135° hatch over whatever ground the element has,
-     so `bg-paper hatch` and `bg-sand-2 hatch` both read as "not settled". */
-  .hatch {
-    background-image: var(--hatch);
   }
 
   /* A horizontally-scrollable row with no visible scrollbar track — the

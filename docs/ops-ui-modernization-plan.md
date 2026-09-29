@@ -34,7 +34,7 @@ Every source file changed in this pass must have existing coverage extended or a
 - Custom Select controls support pointer and keyboard interaction and preserve test IDs.
 - Nested pages expose a logical parent Back link and breadcrumbs with current-page semantics.
 - Table surfaces are white, with filters/actions included in the same surface and horizontal scrolling limited to the table region.
-- Status chips use solid semantic fills with readable contrast; hatching remains only on provisional/estimate indicators.
+- Status chips use solid semantic fills with readable contrast; no striped backgrounds anywhere.
 - Responsive checks cover 320, 375, 768, 1024, and 1440px without document-level horizontal overflow.
 - At 1440px, demand/buyer create panels, request detail, Tower drills, and officer detail occupy the available workspace; create panels remain hidden until requested.
 - At every target width, table overflow stays inside the table wrapper and the create panel remains inside the viewport.

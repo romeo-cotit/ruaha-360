@@ -27,7 +27,7 @@ describe('StatusPill for a PUE request', () => {
   })
 
   // Distinctness is asserted on the whole visual signature rather than on the
-  // class attribute alone: the redesign carries the hatch and the tints as
+  // class attribute alone: the redesign carries the tints as
   // inline style, and a pill that stopped being distinguishable would be just
   // as wrong however it was written.
   test('all six request statuses are visually distinct', () => {
@@ -110,7 +110,7 @@ function signature(element: HTMLElement): string {
   return `${element.className}|${element.getAttribute('style') ?? ''}`
 }
 
-/** A solid brand fill, as opposed to a tint, a hatch or bare paper. */
+/** A solid brand fill, as opposed to a tint or bare paper. */
 function isFilled(element: HTMLElement): boolean {
   const style = element.getAttribute('style') ?? ''
   return /background:\s*var\(--(accent|green|primary|flag-ink|green-ink)\)/.test(style)

@@ -203,7 +203,7 @@ export function OpportunityDetailScreen() {
           style={{
             border: '1px solid var(--rule-2)',
             borderRadius: 'var(--radius-card)',
-            background: 'var(--hatch), var(--paper)',
+            background: 'var(--paper)',
             fontSize: 14,
             lineHeight: 1.55,
             color: 'var(--ink-2)',

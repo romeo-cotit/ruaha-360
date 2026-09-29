@@ -143,7 +143,7 @@ export function ProvenanceBadge({
 
 /**
  * Five sources, five treatments: blue solid, plain, sunken sand, green,
- * hatched italic. The hatch means provisional everywhere in the system.
+ * italic.
  */
 const SOURCE_TREATMENT: Record<SourceType, { segment: CSSProperties; cap: CSSProperties }> = {
   field_verified: {
@@ -164,11 +164,11 @@ const SOURCE_TREATMENT: Record<SourceType, { segment: CSSProperties; cap: CSSPro
   },
   model_estimated: {
     segment: {
-      background: 'var(--hatch), var(--paper)',
+      background: 'var(--paper)',
       color: 'var(--ink-2)',
       fontStyle: 'italic',
     },
-    cap: { background: 'var(--hatch), var(--ink-3)' },
+    cap: { background: 'var(--ink-3)' },
   },
 }
 

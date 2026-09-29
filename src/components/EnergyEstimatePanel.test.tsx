@@ -92,13 +92,13 @@ describe('EnergyEstimatePanel shows its working', () => {
     }
   })
 
-  // The hatch means provisional everywhere in the system, and it is what
-  // carries that meaning here now the dashed border is gone.
-  test('the header band is hatched, and tagged', () => {
+  // The band is a solid ground so the text on it stays readable; the word
+  // "estimate" is what carries the meaning.
+  test('the header band is solid, and tagged', () => {
     render(<EnergyEstimatePanel {...mill} />)
     const header = screen.getByTestId('estimate-panel').querySelector('header')
 
-    expect(header?.getAttribute('style') ?? '').toMatch(/var\(--hatch\)/)
+    expect(header?.getAttribute('style') ?? '').not.toMatch(/gradient|hatch/)
     expect(header).toHaveTextContent(/estimate/i)
   })
 })

@@ -87,7 +87,7 @@ export function Loading({ testId }: { testId?: string }) {
 /**
  * "Indicative" is a tag, not a parenthesis.
  *
- * It travels with the number as a hatched pill, which cannot be skim-read away
+ * It travels with the number as a pill, which cannot be skim-read away
  * the way "(indicative)" in 12px grey could. A price here is not a quotation and
  * the programme does not want it read as one.
  */
@@ -100,7 +100,7 @@ export function IndicativePill() {
       style={{
         border: '1px solid var(--rule-2)',
         borderRadius: 'var(--radius-pill)',
-        background: 'var(--hatch), var(--paper)',
+        background: 'var(--paper)',
         color: 'var(--ink-2)',
         flex: 'none',
       }}

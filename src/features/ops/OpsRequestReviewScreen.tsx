@@ -92,8 +92,8 @@ export function OpsRequestReviewScreen() {
 
       {/*
         The inputs the estimate was calculated from, as they were at the moment
-        it was stored. Hatched: this is a snapshot of an estimate, and neither
-        half of that is a measurement.
+        it was stored. A snapshot of an estimate, so neither half is a
+        measurement; the wording below says so.
       */}
       <section
         className="flex flex-col gap-2 p-4"
@@ -101,7 +101,7 @@ export function OpsRequestReviewScreen() {
         style={{
           border: '1px solid var(--rule-2)',
           borderRadius: 'var(--radius-card)',
-          background: 'var(--hatch), var(--paper)',
+          background: 'var(--paper)',
         }}
       >
         <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>
@@ -322,7 +322,7 @@ function Cell({
             style={{
               border: '1px solid var(--rule-2)',
               borderRadius: 'var(--radius-pill)',
-              background: 'var(--hatch), var(--paper)',
+              background: 'var(--paper)',
               color: 'var(--ink-2)',
               fontWeight: 700,
             }}

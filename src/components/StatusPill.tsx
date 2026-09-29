@@ -38,9 +38,8 @@ const NAMESPACE = {
  * So: a request's **approved** is the only solid fill in the product, because
  * it is the only state that is a decision with capacity consequences. Every
  * opportunity pill is outlined on white, and **accepted** is distinguished by a
- * heavier edge rather than by a fill. Statuses use quiet solid surfaces only;
- * hatching is reserved for provisional estimates and is intentionally absent
- * here so every label remains easy to read.
+ * heavier edge rather than by a fill. Statuses use quiet solid surfaces only, so every
+ * label remains easy to read.
  */
 export function StatusPill(props: StatusPillProps) {
   const { t } = useTranslation()
@@ -67,7 +66,7 @@ const OUTLINE: CSSProperties = {
 }
 
 /** Provisional, and going nowhere. */
-const HATCHED: CSSProperties = {
+const PROVISIONAL: CSSProperties = {
   border: '1px solid var(--rule-2)',
   background: 'var(--sand-2)',
   color: 'var(--ink-2)',
@@ -101,7 +100,7 @@ const REQUEST_STYLE: Record<RequestStatus, CSSProperties> = {
     color: 'var(--flag-ink)',
     fontWeight: 600,
   },
-  withdrawn: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
+  withdrawn: { ...PROVISIONAL, background: 'var(--sand-2)', color: 'var(--ink-2)' },
 }
 
 const DEMAND_STYLE: Record<DemandStatus, CSSProperties> = {
@@ -119,7 +118,7 @@ const DEMAND_STYLE: Record<DemandStatus, CSSProperties> = {
     fontWeight: 600,
   },
   closed: { ...OUTLINE, background: 'var(--sand-2)' },
-  cancelled: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
+  cancelled: { ...PROVISIONAL, background: 'var(--sand-2)', color: 'var(--ink-2)' },
 }
 
 const OPPORTUNITY_STYLE: Record<OpportunityStatus, CSSProperties> = {
@@ -143,7 +142,7 @@ const OPPORTUNITY_STYLE: Record<OpportunityStatus, CSSProperties> = {
     color: 'var(--flag-ink)',
     fontWeight: 500,
   },
-  lapsed: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
+  lapsed: { ...PROVISIONAL, background: 'var(--sand-2)', color: 'var(--ink-2)' },
 }
 
 const SURVEY_STYLE: Record<SurveyStatus, CSSProperties> = {
@@ -178,7 +177,7 @@ const VOUCHER_STYLE: Record<VoucherDisplayStatus, CSSProperties> = {
     color: 'var(--flag-ink)',
     fontWeight: 500,
   },
-  expired: { ...HATCHED, background: 'var(--sand-2)', color: 'var(--ink-2)' },
+  expired: { ...PROVISIONAL, background: 'var(--sand-2)', color: 'var(--ink-2)' },
 }
 
 function styleFor(props: StatusPillProps): CSSProperties {

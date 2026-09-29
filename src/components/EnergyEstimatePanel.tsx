@@ -26,9 +26,8 @@ export interface EnergyEstimatePanelProps {
  * energy_estimate — clients hold no write policy on it at all.
  *
  * Always labelled an estimate. It is not measured consumption and not a
- * commitment. The dashed border is gone; the hatched header band carries
- * "provisional" instead, which is what the hatch means everywhere else in the
- * system too.
+ * commitment. The dashed border is gone; the header band on a solid
+ * ground says "estimate" in words instead.
  */
 export function EnergyEstimatePanel({
   ratedPowerKw,
@@ -54,7 +53,7 @@ export function EnergyEstimatePanel({
       <header
         className="flex flex-col gap-[5px] px-4 py-3.5"
         style={{
-          background: 'var(--hatch), var(--sand-2)',
+          background: 'var(--sand-2)',
           borderBottom: '1px solid var(--rule-2)',
         }}
       >

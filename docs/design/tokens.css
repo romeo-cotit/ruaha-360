@@ -3,7 +3,7 @@
    Merge into src/styles/globals.css. Tailwind v4 is CSS-first: there is no
    tailwind.config.js. The brand block is unchanged — #1d70b7, #93c01f,
    #0c1f5b, #f5f3e5 are the brand book's own values and the same blue and
-   green as the logo. What is new is the ink scale, the surfaces, the hatch,
+   green as the logo. What is new is the ink scale, the surfaces,
    the radius set and the type scale.
    ────────────────────────────────────────────────────────────────────────── */
 
@@ -38,13 +38,6 @@
   /* ── rules · replaces border-deep/10|15|20|25|30 ──────── */
   --rule:   rgba(12, 31, 91, .12);  /* every hairline divider */
   --rule-2: rgba(12, 31, 91, .22);  /* chip, control and card edges */
-
-  /* ── the provisional mark ─────────────────────────────── */
-  /* Hatching means estimated / planned / superseded / not-yet-covered,
-     everywhere in the system. Compose it over a background:
-       background: var(--hatch), var(--paper);                             */
-  --hatch: repeating-linear-gradient(135deg,
-             rgba(12, 31, 91, .16) 0 3px, transparent 3px 7px);
 
   /* ── radii ────────────────────────────────────────────── */
   --radius-control: 8px;   /* buttons, inputs, selects */

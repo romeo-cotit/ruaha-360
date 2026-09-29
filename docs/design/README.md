@@ -1,5 +1,12 @@
 # Handoff: Ruaha 360 — visual redesign
 
+> **Superseded, 29 September 2026: no striped backgrounds.** Wherever this handoff
+> (and the `.dc.html` mockups beside it) says *hatch* or *hatched*, the build uses a
+> solid ground instead (`--sand-2` or `--paper`) because stripes made text hard to
+> read. "Provisional" is carried by the word ("estimate", "planned"), italics and the
+> pill wording. `--hatch` no longer exists; `src/styles/tokens.test.ts` fails if a
+> repeating gradient comes back.
+
 ## Overview
 
 Ruaha 360 is a rural economic development platform for **Ruaha Energy**, first deployed in
@@ -51,7 +58,6 @@ New ink scale replacing every `text-deep/NN`: `--ink #0c1f5b` (12.5:1), `--ink-2
 #14548a`, `--green-ink #3f5410`, `--flag-ink #9e1b1b`. Surfaces: `--paper #fff`, `--sand
 #f5f3e5`, `--sand-2 #efeada`. Rules: `--rule rgba(12,31,91,.12)`, `--rule-2 rgba(12,31,91,.22)`.
 Tints: primary `.08`, green `.20`, flag `.07`.
-`--hatch` is a 135° repeating gradient meaning *provisional* everywhere in the system.
 
 > `text-deep/60` on the sand ground measures **4.17:1** and is used for every secondary string
 > in the app today. It is the most likely accessibility failure in the product. Replace it.

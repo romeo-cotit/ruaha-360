@@ -167,7 +167,7 @@ export function BangMark({ size = 15 }: { size?: number }) {
 }
 
 /** Provisional: what is on screen is not yet what will be stored. */
-export function HatchMark({ size = 13 }: { size?: number }) {
+export function PlannedMark({ size = 13 }: { size?: number }) {
   return (
     <span
       aria-hidden
@@ -175,7 +175,7 @@ export function HatchMark({ size = 13 }: { size?: number }) {
         width: size,
         height: size,
         borderRadius: 'var(--radius-pill)',
-        background: 'var(--hatch), var(--sand-2)',
+        background: 'var(--sand-2)',
         border: '1px solid var(--rule-2)',
         boxSizing: 'border-box',
         flex: 'none',

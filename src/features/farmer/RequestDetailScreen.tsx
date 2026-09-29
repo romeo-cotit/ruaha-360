@@ -85,7 +85,7 @@ export function RequestDetailScreen() {
         style={{
           border: '1px solid var(--rule-2)',
           borderRadius: 'var(--radius-card)',
-          background: 'var(--hatch), var(--paper)',
+          background: 'var(--paper)',
         }}
       >
         <h2 className="type-section inline-flex flex-wrap items-center gap-2" style={{ color: 'var(--ink-3)' }}>

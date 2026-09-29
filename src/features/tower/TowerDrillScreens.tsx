@@ -502,7 +502,7 @@ export function TowerMarketScreen() {
 
 /**
  * A 72px bar beside the percentage. The seeded coffee demand has no supply at
- * all, and its empty hatched track is the point: an honest zero, stated rather
+ * all, and its empty track is the point: an honest zero, stated rather
  * than left blank.
  */
 function MiniCoverage({ pct }: { pct: number | null }) {
@@ -517,7 +517,7 @@ function MiniCoverage({ pct }: { pct: number | null }) {
         height: 8,
         borderRadius: 'var(--radius-pill)',
         border: '1px solid var(--rule)',
-        background: 'var(--hatch), var(--sand-2)',
+        background: 'var(--sand-2)',
       }}
     >
       <span style={{ width: `${covered}%`, background: 'var(--accent)', display: 'block' }} />

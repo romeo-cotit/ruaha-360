@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
  * deliberately no success toast for a local save — reaching local storage is
  * not a server write.
  *
- * Hatched ground, red edge, filled dot. This badge is read on a phone that has
+ * Solid ground, red edge, filled dot. This badge is read on a phone that has
  * just lost signal halfway through a registration, with someone waiting; a
  * treatment that looked like success there would be a lie.
  */
@@ -21,7 +21,7 @@ export function UnsavedDraftBadge() {
       style={{
         border: '1.5px solid var(--flag-ink)',
         borderRadius: 'var(--radius-pill)',
-        background: 'var(--hatch), var(--paper)',
+        background: 'var(--paper)',
         color: 'var(--flag-ink)',
       }}
     >

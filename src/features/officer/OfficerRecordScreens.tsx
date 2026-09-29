@@ -329,14 +329,14 @@ export function OfficerCycleScreen() {
                 style={{
                   /*
                     The current figure is outlined in blue; a superseded one is
-                    hatched and struck through. The 3,200 kg the Tower excludes
+                    greyed and struck through. The 3,200 kg the Tower excludes
                     stays visible and is obviously not counted.
                   */
                   border: h.is_current
                     ? '1.5px solid var(--primary)'
                     : '1px solid var(--rule-2)',
                   borderRadius: 'var(--radius-card)',
-                  background: h.is_current ? 'var(--paper)' : 'var(--hatch), var(--sand-2)',
+                  background: h.is_current ? 'var(--paper)' : 'var(--sand-2)',
                   ...(focusedHarvest === h.id ? { outline: '2px solid var(--primary)' } : {}),
                 }}
               >

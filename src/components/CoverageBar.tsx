@@ -32,7 +32,7 @@ export interface CoverageBarProps {
  * stacked bar would put it inside the same length as the available supply and
  * imply the two add up to something, which is exactly the claim that is false.
  *
- * The three quantities are told apart three ways — solid fill, hatched pattern,
+ * The three quantities are told apart three ways — solid fill, a lighter tone,
  * outlined swatch — because colour alone does not survive a scratched screen in
  * sunlight, and there is no chart library here to do it for us.
  *
@@ -92,7 +92,7 @@ export function CoverageBar({
             data-segment="uncovered"
             style={{
               width: `${100 - covered}%`,
-              background: 'var(--hatch), var(--sand-2)',
+              background: 'var(--sand-2)',
               display: 'block',
             }}
           />
@@ -183,14 +183,14 @@ function LegendRow({
   )
 }
 
-/** Solid means available. Hatched means missing. Outlined means spoken for. */
+/** Solid accent means available. Pale means missing. Outlined means spoken for. */
 const SWATCH: Record<'available' | 'uncovered' | 'committed', CSSProperties> = {
   available: { width: 10, height: 10, borderRadius: 3, background: 'var(--accent)', flex: 'none' },
   uncovered: {
     width: 10,
     height: 10,
     borderRadius: 3,
-    background: 'var(--hatch), var(--sand-2)',
+    background: 'var(--sand-2)',
     border: '1px solid var(--rule-2)',
     flex: 'none',
   },

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { read } from './design'
+import { code, offendingLines, read, sourceFiles } from './design'
 
 /**
  * The redesign's token set, as delivered in `docs/design/tokens.css`, must
@@ -47,8 +47,11 @@ describe('the delivered tokens reach globals.css', () => {
     }
   })
 
-  test('hatching is one shared gradient, so provisional looks the same everywhere', () => {
-    expect(live).toMatch(/--hatch\s*:\s*repeating-linear-gradient\(\s*135deg/)
+  // Diagonal stripes sit behind text and make it hard to read. Provisional is
+  // said in words and weight, on a solid ground.
+  test('there is no striped background token', () => {
+    expect(live).not.toMatch(/--hatch\s*:/)
+    expect(delivered).not.toMatch(/--hatch\s*:/)
   })
 
   test('the four radii are named', () => {
@@ -139,5 +142,17 @@ describe('no dark palette is introduced', () => {
   test('the dark variant defines no colours', () => {
     expect(live).not.toMatch(/\.dark\s*\{/)
     expect(live).not.toMatch(/prefers-color-scheme/)
+  })
+})
+
+describe('no striped backgrounds', () => {
+  // Stripes behind text cost legibility. A solid surface token does the job.
+  test('no source file paints a repeating gradient or the old hatch token', () => {
+    const offenders = sourceFiles('src').flatMap((path) =>
+      offendingLines(code(path), /repeating-(linear|conic)-gradient|var\(--hatch\)/).map(
+        (line) => `${path}:${line}`,
+      ),
+    )
+    expect(offenders).toEqual([])
   })
 })

@@ -10,7 +10,7 @@ import { useSession } from '@/app/session'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { UnsavedDraftBadge } from '@/components/UnsavedDraftBadge'
-import { BangMark, HatchMark, VerificationMark } from '@/components/marks'
+import { BangMark, PlannedMark, VerificationMark } from '@/components/marks'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { buildRegisterPayload, type RegisterForm } from '@/features/officer/registerPayload'
@@ -385,8 +385,8 @@ export function RegisterScreen() {
         className="type-note flex items-center gap-[7px]"
         style={{ color: 'var(--ink-2)' }}
       >
-        {/* Hatched: what is on screen is not yet what will be stored. */}
-        <HatchMark />
+        {/* Planned: what is on screen is not yet what will be stored. */}
+        <PlannedMark />
         {t('register.roundedNote', { value: stored })}
       </p>
     )

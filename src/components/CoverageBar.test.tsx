@@ -72,7 +72,7 @@ describe('CoverageBar', () => {
 })
 
 /**
- * Three quantities, distinguished three ways: solid fill, hatched pattern, and
+ * Three quantities, distinguished three ways: solid fill, a lighter tone, and
  * an outlined swatch drawn OUTSIDE the track. Committed supply is not available
  * and no stacked bar may imply that it is — which is the whole reason this
  * component exists rather than a two-segment progress bar.
@@ -89,7 +89,7 @@ describe('CoverageBar tells its three quantities apart', () => {
     ])
   })
 
-  test('available is solid and not-covered is hatched — pattern, not only colour', () => {
+  test('available and not-covered are both solid, in different tones', () => {
     render(<CoverageBar {...seeded} />)
     const track = screen.getByRole('meter')
 
@@ -97,7 +97,8 @@ describe('CoverageBar tells its three quantities apart', () => {
     const uncovered = track.querySelector('[data-segment="uncovered"]')?.getAttribute('style') ?? ''
 
     expect(available).toMatch(/background:\s*var\(--accent\)/)
-    expect(uncovered).toMatch(/var\(--hatch\)/)
+    expect(uncovered).toMatch(/background:\s*var\(--sand-2\)/)
+    expect(uncovered).not.toMatch(/gradient|hatch/)
   })
 
   // The claim the design exists to prevent: committed supply looking like part

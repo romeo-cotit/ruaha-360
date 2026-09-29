@@ -203,7 +203,7 @@ export function Figure({
   )
 }
 
-/** The hatched pill that travels with a planned figure. */
+/** The pill that travels with a planned figure. */
 export function BasisPill({ children }: { children: ReactNode }) {
   return (
     <span
@@ -211,7 +211,7 @@ export function BasisPill({ children }: { children: ReactNode }) {
       style={{
         border: '1px solid var(--rule-2)',
         borderRadius: 'var(--radius-pill)',
-        background: 'var(--hatch), var(--paper)',
+        background: 'var(--paper)',
         color: 'var(--ink-2)',
         fontWeight: 700,
       }}
