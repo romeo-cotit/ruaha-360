@@ -35,19 +35,31 @@ test.describe('app shell', () => {
     await expect(tabs).toBeVisible()
     await expect(page.getByTestId('nav-sidebar')).toHaveCount(0)
 
-    // Surveys carries the in-app count of surveys waiting — two for Neema in
-    // the seed (maize storage, harvest labour) — read out as "2 new surveys"
-    // (surveys.badge, plural on count). Neema is a 'sw' user.
+    // Surveys carries the in-app count of surveys waiting, read out with its
+    // plural (surveys.badge, on count). Neema is a 'sw' user, so the label is
+    // Swahili and its plural form has to follow the number.
+    //
+    // The count is read from the badge and not pinned to the seed's two. Two
+    // surveys wait for Neema in a fresh seed, but answering one is exactly what
+    // the demo does, and that leaves a voucher on an append-only trail that a
+    // test has no business undoing. What is asserted is that a survey IS
+    // waiting and that the label agrees with the number beside it.
+    const badge = tabs.getByTestId('nav-badge-surveys')
+    await expect(badge).toBeVisible()
+    // The badge carries the number and, for a screen reader, its label: the
+    // number is the first run of digits.
+    const waiting = Number(/\d+/.exec((await badge.textContent()) ?? '')?.[0])
+    expect(waiting).toBeGreaterThan(0)
+
     await expect(tabs.getByRole('link')).toHaveText([
       tr('sw', 'nav.myFarm'),
       tr('sw', 'nav.equipment'),
       tr('sw', 'nav.requests'),
       tr('sw', 'nav.opportunities'),
       new RegExp(
-        `^${escapeRe(tr('sw', 'nav.surveys'))}2${escapeRe(tr('sw', 'surveys.badge', { count: 2 }))}$`,
+        `^${escapeRe(tr('sw', 'nav.surveys'))}${waiting}${escapeRe(tr('sw', 'surveys.badge', { count: waiting }))}$`,
       ),
     ])
-    await expect(tabs.getByTestId('nav-badge-surveys')).toContainText('2')
   })
 
   test('an officer gets a bottom tab bar', async ({ page }) => {

@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import en from '@/i18n/en/common.json'
 import sw from '@/i18n/sw/common.json'
 import flags from '@/i18n/sw/flags.json'
+import sealed from '@/i18n/sw/en-source.json'
 import reviewed from '@/i18n/sw/reviewed.json'
 import {
   SURFACE_OF,
+  englishFingerprint,
   flatten,
   reviewedKeysOf,
   validateReviewed,
@@ -57,6 +59,14 @@ describe('the Swahili bundle is complete and well formed', () => {
     expect(missing, `${missing.length} required strings have no Swahili`).toEqual([])
   })
 
+  // Ops and Tower may ship English per CLAUDE.md, but the draft now covers them
+  // too, so a new string that lands without Swahili is caught here and not by
+  // a farmer or an ops user seeing English in a Swahili session.
+  test('every key has Swahili, ops and Tower included', () => {
+    const missing = Object.keys(EN).filter((key) => !(key in SW))
+    expect(missing, `${missing.length} strings have no Swahili`).toEqual([])
+  })
+
   // A value identical to its English is an untranslated copy — the exact thing
   // this fence exists to catch — unless it has nothing to translate.
   test('no string is an untranslated copy of the English', () => {
@@ -72,12 +82,41 @@ describe('the Swahili bundle is complete and well formed', () => {
       'TZS',
       'OK',
       'Control Tower',
+      // A sales-channel acronym, shown as written.
+      'AFM',
     ])
     const copies = Object.entries(SW)
       .filter(([key, value]) => value === EN[key])
       .filter(([key, value]) => key !== 'language.sw' && !NOTHING_TO_TRANSLATE.has(value))
       .map(([key]) => key)
     expect(copies).toEqual([])
+  })
+})
+
+/**
+ * A Swahili string is written from the English of the day. When the English
+ * changes afterwards, the Swahili silently says the old thing: the tour's
+ * welcome text once promised "seven short stops" in Swahili after the English
+ * had stopped saying so. `en-source.json` records a fingerprint of the English
+ * each string was written from, so a changed English fails here until someone
+ * re-translates it and runs \`pnpm i18n:seal\`.
+ */
+describe('no Swahili string is stale', () => {
+  test('every Swahili string has a recorded English source', () => {
+    const unsealed = Object.keys(SW).filter((key) => !(key in sealed))
+    expect(unsealed, 'run pnpm i18n:seal after translating').toEqual([])
+  })
+
+  test('and the English has not changed since it was translated', () => {
+    const stale = Object.keys(SW).filter(
+      (key) => key in sealed && (sealed as Record<string, string>)[key] !== englishFingerprint(EN[key]),
+    )
+    expect(stale, 'the English changed: re-translate, then pnpm i18n:seal').toEqual([])
+  })
+
+  test('nothing is sealed for a string that no longer exists', () => {
+    const orphans = Object.keys(sealed).filter((key) => !(key in EN))
+    expect(orphans).toEqual([])
   })
 })
 
@@ -127,6 +166,20 @@ describe('the incentive is never described as earnings, a wallet, a balance or a
 
   test('no incentive string uses those words', () => {
     expect(wordingViolations(sw, INCENTIVE_NAMESPACES, FORBIDDEN)).toEqual([])
+  })
+
+  // The tour explains the incentive in the farmer's, officer's and ops' own
+  // words. Its keys live under `tour`, so they are picked out by what the
+  // ENGLISH is about. English that itself names "payment", as the opportunity
+  // disclaimer does, is not about the incentive and is left out.
+  test('nor does any tour copy about the incentive or the voucher', () => {
+    const offenders = Object.entries(SW)
+      .filter(([key]) => key.startsWith('tour.'))
+      .filter(([key]) => /incentive|voucher|redeem/i.test(EN[key] ?? ''))
+      .filter(([key]) => !/earning|wallet|balance|payment|salary|wage/i.test(EN[key] ?? ''))
+      .filter(([, value]) => FORBIDDEN.test(value))
+      .map(([key, value]) => `${key}: "${value}"`)
+    expect(offenders).toEqual([])
   })
 })
 

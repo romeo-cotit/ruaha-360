@@ -18,6 +18,8 @@
  * The pure functions are exported and unit-tested in src/i18n/handover.test.ts.
  */
 
+import { createHash } from 'node:crypto'
+
 /** Nested namespaces to dotted keys, which is how i18next addresses them. */
 export function flatten(source, prefix = '') {
   const out = {}
@@ -305,6 +307,14 @@ export function wordingViolations(sw, namespaces, pattern) {
     .filter(([key]) => namespaces.includes(key.split('.')[0]))
     .filter(([, value]) => pattern.test(String(value)))
     .map(([key, value]) => `${key}: "${value}"`)
+}
+
+/**
+ * A short fingerprint of an English string, kept beside its Swahili in
+ * `en-source.json` so a later change to the English is noticed.
+ */
+export function englishFingerprint(text) {
+  return createHash('sha1').update(String(text)).digest('hex').slice(0, 10)
 }
 
 /** Every key any reviewer has signed off, from `reviewed.json`. */

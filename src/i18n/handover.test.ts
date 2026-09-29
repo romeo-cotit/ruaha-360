@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest'
 import {
   SURFACE_OF,
   buildHandover,
+  englishFingerprint,
   flatten,
   renderCsv,
   renderHandover,
@@ -342,5 +343,19 @@ describe('incentive wording', () => {
 
   test('leaves alone a namespace that is not about the incentive', () => {
     expect(wordingViolations({ opportunity: { notASale: 'Si malipo' } }, ['voucher'], FORBIDDEN)).toEqual([])
+  })
+})
+
+describe('englishFingerprint', () => {
+  test('is stable for the same English', () => {
+    expect(englishFingerprint('Seven short stops.')).toBe(englishFingerprint('Seven short stops.'))
+  })
+
+  test('changes when the English changes, even by a character', () => {
+    expect(englishFingerprint('Seven short stops.')).not.toBe(englishFingerprint('Seven short stops'))
+  })
+
+  test('is short enough to keep a thousand of them readable', () => {
+    expect(englishFingerprint('anything')).toMatch(/^[0-9a-f]{10}$/)
   })
 })

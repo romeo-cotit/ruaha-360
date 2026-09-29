@@ -323,6 +323,12 @@ use the demo. It is written by Claude from a sourced glossary
 (`docs/i18n-glossary.md`), back-translated blind as a cross-check, and **has not
 been seen by a native reader**. Rules that still hold:
 
+- Every string in `en/common.json` has Swahili, Ops, Tower and the tour
+  included, and `bundles.test.ts` fails the day one does not. A new English
+  string needs its Swahili in the same change
+- When English changes, so does its Swahili: `src/i18n/sw/en-source.json`
+  fingerprints the English each string was written from, and the test fails on
+  a mismatch. Re-translate, then run `pnpm i18n:seal`. Do not seal to silence it
 - Nothing is called reviewed unless `src/i18n/sw/reviewed.json` says a named
   person reviewed it. Every other Swahili string is a draft, and
   `docs/i18n-handover.md` (and `.csv`) is what a reviewer receives

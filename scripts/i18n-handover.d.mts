@@ -76,3 +76,6 @@ export function renderHandover(rows: HandoverRow[], options: { generated: string
 
 /** The same rows for a reviewer who would rather work in a spreadsheet. */
 export function renderCsv(rows: HandoverRow[]): string
+
+/** A short fingerprint of an English string; see `sw/en-source.json`. */
+export function englishFingerprint(text: unknown): string

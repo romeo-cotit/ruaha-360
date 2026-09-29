@@ -58,11 +58,13 @@ See `supabase/README.md`.
 
 ### Swahili is a draft, not reviewed
 
-The farmer and officer surfaces, and the chrome both render, are in Swahili.
-**No native reader has seen it.** They were drafted on
-29 September 2026 from a sourced glossary (`docs/i18n-glossary.md`),
+Every screen is in Swahili, the guided tour for each role included, and so are
+Ops and the Tower. **No native reader has seen any of it.** It was drafted on
+29 and 30 September 2026 from a sourced glossary (`docs/i18n-glossary.md`),
 back-translated blind as a cross-check, and shipped so the demo is usable by
-people who do not read English. Ops and Tower are still English.
+people who do not read English. CLAUDE.md requires Swahili on the farmer and
+officer surfaces only; Ops and Tower are covered as well because the tour
+walks through them.
 
 What "draft" means in the repo:
 
@@ -74,6 +76,11 @@ What "draft" means in the repo:
   string, its draft, its status, and the labelling rules a translator needs —
   "estimate", "indicative price" and "planned capacity" are claims about what
   the programme does and does not promise
+- `src/i18n/sw/en-source.json` records which English each Swahili string was
+  written from. If the English changes, `bundles.test.ts` fails until the
+  string is re-translated and `pnpm i18n:seal` is run. This exists because the
+  tour's welcome text once kept promising "seven short stops" in Swahili after
+  the English stopped saying so
 - The glossary marks 80 of 176 terms `unverified`: no Tanzanian source was
   found. Those go to the reviewer first
 
@@ -83,9 +90,10 @@ bundle complete, keeps placeholders intact, and rejects the incentive being
 described as earnings, a wallet, a balance or a payment. It cannot check that
 the Swahili is right. Only a native reviewer can.
 
-Not translated, on purpose or for lack of time: the ops and Tower screens, the
-GoTrue (sign-in provider) error sentences, and any database message not listed
-in `src/lib/dbMessages.ts`, which are shown as the database wrote them.
+Not translated: the GoTrue (sign-in provider) error sentences, and any
+database message not listed in `src/lib/dbMessages.ts`, which are shown as the
+database wrote them. The sign-in screen also opens in English until a person
+switches language, because the signed-out choice is not remembered.
 
 ### What is deliberately absent
 
