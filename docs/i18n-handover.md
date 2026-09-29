@@ -22,12 +22,12 @@ string is not.
 ## Priority
 
 - **Required** — the farmer and officer surfaces, and the chrome both of
-  them render. 711 strings. CLAUDE.md specifies these ship
+  them render. 712 strings. CLAUDE.md specifies these ship
   complete Swahili.
 - **Optional** — Ops and Tower. 493 strings. These may ship
   English for the demo.
 
-1204 strings in total: 2 reviewed, 1202 draft, 0 missing. 336 flagged for a closer look (see the Flag note).
+1205 strings in total: 2 reviewed, 1203 draft, 0 missing. 337 flagged for a closer look (see the Flag note).
 
 ## How to read the table
 
@@ -465,6 +465,7 @@ string is not.
 | `register.gpsNote` | The farm's position is required. It comes from this phone's GPS; if GPS is not available, type it in. | Mahali pa shamba ni lazima. Hupatikana kupitia GPS ya simu hii; ikiwa GPS haipatikani, paandike mwenyewe. | draft | Flag: Drafter: 'Mahali pa shamba' (location of farm) used for 'position'; class-16 agreement 'paandike' is natural but check. |
 | `register.gpsRetry` | Try again | Jaribu tena | draft |  |
 | `register.gpsUnsupported` | This browser can't detect location. Enter the coordinates yourself, or | Kivinjari hiki hakiwezi kutambua mahali. Andika viwianishi mwenyewe, au | draft |  |
+| `register.gpsUseCurrent` | Use my current location | Tumia mahali nilipo sasa | draft | Flag: Drafter: 'Tumia mahali nilipo sasa' (use the place I am now) is composed; 'mahali' for location follows gpsNote. Not verified for Tanzanian usage. |
 | `register.groupsComplete` | {{done}} of {{total}} groups complete · saved on this phone only | Makundi {{done}} kati ya {{total}} yamekamilika · yamehifadhiwa kwenye simu hii pekee | draft | Keep {{done}} {{total}} Flag: Drafter: 'Makundi' for 'groups' (form sections); 'kwenye simu hii pekee' composed. |
 | `register.harvestEnd` | Harvest window ends | Mwisho wa kipindi cha kuvuna | draft |  |
 | `register.harvestKg` | Expected harvest (kg) | Mavuno yanayotarajiwa (kg) | draft |  |
@@ -486,7 +487,7 @@ string is not.
 | `register.plantedOn` | Planted on | Tarehe ya kupanda | draft | Flag: Drafter: Used 'Tarehe ya kupanda' rather than 'Ilipopandwa'; glossary notes sources disagree on kupanda vs kuotesha. |
 | `register.plotArea` | Plot area (ha) | Eneo la kipande cha shamba (ha) | draft |  |
 | `register.plotLabel` | Plot name | Jina la kipande cha shamba | draft |  |
-| `register.provenanceNote` | Recorded as field-verified, captured by you. This is not a choice. | Itarekodiwa kama imehakikiwa shambani, na imeingizwa nawe. Hili si chaguo. | draft | Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Field-verified' rendered 'imehakikiwa shambani' (UNVERIFIED glossary); 'imeingizwa nawe' for 'captured by you'; 'Hili si chaguo' for 'This is not a choice'. |
+| `register.provenanceNote` | Recorded as field-verified, captured by you. | Imehakikiwa shambani, imeingizwa na wewe. | draft | Provenance wording: where a record came from, and who verified it. Flag: Drafter: 'Field-verified' rendered 'imehakikiwa shambani' (UNVERIFIED glossary); 'imeingizwa na wewe' for 'captured by you'. Shortened 30 Sep 2026 to fit one line on a phone; the former 'This is not a choice' clause was dropped. |
 | `register.registerAnother` | Register another | Sajili mwingine | draft |  |
 | `register.required` | This is required. | Hii ni lazima. | draft | Flag: Drafter: Used 'Sehemu hii ni lazima.' (glossary gives 'ni lazima'; sentence form composed). |
 | `register.roundedNote` | This will be stored as {{value}}. | Itahifadhiwa kama {{value}}. | draft | Keep {{value}} |

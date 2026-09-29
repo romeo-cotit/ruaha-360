@@ -301,6 +301,72 @@ test.describe('the officer surface on a phone', () => {
     ).toBe(true)
   })
 
+  test('the harvest dates stack in full-width rows inside their card', async ({ page }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    const start = page.getByTestId('register-harvest-start')
+    const end = page.getByTestId('register-harvest-end')
+    await start.scrollIntoViewIfNeeded()
+    const [a, b, card] = await Promise.all([
+      start.boundingBox(),
+      end.boundingBox(),
+      page.getByTestId('register-group-cycle').boundingBox(),
+    ])
+
+    expect(a!.y + a!.height).toBeLessThanOrEqual(b!.y)
+    expect(Math.abs(a!.width - b!.width)).toBeLessThanOrEqual(1)
+    expect(a!.x).toBeGreaterThanOrEqual(card!.x)
+    expect(a!.x + a!.width).toBeLessThanOrEqual(card!.x + card!.width)
+    // Wider than the half-width column an iOS date field could not fill.
+    expect(a!.width).toBeGreaterThan(250)
+  })
+
+  test('the white submit bar runs to the bottom of the screen, with no strip of page colour', async ({
+    page,
+  }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+    await expect(page.getByTestId('register-submit')).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+
+    const [bar, viewport, submit, nav] = await Promise.all([
+      page.getByTestId('register-submit-bar').boundingBox(),
+      page.evaluate(() => window.innerHeight),
+      page.getByTestId('register-submit').boundingBox(),
+      page.getByTestId('nav-tabs').boundingBox(),
+    ])
+    expect(Math.abs(bar!.y + bar!.height - viewport)).toBeLessThanOrEqual(1)
+    // and the button still clears the tab bar.
+    expect(submit!.y + submit!.height).toBeLessThanOrEqual(nav!.y)
+  })
+
+  test('the farm position stays editable and can be re-read from the phone GPS', async ({
+    page,
+  }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    const latitude = page.getByTestId('register-farm-latitude')
+    await expect(latitude).toHaveValue(/^-8\.13/)
+    await expect(latitude).toBeEnabled()
+    await latitude.fill('1.5')
+    await page.getByTestId('register-gps-locate').click()
+    await expect(latitude).toHaveValue(/^-8\.13/)
+    await expect(page.getByTestId('register-farm-longitude')).toHaveValue(/^35\.18/)
+  })
+
+  test('the provenance note is one line', async ({ page }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    const note = page.getByTestId('register-provenance-note')
+    await expect(note).toBeVisible()
+    const lineHeight = await note.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight))
+    const box = await note.boundingBox()
+    expect(box!.height).toBeLessThan(lineHeight * 2)
+  })
+
   test('and the register page does not scroll sideways', async ({ page }) => {
     await signInAsOfficer(page)
     await page.goto('/officer/register')

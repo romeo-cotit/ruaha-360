@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import { LocateFixed } from 'lucide-react'
 
 import { activeMemberships, writableVillageIds } from '@/app/membership'
 import { useSession } from '@/app/session'
@@ -163,14 +164,30 @@ export function RegisterScreen() {
   }, [restored, gpsEligible, getValues])
 
   const location = useFarmLocation(gpsEligible === true)
+
+  /**
+   * Set when the officer presses "Use my current location" (or Try again): an
+   * explicit request, so the read replaces whatever the fields hold. The
+   * automatic read on arrival never does — it fills only fields that are still
+   * empty when the answer comes back, so typing while it is in flight wins.
+   */
+  const [wantFill, setWantFill] = useState(false)
+  const locate = () => {
+    setWantFill(true)
+    location.retry()
+  }
+
   useEffect(() => {
-    if (!gpsEligible || location.status !== 'acquired' || !location.coords) return
+    if (location.status !== 'acquired' || !location.coords) return
+    if (wantFill) {
+      setWantFill(false)
+    } else {
+      const { farm_latitude, farm_longitude } = getValues()
+      if (!gpsEligible || farm_latitude !== '' || farm_longitude !== '') return
+    }
     setValue('farm_latitude', location.coords.latitude, { shouldDirty: true })
     setValue('farm_longitude', location.coords.longitude, { shouldDirty: true })
-  }, [gpsEligible, location.status, location.coords, setValue])
-
-  const gpsFieldsDisabled =
-    gpsEligible === true && (location.status === 'acquiring' || location.status === 'acquired')
+  }, [gpsEligible, wantFill, location.status, location.coords, getValues, setValue])
 
   // Only the crop drives rendering, so only it is subscribed for render.
   const cropId = watch('crop_id')
@@ -397,7 +414,7 @@ export function RegisterScreen() {
   const completeCount = REGISTER_GROUPS.filter(done).length
 
   return (
-    <section className="flex max-w-xl flex-col gap-[18px]">
+    <section className="mb-[calc(-1*(var(--tab-bar-height,6rem)+1rem))] flex max-w-xl flex-col gap-[18px]">
       <div
         className="flex flex-col gap-[18px] p-[18px]"
         style={{
@@ -414,7 +431,8 @@ export function RegisterScreen() {
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Provenance is never a user-facing choice on this screen. */}
             <span
-              className="type-note inline-flex items-center gap-[7px] px-3 py-1.5 font-medium"
+              data-testid="register-provenance-note"
+              className="type-note inline-flex max-w-full items-center gap-[7px] px-3 py-1.5 font-medium"
               style={{
                 border: '1px solid var(--rule-2)',
                 borderRadius: 'var(--radius-pill)',
@@ -572,7 +590,6 @@ export function RegisterScreen() {
               <input
                 id="register-farm-latitude"
                 data-testid="register-farm-latitude"
-                disabled={gpsFieldsDisabled}
                 {...fieldProps('farm_latitude')}
               {...register('farm_latitude')}
               />
@@ -584,7 +601,6 @@ export function RegisterScreen() {
               <input
                 id="register-farm-longitude"
                 data-testid="register-farm-longitude"
-                disabled={gpsFieldsDisabled}
                 {...fieldProps('farm_longitude')}
               {...register('farm_longitude')}
               />
@@ -592,7 +608,7 @@ export function RegisterScreen() {
             </Field>
             </div>
           </div>
-          {gpsEligible && location.status === 'acquiring' && (
+          {location.status === 'acquiring' && (
             <p
               data-testid="register-gps-status"
               className="type-note"
@@ -601,7 +617,7 @@ export function RegisterScreen() {
               {t('register.gpsDetecting')}
             </p>
           )}
-          {gpsEligible && gpsMessageKey(location.status) && (
+          {gpsMessageKey(location.status) ? (
             <div className="flex flex-wrap items-center gap-2.5">
               <p
                 data-testid="register-gps-status"
@@ -616,18 +632,28 @@ export function RegisterScreen() {
                   data-testid="register-gps-retry"
                   variant="secondary"
                   size="sm"
-                  onClick={location.retry}
+                  onClick={locate}
                 >
                   {t('register.gpsRetry')}
                 </Button>
               )}
             </div>
+          ) : (
+            <Button
+              type="button"
+              data-testid="register-gps-locate"
+              variant="secondary"
+              className="w-full"
+              disabled={location.status === 'acquiring'}
+              onClick={locate}
+            >
+              <LocateFixed size={18} aria-hidden="true" />
+              {t('register.gpsUseCurrent')}
+            </Button>
           )}
-          {(!gpsEligible || location.status === 'acquired') && (
-            <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
-              {t('register.gpsNote')}
-            </p>
-          )}
+          <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
+            {t('register.gpsNote')}
+          </p>
         </Fieldset>
 
         <Fieldset number={4} legend={t('register.sections.plot')} complete={done('plot')}>
@@ -653,7 +679,12 @@ export function RegisterScreen() {
           {rounded('register-plot-area', plotArea, 4)}
         </Fieldset>
 
-        <Fieldset number={5} legend={t('register.sections.cycle')} complete={done('cycle')}>
+        <Fieldset
+          number={5}
+          legend={t('register.sections.cycle')}
+          complete={done('cycle')}
+          testId="register-group-cycle"
+        >
           <Field label={t('register.crop')} id="register-crop">
             <Select
               value={cropId}
@@ -725,32 +756,28 @@ export function RegisterScreen() {
             </Field>
           )}
 
-          <div className="flex flex-wrap gap-3">
-            <div style={{ flex: '1 1 150px', minWidth: 0 }}>
-            <Field label={t('register.harvestStart')} id="register-harvest-start">
-              <input
-                id="register-harvest-start"
-                data-testid="register-harvest-start"
-                type="date"
-                {...fieldProps('harvest_start')}
+          {/* One column: an iOS date input has an intrinsic minimum width that a
+              half-width column on a phone cannot hold. */}
+          <Field label={t('register.harvestStart')} id="register-harvest-start">
+            <input
+              id="register-harvest-start"
+              data-testid="register-harvest-start"
+              type="date"
+              {...fieldProps('harvest_start')}
               {...register('harvest_start')}
-              />
-              {err('harvest_start')}
-            </Field>
-            </div>
-            <div style={{ flex: '1 1 150px', minWidth: 0 }}>
-            <Field label={t('register.harvestEnd')} id="register-harvest-end">
-              <input
-                id="register-harvest-end"
-                data-testid="register-harvest-end"
-                type="date"
-                {...fieldProps('harvest_end')}
+            />
+            {err('harvest_start')}
+          </Field>
+          <Field label={t('register.harvestEnd')} id="register-harvest-end">
+            <input
+              id="register-harvest-end"
+              data-testid="register-harvest-end"
+              type="date"
+              {...fieldProps('harvest_end')}
               {...register('harvest_end')}
-              />
-              {err('harvest_end')}
-            </Field>
-            </div>
-          </div>
+            />
+            {err('harvest_end')}
+          </Field>
         </Fieldset>
 
         <Fieldset number={6} legend={t('register.sections.harvest')} complete={done('harvest')}>
@@ -804,7 +831,10 @@ export function RegisterScreen() {
         */}
         <div
           data-testid="register-submit-bar"
-          className="-mx-4 flex flex-col gap-2.5 px-4 pt-3 pb-4"
+          // Sits on the tab bar: the register section pulls this bar down over the
+          // room `main` reserves for it, and this padding puts that room back as
+          // white inside the bar so the button still clears the tab bar.
+          className="-mx-4 flex flex-col gap-2.5 px-4 pt-3 pb-[calc(var(--tab-bar-height,6rem)+1rem)]"
           style={{
             background: 'var(--paper)',
             borderTop: '1px solid var(--rule)',

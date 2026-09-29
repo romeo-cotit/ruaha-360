@@ -125,9 +125,9 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId('register-harvest-end').fill('2026-09-30')
       await page.getByTestId('register-harvest-kg').fill(EXPECTED_KG)
 
-      // The handset's GPS read filled and locked the farm position.
+      // The handset's GPS read filled the farm position, which stays editable.
       await expect(page.getByTestId('register-farm-latitude')).toHaveValue(/^-8\.13/)
-      await expect(page.getByTestId('register-farm-latitude')).toBeDisabled()
+      await expect(page.getByTestId('register-farm-latitude')).toBeEnabled()
 
       // CLAUDE.md's extra requirement on this step: "an interrupted save in
       // step 1 that survives a reload". Asserted here rather than only in
