@@ -140,7 +140,6 @@ export function OpsRequestReviewScreen() {
                 /* Capacity is PLANNED, never measured. The basis is in the
                    cell, not in a row of its own. */
                 pill={t(`capacityBasis.${energy.data.capacity_basis}`)}
-                pillTestId="review-capacity-basis"
               />
               <Cell
                 label={t('ops.headroom')}
@@ -151,6 +150,7 @@ export function OpsRequestReviewScreen() {
 
             {/* Two cells with a rule between them: no layout here sums them. */}
             <div
+              data-testid="review-peaks"
               className="flex flex-wrap items-stretch overflow-hidden"
               style={{ border: '1px solid var(--rule-2)', borderRadius: 'var(--radius-card)' }}
             >
@@ -209,7 +209,7 @@ export function OpsRequestReviewScreen() {
       {actions.length === 0 ? (
         <p style={{ fontSize: 15, color: 'var(--ink-2)' }}>{t('ops.noActions')}</p>
       ) : (
-        <section className="flex flex-col gap-3">
+        <section data-testid="review-decision" className="flex flex-col gap-3">
           {actions.some(requiresDecisionNote) && (
             <div className="flex flex-col gap-1.5">
               <label
@@ -292,13 +292,11 @@ function Cell({
   value,
   testId,
   pill,
-  pillTestId,
 }: {
   label: string
   value: string
   testId?: string
   pill?: string
-  pillTestId?: string
 }) {
   return (
     <div
@@ -319,7 +317,7 @@ function Cell({
         </span>
         {pill && (
           <span
-            data-testid={pillTestId}
+            data-testid="review-capacity-basis"
             className="type-column-label px-2 py-[3px]"
             style={{
               border: '1px solid var(--rule-2)',

@@ -24,6 +24,25 @@ describe('TowerTile', () => {
     expect(screen.getByTestId('tile-drill')).toBeInTheDocument()
   })
 
+  // A guided tour points at a tile by test id, and its checker can only read an
+  // id that is written out in source. The tile still derives one when not told.
+  test('a tile takes the test id it is given, and derives one otherwise', () => {
+    render(
+      <>
+        <TowerTile id="production" testId="tile-given" title="Production">
+          <p>one</p>
+        </TowerTile>
+        <TowerTile id="energy" title="Energy">
+          <p>two</p>
+        </TowerTile>
+      </>,
+    )
+
+    expect(screen.getByTestId('tile-given')).toHaveTextContent('one')
+    expect(screen.queryByTestId('tile-production')).not.toBeInTheDocument()
+    expect(screen.getByTestId('tile-energy')).toHaveTextContent('two')
+  })
+
   test('a tile with nothing behind it offers no link that goes nowhere', () => {
     render(
       <TowerTile id="production" title="Production">

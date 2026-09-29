@@ -97,6 +97,21 @@ business-rules §15–17.
   (run after `seed.sql`), `pnpm db:rls` now 193 assertions.
 - Dependencies `uqr` (QR drawing) and `qr-scanner` (camera) were approved.
 
+## Guided tour — 30 September 2026
+
+The tour is the demo script. Each role has chapters (one per module) in
+`src/app/tour/chapters/`; the header **Tour** button opens a menu of them,
+and the Welcome chapter runs once on a first visit. Rules for anything added:
+
+- It explains and never performs a one-way action. It may open a row
+  (`open`) and let a person try something that keeps nothing (`tryIt`);
+  it never presses Verify, Approve, Redeem, Publish, Void or Submit.
+  `e2e/tour.spec.ts` plays every chapter and fails on any server write.
+- Anchors are literal `data-testid` values. Copy carries the labelling rules
+  below (planned, estimate, indicative, not a sale, fixed cash amount).
+- `docs/demo-script.md` is the run sheet: Part A is the read-only tour-led
+  run, Part B the live chain and what it leaves behind.
+
 ---
 
 ## Non-negotiables
@@ -134,6 +149,7 @@ TanStack Table                     ops tables, Tower drill-downs
 react-hook-form + Zod              forms
 react-i18next                      Swahili + English
 vite-plugin-pwa                    cached shell
+react-joyride                      the guided tour (approved at the product owner's request)
 @supabase/supabase-js              the only data client
 Playwright + Vitest                e2e and unit
 ```

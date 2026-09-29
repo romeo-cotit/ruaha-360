@@ -179,7 +179,7 @@ export function EquipmentDetailScreen() {
           {item.category_name}
         </p>
         <h1 className="type-screen-title">{item.name}</h1>
-        <div className="flex flex-wrap gap-2.5">
+        <div data-testid="equipment-specs" className="flex flex-wrap gap-2.5">
           <span className="flex flex-col gap-0.5 px-3 py-2" style={SPEC_CELL}>
             <span className="type-note" style={{ color: 'var(--ink-2)' }}>
               {t('equipment.ratedPower')}
@@ -209,101 +209,106 @@ export function EquipmentDetailScreen() {
 
       <form className="flex flex-col gap-4" noValidate onSubmit={onSubmit}>
         <FormDraftStatus dirty={draft.dirty} storageError={draft.storageError} />
-        <div className="flex flex-col gap-3">
-          <NumberField label={t('equipment.quantity')} testId="request-quantity">
-            <input
-              id="request-quantity"
-              data-testid="request-quantity"
-              inputMode="numeric"
-              className={inputClass}
-              style={errors.quantity ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
-              {...(errors.quantity
-                ? { 'aria-invalid': true as const, 'aria-describedby': 'request-quantity-error' }
-                : {})}
-              value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
-            />
-          </NumberField>
-          {err('quantity')}
+        {/* Everything the person is invited to change, and the estimate that answers it —
+            one anchor for the guided tour, which cuts a spotlight around it. The submit
+            button is deliberately outside. */}
+        <div className="flex flex-col gap-4">
+          <div data-testid="request-inputs" className="flex flex-col gap-3">
+            <NumberField label={t('equipment.quantity')} testId="request-quantity">
+              <input
+                id="request-quantity"
+                data-testid="request-quantity"
+                inputMode="numeric"
+                className={inputClass}
+                style={errors.quantity ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
+                {...(errors.quantity
+                  ? { 'aria-invalid': true as const, 'aria-describedby': 'request-quantity-error' }
+                  : {})}
+                value={quantity}
+                onChange={(event) => setQuantity(event.target.value)}
+              />
+            </NumberField>
+            {err('quantity')}
 
-          <NumberField label={t('equipment.hours')} testId="request-hours">
-            <input
-              id="request-hours"
-              data-testid="request-hours"
-              inputMode="decimal"
-              className={inputClass}
-              style={errors.hours_per_day ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
-              {...(errors.hours_per_day
-                ? { 'aria-invalid': true as const, 'aria-describedby': 'request-hours-error' }
-                : {})}
-              value={hoursPerDay}
-              onChange={(event) => setHoursPerDay(event.target.value)}
-            />
-          </NumberField>
-          {err('hours_per_day')}
+            <NumberField label={t('equipment.hours')} testId="request-hours">
+              <input
+                id="request-hours"
+                data-testid="request-hours"
+                inputMode="decimal"
+                className={inputClass}
+                style={errors.hours_per_day ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
+                {...(errors.hours_per_day
+                  ? { 'aria-invalid': true as const, 'aria-describedby': 'request-hours-error' }
+                  : {})}
+                value={hoursPerDay}
+                onChange={(event) => setHoursPerDay(event.target.value)}
+              />
+            </NumberField>
+            {err('hours_per_day')}
 
-          <NumberField label={t('equipment.days')} testId="request-days">
-            <input
-              id="request-days"
-              data-testid="request-days"
-              inputMode="decimal"
-              className={inputClass}
-              style={errors.days_per_week ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
-              {...(errors.days_per_week
-                ? { 'aria-invalid': true as const, 'aria-describedby': 'request-days-error' }
-                : {})}
-              value={daysPerWeek}
-              onChange={(event) => setDaysPerWeek(event.target.value)}
-            />
-          </NumberField>
-          {err('days_per_week')}
+            <NumberField label={t('equipment.days')} testId="request-days">
+              <input
+                id="request-days"
+                data-testid="request-days"
+                inputMode="decimal"
+                className={inputClass}
+                style={errors.days_per_week ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle}
+                {...(errors.days_per_week
+                  ? { 'aria-invalid': true as const, 'aria-describedby': 'request-days-error' }
+                  : {})}
+                value={daysPerWeek}
+                onChange={(event) => setDaysPerWeek(event.target.value)}
+              />
+            </NumberField>
+            {err('days_per_week')}
 
-          <div className="flex flex-col gap-1.5">
-            <label
-              className="block"
-              htmlFor="request-purpose"
-              style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}
-            >
-              {t('equipment.purpose')}
-            </label>
-            <textarea
-              id="request-purpose"
-              data-testid="request-purpose"
-              rows={2}
-              className={inputClass}
-              style={{ ...inputStyle, fontVariantNumeric: 'normal' }}
-              value={purpose}
-              onChange={(event) => setPurpose(event.target.value)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label
+                className="block"
+                htmlFor="request-purpose"
+                style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}
+              >
+                {t('equipment.purpose')}
+              </label>
+              <textarea
+                id="request-purpose"
+                data-testid="request-purpose"
+                rows={2}
+                className={inputClass}
+                style={{ ...inputStyle, fontVariantNumeric: 'normal' }}
+                value={purpose}
+                onChange={(event) => setPurpose(event.target.value)}
+              />
+            </div>
           </div>
+
+          {/* Recalculates live as the assumptions change — but only from
+              assumptions that could be true. A figure computed from 99 hours a
+              day is not an estimate, it is a wrong answer stated confidently. */}
+          {parsed.success ? (
+            <EnergyEstimatePanel
+              ratedPowerKw={item.rated_power_kw ?? 0}
+              quantity={Number(parsed.data.quantity)}
+              hoursPerDay={Number(parsed.data.hours_per_day)}
+              daysPerWeek={Number(parsed.data.days_per_week)}
+            />
+          ) : (
+            <div data-testid="estimate-blocked">
+              <EmptyState
+                title={t(
+                  anythingBlank
+                    ? 'equipment.estimateBlockedTitle'
+                    : 'equipment.estimateImpossibleTitle',
+                )}
+                detail={t(
+                  anythingBlank
+                    ? 'equipment.estimateBlockedDetail'
+                    : 'equipment.estimateImpossibleDetail',
+                )}
+              />
+            </div>
+          )}
         </div>
-
-        {/* Recalculates live as the assumptions change — but only from
-            assumptions that could be true. A figure computed from 99 hours a
-            day is not an estimate, it is a wrong answer stated confidently. */}
-        {parsed.success ? (
-          <EnergyEstimatePanel
-            ratedPowerKw={item.rated_power_kw ?? 0}
-            quantity={Number(parsed.data.quantity)}
-            hoursPerDay={Number(parsed.data.hours_per_day)}
-            daysPerWeek={Number(parsed.data.days_per_week)}
-          />
-        ) : (
-          <div data-testid="estimate-blocked">
-            <EmptyState
-              title={t(
-                anythingBlank
-                  ? 'equipment.estimateBlockedTitle'
-                  : 'equipment.estimateImpossibleTitle',
-              )}
-              detail={t(
-                anythingBlank
-                  ? 'equipment.estimateBlockedDetail'
-                  : 'equipment.estimateImpossibleDetail',
-              )}
-            />
-          </div>
-        )}
 
         {submit.isError && (
           <div data-testid="request-error">

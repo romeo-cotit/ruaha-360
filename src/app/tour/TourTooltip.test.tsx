@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 
+import { TourContext } from '@/app/tour/tourContext'
 import { TourTooltip } from '@/app/tour/TourTooltip'
 
 await import('@/i18n')
@@ -95,5 +96,68 @@ describe('the tour bubble is ours', () => {
 
     await userEvent.click(screen.getByTestId('tour-skip'))
     expect(skip).toHaveBeenCalled()
+  })
+})
+
+/**
+ * The tour is now a set of chapters, some of which ask the person to do
+ * something. The bubble has to say which chapter it is in, which stops are
+ * theirs to try, and why Next is not yet available.
+ */
+describe('a bubble inside a chapter', () => {
+  test('names the chapter it belongs to', () => {
+    render(
+      <TourTooltip
+        {...props({
+          step: { title: 'Six groups', content: 'Body.', data: { chapterKey: 'tour.officer.chapter.register' } },
+        })}
+      />,
+    )
+
+    expect(screen.getByTestId('tour-chapter')).toHaveTextContent('Registering a farmer')
+  })
+
+  test('shows no chapter line for a stop that carries none', () => {
+    render(<TourTooltip {...props()} />)
+    expect(screen.queryByTestId('tour-chapter')).not.toBeInTheDocument()
+  })
+
+  test('marks a stop the person is invited to use', () => {
+    render(
+      <TourTooltip {...props({ step: { title: 'Hours', content: 'Change them.', data: { tryIt: true } } })} />,
+    )
+    expect(screen.getByTestId('tour-tryit')).toHaveTextContent('Try it')
+  })
+
+  test('marks nothing on an explain-only stop', () => {
+    render(<TourTooltip {...props()} />)
+    expect(screen.queryByTestId('tour-tryit')).not.toBeInTheDocument()
+  })
+
+  test('holds Next back, and says why, until the page has done what the stop asked', async () => {
+    const next = vi.fn()
+    render(
+      <TourContext.Provider
+        value={{ start: () => {}, openMenu: () => {}, available: true, gateOpen: false }}
+      >
+        <TourTooltip {...props({ primaryProps: { onClick: next } })} />
+      </TourContext.Provider>,
+    )
+
+    const button = screen.getByTestId('tour-next')
+    expect(button).toBeDisabled()
+    expect(screen.getByTestId('tour-gate-hint')).toHaveTextContent('Do this first, then Next unlocks.')
+
+    await userEvent.click(button)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test('lets Next through once the gate is open', async () => {
+    const next = vi.fn()
+    render(<TourTooltip {...props({ primaryProps: { onClick: next } })} />)
+
+    expect(screen.queryByTestId('tour-gate-hint')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByTestId('tour-next'))
+    expect(next).toHaveBeenCalled()
   })
 })

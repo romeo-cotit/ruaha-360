@@ -78,7 +78,7 @@ export function PeopleScreen() {
       <TableSurface
         className="min-w-0"
         toolbar={
-          <div className="flex w-full min-w-0 flex-wrap gap-3">
+          <div data-testid="people-toolbar" className="flex w-full min-w-0 flex-wrap gap-3">
             <ControlLabel label={t('people.search')} grow>
               <input
                 data-testid="people-search"

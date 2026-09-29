@@ -146,6 +146,12 @@ export function SurveyAdminListScreen() {
             data={rows}
             testId="surveys-table"
             rowTestId="survey-row"
+            // What the guided tour needs to open the right row: a live survey
+            // that somebody has answered, not whichever one happens to be first.
+            rowAttrs={(row) => ({
+              'data-status': row.status,
+              'data-answered': String((row.summary?.responses ?? 0) > 0),
+            })}
             onRowClick={(row) =>
               void navigate({ to: '/ops/surveys/$surveyId', params: { surveyId: row.id } })
             }

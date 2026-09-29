@@ -33,7 +33,7 @@ export function EquipmentListScreen() {
 
       <ul className="flex flex-col gap-2.5">
         {query.items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} data-testid="equipment-item">
             <Link
               to="/farm/equipment/$equipmentId"
               params={{ equipmentId: item.id }}

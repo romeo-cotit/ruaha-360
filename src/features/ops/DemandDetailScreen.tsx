@@ -103,7 +103,7 @@ export function DemandDetailScreen() {
         ) : (
           <>
             <TableCard>
-              <div className="overflow-x-auto">
+              <div data-testid="demand-matches" className="overflow-x-auto">
               <table className="w-full border-collapse" style={{ fontSize: 15 }}>
                 <thead>
                   <tr style={{ background: 'var(--sand-2)' }}>
@@ -135,9 +135,11 @@ export function DemandDetailScreen() {
                       </td>
                       <td className="px-3.5 py-3">
                         {match.opportunity_id ? (
-                          <DrillLink kind="opportunity" id={match.opportunity_id}>
-                            {t(`opportunityStatus.${match.opportunity_status ?? 'proposed'}`)}
-                          </DrillLink>
+                          <span data-testid="opportunity-link" className="inline-flex">
+                            <DrillLink kind="opportunity" id={match.opportunity_id}>
+                              {t(`opportunityStatus.${match.opportunity_status ?? 'proposed'}`)}
+                            </DrillLink>
+                          </span>
                         ) : (
                           <button
                             type="button"

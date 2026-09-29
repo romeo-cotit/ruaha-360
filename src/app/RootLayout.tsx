@@ -38,9 +38,12 @@ export function RootLayout() {
   const layout = navLayoutForSurface(surface)
   const items = surface ? navItemsFor(surface, memberships) : []
   const signedIn = Boolean(session)
+  // The ops surface is shared with a role that cannot author surveys, so the
+  // tour needs to know which of the two is looking.
+  const isAdmin = memberships.some((membership) => membership.role === 'admin')
 
   return (
-    <TourProvider surface={surface} userId={session?.appUser?.id}>
+    <TourProvider surface={surface} userId={session?.appUser?.id} isAdmin={isAdmin}>
       <div className="flex min-h-dvh flex-col bg-sand font-sans text-ink">
         <a
           href="#main"

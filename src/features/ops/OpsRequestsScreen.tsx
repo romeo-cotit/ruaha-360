@@ -88,7 +88,7 @@ export function OpsRequestsScreen() {
 
       <TableSurface
         toolbar={
-          <div className="flex flex-wrap gap-3">
+          <div data-testid="requests-filters" className="flex flex-wrap gap-3">
             <label className="flex min-w-44 flex-col gap-1.5 text-sm">
               <span className="font-medium text-ink-2">{t('ops.filterStatus')}</span>
               <Select

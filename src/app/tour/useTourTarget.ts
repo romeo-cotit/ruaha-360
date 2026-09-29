@@ -3,6 +3,13 @@ import { useEffect, useRef, useState } from 'react'
 import { isVisibleInViewport, scrollTourTargetIntoView } from '@/app/tour/tourVisibility'
 
 /**
+ * How many times a scroll that is not ours may be undone before the target is
+ * left to the deadline. A target that can never be brought into view must not
+ * turn every scroll event into another scroll.
+ */
+const MAX_RESCROLLS = 6
+
+/**
  * Prepare one tour target before Joyride is allowed to mount its overlay.
  *
  * Joyride's own animated scroll is disabled because it has stalled in a
@@ -33,13 +40,15 @@ export function useTourTarget(
 
     const visualViewport = window.visualViewport
 
+    let rescrolls = 0
+
     const clean = () => {
       observer.disconnect()
       clearTimeout(timer)
-      window.removeEventListener('scroll', verify, true)
-      window.removeEventListener('resize', verify)
-      visualViewport?.removeEventListener('scroll', verify)
-      visualViewport?.removeEventListener('resize', verify)
+      window.removeEventListener('scroll', onViewportChange, true)
+      window.removeEventListener('resize', onViewportChange)
+      visualViewport?.removeEventListener('scroll', onViewportChange)
+      visualViewport?.removeEventListener('resize', onViewportChange)
     }
 
     const finish = () => {
@@ -49,8 +58,28 @@ export function useTourTarget(
       setReadyKey(targetKey)
     }
 
-    function verify() {
-      if (!done && isVisibleInViewport(prepared)) finish()
+    // A plain boolean: the library's type guard would narrow `prepared` to
+    // `null` in the branch below, where it is exactly what we need to read.
+    const inView = (element: Element | null): boolean => isVisibleInViewport(element)
+
+    function verify(afterOutsideMove: boolean) {
+      if (done) return
+      if (inView(prepared)) {
+        finish()
+        return
+      }
+      // The router puts the page back at the top after a navigation, and does it
+      // AFTER the target was scrolled into view: the anchor is on the page,
+      // below the fold, and nothing further changes in the DOM to make us look
+      // again. A scroll or resize we did not ask for is the cue to put it back.
+      if (afterOutsideMove && prepared?.isConnected && rescrolls < MAX_RESCROLLS) {
+        rescrolls += 1
+        scrollTourTargetIntoView(prepared)
+      }
+    }
+
+    function onViewportChange() {
+      verify(true)
     }
 
     const prepare = () => {
@@ -66,15 +95,15 @@ export function useTourTarget(
 
       // The automatic scroll is synchronous, but defer the geometry read until
       // the browser has applied the resulting layout and sticky positioning.
-      queueMicrotask(verify)
+      queueMicrotask(() => verify(false))
     }
 
     const observer = new MutationObserver(prepare)
     observer.observe(document.body, { childList: true, subtree: true })
-    window.addEventListener('scroll', verify, true)
-    window.addEventListener('resize', verify)
-    visualViewport?.addEventListener('scroll', verify)
-    visualViewport?.addEventListener('resize', verify)
+    window.addEventListener('scroll', onViewportChange, true)
+    window.addEventListener('resize', onViewportChange)
+    visualViewport?.addEventListener('scroll', onViewportChange)
+    visualViewport?.addEventListener('resize', onViewportChange)
 
     const timer = setTimeout(() => {
       if (done) return

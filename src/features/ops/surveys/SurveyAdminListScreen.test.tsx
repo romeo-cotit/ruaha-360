@@ -161,6 +161,29 @@ describe('the survey table', () => {
     })
   })
 
+  // The guided tour opens "a live survey somebody has answered", and a
+  // selector can only say that if the row carries it. An unanswered survey has
+  // no vouchers to show, so it must not be the one a tour walks into.
+  test('a row says its status and whether anyone has answered it', () => {
+    useSurveyAdminList.mockReturnValue({
+      isLoading: false,
+      error: null,
+      data: [
+        survey(),
+        survey({ id: 'a', status: 'live', summary: { ...survey().summary, responses: 0 } }),
+        survey({ id: 'b', status: 'draft', summary: null }),
+      ],
+    })
+    render(<SurveyAdminListScreen />)
+
+    const [answered, unanswered, draft] = screen.getAllByTestId('survey-row')
+    expect(answered).toHaveAttribute('data-status', 'live')
+    expect(answered).toHaveAttribute('data-answered', 'true')
+    expect(unanswered).toHaveAttribute('data-answered', 'false')
+    expect(draft).toHaveAttribute('data-status', 'draft')
+    expect(draft).toHaveAttribute('data-answered', 'false')
+  })
+
   test('the header links to the redemptions log', () => {
     render(<SurveyAdminListScreen />)
     expect(screen.getByTestId('surveys-redemptions-link')).toHaveAttribute('href', '/ops/surveys/redemptions')

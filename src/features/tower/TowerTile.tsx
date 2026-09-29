@@ -21,6 +21,7 @@ type LinkTo = Parameters<typeof Link>[0]['to']
  */
 export function TowerTile({
   id,
+  testId,
   title,
   icon,
   note,
@@ -32,6 +33,12 @@ export function TowerTile({
   children,
 }: {
   id: string
+  /**
+   * The tile's test id when it is not simply `tile-${id}`. The Tower screen
+   * spells its five out: a guided tour points at them, and a tour can only be
+   * checked against ids that are written in the source, not built at render.
+   */
+  testId?: string
   title: string
   icon?: ReactNode
   note?: string
@@ -49,7 +56,7 @@ export function TowerTile({
 
   return (
     <section
-      data-testid={`tile-${id}`}
+      data-testid={testId ?? `tile-${id}`}
       aria-busy={loading || undefined}
       className="flex flex-col gap-3.5 p-5"
       style={{

@@ -58,6 +58,43 @@ describe('DataTable rendering', () => {
   })
 })
 
+describe('DataTable row attributes', () => {
+  // A guided tour has to open one particular row (a live survey, not whichever
+  // is first), and the only way to say so in a selector is an attribute on the
+  // row itself.
+  test('rowAttrs puts data attributes on each row, computed from that row', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={rows}
+        testId="t"
+        rowTestId="row"
+        rowAttrs={(row) => ({ 'data-owner': row.applicant, 'data-loaded': String(row.kw !== null) })}
+      />,
+    )
+
+    const [first, , third] = screen.getAllByTestId('row')
+    expect(first).toHaveAttribute('data-owner', 'Neema Mwakalinga')
+    expect(first).toHaveAttribute('data-loaded', 'true')
+    expect(third).toHaveAttribute('data-loaded', 'false')
+  })
+
+  test('rowAttrs cannot replace the row test id', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={rows}
+        testId="t"
+        rowTestId="row"
+        rowAttrs={() => ({ 'data-testid': 'hijacked' })}
+      />,
+    )
+
+    expect(screen.getAllByTestId('row')).toHaveLength(3)
+    expect(screen.queryByTestId('hijacked')).not.toBeInTheDocument()
+  })
+})
+
 describe('DataTable sorting', () => {
   test('a header click sorts, and clicking again reverses it', async () => {
     render(<DataTable columns={columns} data={rows} testId="t" rowTestId="row" />)

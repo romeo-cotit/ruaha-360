@@ -174,7 +174,7 @@ export function OpportunityDetailScreen() {
           one of them tinted: what the buyer asked for is context, what this
           village has offered is the figure this screen is about.
         */}
-        <div className="flex flex-wrap gap-2.5">
+        <div data-testid="opportunity-quantities" className="flex flex-wrap gap-2.5">
           <Quantity
             label={t('opportunity.demandQuantity')}
             value={formatKg(opportunity.demand_quantity_kg)}
@@ -313,7 +313,7 @@ export function OpportunityDetailScreen() {
           />
         ) : (
           <TableCard>
-            <div className="overflow-x-auto">
+            <div data-testid="supply-lines" className="overflow-x-auto">
             <table className="w-full border-collapse" style={{ fontSize: 15 }}>
               <thead>
                 <tr style={{ background: 'var(--sand-2)' }}>
@@ -368,6 +368,7 @@ export function OpportunityDetailScreen() {
       </section>
 
       <section
+        data-testid="opportunity-attach"
         className="flex w-full flex-col gap-3 p-4 sm:p-[18px]"
         style={{
           border: '1px solid var(--rule)',

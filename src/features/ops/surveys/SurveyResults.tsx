@@ -60,7 +60,7 @@ export function SurveyResults({
         <Figure label={t('surveyAdmin.summary.void')} value={summary?.void_count ?? UNKNOWN} testId="summary-void" />
       </dl>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5" data-testid="survey-tally">
         <SectionTitle>{t('surveyAdmin.tally')}</SectionTitle>
         {tally.error ? (
           <ErrorState error={tally.error} onRetry={() => void tally.refetch()} />

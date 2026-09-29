@@ -131,6 +131,7 @@ export function TowerScreen() {
           {/* ── Production · leads, and carries the most ─────────────── */}
           <TowerTile
             id="production"
+            testId="tile-production"
             title={t('tower.production')}
             icon={<Sprout aria-hidden {...MARK} />}
             basis="430px"
@@ -219,6 +220,7 @@ export function TowerScreen() {
           {/* ── Energy · the tile that has to keep two figures apart ─── */}
           <TowerTile
             id="energy"
+            testId="tile-energy"
             title={t('tower.energy')}
             icon={<Zap aria-hidden {...MARK} />}
             basis="350px"
@@ -334,6 +336,7 @@ export function TowerScreen() {
           {/* ── Market ────────────────────────────────────────────────── */}
           <TowerTile
             id="market"
+            testId="tile-market"
             title={t('tower.market')}
             icon={<Package aria-hidden {...MARK} />}
             basis="340px"
@@ -378,6 +381,7 @@ export function TowerScreen() {
           {/* ── Equipment pipeline ───────────────────────────────────── */}
           <TowerTile
             id="pue"
+            testId="tile-pue"
             title={t('tower.pue')}
             icon={<ClipboardList aria-hidden {...MARK} />}
             basis="280px"
@@ -434,6 +438,7 @@ export function TowerScreen() {
           {/* ── Data quality · smallest, sunken, traceable counts ─────── */}
           <TowerTile
             id="quality"
+            testId="tile-quality"
             title={t('tower.quality')}
             icon={<CircleMark />}
             basis="230px"

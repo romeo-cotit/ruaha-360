@@ -68,7 +68,7 @@ export function RequestDetailScreen() {
         )}
       </header>
 
-      <section className="flex flex-col gap-2.5">
+      <section data-testid="request-assumptions" className="flex flex-col gap-2.5">
         <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>
           {t('requests.assumptions')}
         </h2>
@@ -80,6 +80,7 @@ export function RequestDetailScreen() {
       </section>
 
       <section
+        data-testid="request-stored-estimate"
         className="flex flex-col gap-2.5 p-4"
         style={{
           border: '1px solid var(--rule-2)',
@@ -126,7 +127,7 @@ export function RequestDetailScreen() {
       </section>
 
       {request.decision_note && (
-        <section className="flex flex-col gap-1.5">
+        <section data-testid="request-decision" className="flex flex-col gap-1.5">
           <h2 className="type-section" style={{ color: 'var(--ink-3)' }}>
             {t('requests.decision')}
           </h2>

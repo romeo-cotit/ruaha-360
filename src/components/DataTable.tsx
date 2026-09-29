@@ -22,6 +22,12 @@ export interface DataTableProps<T> {
   testId: string
   rowTestId: string
   onRowClick?: (row: T) => void
+  /**
+   * Extra attributes for a row, computed from it — `data-status` and the like.
+   * They exist so a selector can say WHICH row (a guided tour opening the live
+   * survey, not whichever is first); the row's own test id always wins.
+   */
+  rowAttrs?: (row: T) => Record<string, string>
   empty?: { title: string; detail?: string }
 }
 
@@ -60,6 +66,7 @@ export function DataTable<T>({
   testId,
   rowTestId,
   onRowClick,
+  rowAttrs,
   empty,
 }: DataTableProps<T>) {
   const { t } = useTranslation()
@@ -145,6 +152,7 @@ export function DataTable<T>({
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
+              {...rowAttrs?.(row.original)}
               data-testid={rowTestId}
               // A clickable row has to be reachable without a mouse.
               tabIndex={clickable ? 0 : undefined}

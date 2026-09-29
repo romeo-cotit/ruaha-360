@@ -105,6 +105,14 @@ describe('the summary figures', () => {
 })
 
 describe('the answer tally', () => {
+  test('every question sits inside one tally section', () => {
+    renderResults()
+    const tally = screen.getByTestId('survey-tally')
+    for (const question of screen.getAllByTestId('tally-question')) expect(tally).toContainElement(question)
+    // The figures above it are a different stop; the tally is the questions only.
+    expect(tally).not.toContainElement(screen.getByTestId('survey-summary'))
+  })
+
   test('asks for this survey', () => {
     renderResults()
     expect(useSurveyTally).toHaveBeenCalledWith(SURVEY)

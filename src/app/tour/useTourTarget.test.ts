@@ -61,6 +61,66 @@ describe('preparing a tour target', () => {
     expect(onMissing).not.toHaveBeenCalled()
   })
 
+  /**
+   * The router puts the page back at the top after a navigation, and it does so
+   * AFTER the tour has scrolled its target into view: the anchor is on the page,
+   * three screens below the fold, and nothing further changes in the DOM to make
+   * the tour look again. It waited out its deadline and skipped the chapter.
+   * A scroll it did not ask for is the cue to put the target back.
+   */
+  test('puts a target back in view when something else scrolls the page away', async () => {
+    const target = addTarget(offscreen)
+    const onMissing = vi.fn()
+    const { result } = renderHook(() =>
+      useTourTarget('farmer:29', SELECTOR, true, onMissing, 10_000),
+    )
+    await settle()
+    expect(result.current, 'off-screen after the first scroll').toBe(false)
+    expect(scrollTo).toHaveBeenCalledTimes(1)
+
+    // The screen settles: the scroll we asked for now takes effect.
+    target.getBoundingClientRect = vi.fn(() => visible)
+    await act(async () => {
+      window.dispatchEvent(new Event('scroll'))
+      await Promise.resolve()
+    })
+
+    expect(result.current).toBe(true)
+  })
+
+  test('scrolls it back again if the page is moved away once more', async () => {
+    const target = addTarget(offscreen)
+    const { result } = renderHook(() => useTourTarget('farmer:30', SELECTOR, true, vi.fn(), 10_000))
+    await settle()
+    expect(scrollTo).toHaveBeenCalledTimes(1)
+
+    // A scroll event while still off-screen: try to bring it into view again.
+    await act(async () => {
+      window.dispatchEvent(new Event('scroll'))
+      await Promise.resolve()
+    })
+    expect(scrollTo.mock.calls.length).toBeGreaterThan(1)
+    expect(target.scrollIntoView).toHaveBeenCalledTimes(2)
+    expect(result.current).toBe(false)
+  })
+
+  // A target that can never be brought into view (a zero-height wrapper, say)
+  // must not turn every scroll event into another scroll.
+  test('gives up scrolling after a few tries, and leaves the deadline to decide', async () => {
+    const target = addTarget(offscreen)
+    renderHook(() => useTourTarget('farmer:31', SELECTOR, true, vi.fn(), 10_000))
+    await settle()
+
+    for (let i = 0; i < 30; i += 1) {
+      await act(async () => {
+        window.dispatchEvent(new Event('scroll'))
+        await Promise.resolve()
+      })
+    }
+
+    expect((target.scrollIntoView as ReturnType<typeof vi.fn>).mock.calls.length).toBeLessThanOrEqual(8)
+  })
+
   test('waits for route content that mounts later', async () => {
     const onMissing = vi.fn()
     const { result } = renderHook(() =>

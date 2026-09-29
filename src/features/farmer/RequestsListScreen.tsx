@@ -33,6 +33,8 @@ export function RequestsListScreen() {
             <Link
               to="/farm/requests/$requestId"
               params={{ requestId: request.id }}
+              data-testid="my-request-row"
+              data-status={request.status}
               className="flex flex-col gap-1.5 p-4 hover:bg-primary-tint"
               style={{
                 minHeight: 52,

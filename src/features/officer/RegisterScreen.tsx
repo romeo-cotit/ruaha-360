@@ -496,7 +496,7 @@ export function RegisterScreen() {
         // clicks again. The control below is disabled on both.
         onSubmit={handleSubmit((form) => submit.mutate(form))}
       >
-        <Fieldset number={1} legend={t('register.sections.person')} complete={done('person')}>
+        <Fieldset number={1} legend={t('register.sections.person')} complete={done('person')} testId="register-group-person">
           <Field label={t('register.givenName')} id="register-given-name">
             <input
               id="register-given-name"
@@ -556,7 +556,7 @@ export function RegisterScreen() {
           </label>
         </Fieldset>
 
-        <Fieldset number={3} legend={t('register.sections.farm')} complete={done('farm')}>
+        <Fieldset number={3} legend={t('register.sections.farm')} complete={done('farm')} testId="register-group-farm">
           <Field label={t('register.farmLabel')} id="register-farm-label">
             <input
               id="register-farm-label"
@@ -877,15 +877,19 @@ function Fieldset({
   number,
   legend,
   complete,
+  testId,
   children,
 }: {
   number: number
   legend: string
   complete: boolean
+  /** Lets the guided tour point at a whole group. */
+  testId?: string
   children: React.ReactNode
 }) {
   return (
     <fieldset
+      data-testid={testId}
       data-complete={complete ? 'yes' : 'no'}
       className="flex flex-col gap-3.5 p-[18px]"
       style={{

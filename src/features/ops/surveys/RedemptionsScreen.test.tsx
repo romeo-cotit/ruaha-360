@@ -69,6 +69,16 @@ describe('the date range', () => {
     expect(screen.getByTestId('redemptions-to')).toHaveValue('2026-09-29')
   })
 
+  // One anchor around both dates: the guided tour invites a change of range,
+  // and a spotlight only lets a click through where it cuts a hole.
+  test('both dates sit inside one range control', () => {
+    render(<RedemptionsScreen />)
+
+    const range = screen.getByTestId('redemptions-range')
+    expect(range).toContainElement(screen.getByTestId('redemptions-from'))
+    expect(range).toContainElement(screen.getByTestId('redemptions-to'))
+  })
+
   test('is read from the URL', () => {
     search.mockReturnValue({ from: '2026-09-01', to: '2026-09-15' })
     render(<RedemptionsScreen />)

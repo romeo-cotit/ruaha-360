@@ -120,7 +120,7 @@ export function RedemptionsScreen() {
         breadcrumbs={[{ label: t('surveyAdmin.title'), to: '/ops/surveys' }, { label: t('surveyAdmin.redemptions') }]}
       />
 
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end gap-3" data-testid="redemptions-range">
         <Field label={t('surveyAdmin.from')} htmlFor="redemptions-from">
           <input
             id="redemptions-from"

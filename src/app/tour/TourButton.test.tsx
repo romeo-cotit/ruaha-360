@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 
-const start = vi.fn()
+const openMenu = vi.fn()
 let available = true
 
-vi.mock('@/app/tour/tourContext', () => ({ useTour: () => ({ start, available }) }))
+vi.mock('@/app/tour/tourContext', () => ({ useTour: () => ({ openMenu, available }) }))
 
 const { TourButton } = await import('@/app/tour/TourButton')
 await import('@/i18n')
@@ -14,6 +14,8 @@ await import('@/i18n')
  * The tour runs once by itself, so the only way back to it is this. It sits in
  * the header rather than on any one screen: the tours cross screens, and a
  * control that appears on only one of them is a control nobody finds twice.
+ * It opens the menu of chapters rather than restarting from the top, so a
+ * presenter can jump to the module in front of them.
  */
 describe('asking for the tour again', () => {
   test('is a labelled control, not an icon on its own', async () => {
@@ -22,7 +24,7 @@ describe('asking for the tour again', () => {
 
     expect(button).toHaveAccessibleName('Take the tour again')
     await userEvent.click(button)
-    expect(start).toHaveBeenCalled()
+    expect(openMenu).toHaveBeenCalled()
   })
 
   test('keeps the 44px target the rest of the header uses', () => {
