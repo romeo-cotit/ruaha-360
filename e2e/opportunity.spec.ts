@@ -160,12 +160,14 @@ test.describe('declining releases the committed supply', () => {
     await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
     // The picker names the farmer before Attach, and it is the farmer the
     // supply line lists after it.
-    const picked = (await page.getByTestId('attach-harvest').innerText()).split(' · ')[0].trim()
+    const picked = (await page.getByTestId('harvest-chosen-farmer').innerText()).split(' · ')[0].trim()
     expect(picked).not.toBe('—')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('supply-row')).toHaveCount(1)
     await expect(page.getByTestId('supply-row')).toContainText(picked)
+    // And it says who attached it: the signed-in ops account, not a dash.
+    await expect(page.getByTestId('supply-attached-by')).not.toHaveText(/^—/)
     await expect(page.getByTestId('offered-total')).toContainText('1,600.00 kg')
 
     // The seeded demand now sees less of Ilundo: 5,600 − 1,600 = 4,000, and

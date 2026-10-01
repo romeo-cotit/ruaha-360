@@ -1163,6 +1163,8 @@ export type Database = {
       }
       opportunity_supply: {
         Row: {
+          captured_at: string
+          captured_by: string | null
           contributed_kg: number
           created_at: string
           crop_cycle_id: string
@@ -1171,6 +1173,8 @@ export type Database = {
           opportunity_id: string
         }
         Insert: {
+          captured_at?: string
+          captured_by?: string | null
           contributed_kg: number
           created_at?: string
           crop_cycle_id: string
@@ -1179,6 +1183,8 @@ export type Database = {
           opportunity_id: string
         }
         Update: {
+          captured_at?: string
+          captured_by?: string | null
           contributed_kg?: number
           created_at?: string
           crop_cycle_id?: string
@@ -1187,6 +1193,13 @@ export type Database = {
           opportunity_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "opportunity_supply_captured_by_fkey"
+            columns: ["captured_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "opportunity_supply_crop_cycle_id_fkey"
             columns: ["crop_cycle_id"]

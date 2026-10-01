@@ -22,6 +22,11 @@ vi.mock('@/lib/drafts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/drafts')>()
   return { ...actual, indexedDbDraftStore: actual.createMemoryDraftStore() }
 })
+// Names resolve through app_actor_names; here, a fixed map.
+const actorNames: Record<string, string> = { 'u-ops': 'Fixture Ops' }
+vi.mock('@/lib/actorNames', () => ({
+  useActorName: (id: string | null | undefined) => (id ? actorNames[id] : undefined),
+}))
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({ useParams: () => ({ opportunityId: 'o1' }) }),
   Link: ({ children }: { children: React.ReactNode }) => <a href="#x">{children}</a>,
@@ -81,6 +86,8 @@ const opportunity = (over: Record<string, unknown> = {}) => ({
       person_id: 'p1',
       plot_label: 'Kipande cha juu',
       crop_name: 'Maize',
+      captured_by: 'u-ops',
+      captured_at: '2026-10-01T09:30:00Z',
     },
   ],
   ...over,
@@ -308,6 +315,39 @@ describe('releasing supply is confirmed first', () => {
  * IS the mechanism, so a released opportunity must say so — otherwise two
  * supply lines still sit on screen looking committed.
  */
+/**
+ * Picking a harvest is picking a farmer, and a line cannot be detached, so
+ * each line says who attached it and when (20261001090001).
+ */
+describe('each supply line says who attached it', () => {
+  test('the attacher and the date are on the line', () => {
+    loaded()
+    render(<OpportunityDetailScreen />)
+
+    const row = screen.getByTestId('supply-row')
+    expect(within(row).getByTestId('supply-attached-by')).toHaveTextContent('Fixture Ops')
+    expect(within(row).getByTestId('supply-attached-by')).toHaveTextContent('1 Oct 2026')
+    expect(screen.getByRole('columnheader', { name: 'Attached by' })).toBeInTheDocument()
+  })
+
+  // Seeded lines were written with no signed-in actor, and a name the caller
+  // may not see is zero rows: both are a dash, never a raw id.
+  test('no recorded attacher, or a name not returned, is a dash', () => {
+    loaded({
+      supply: [
+        { ...opportunity().supply[0], captured_by: null },
+        { ...opportunity().supply[0], harvest_report_id: 'h2', captured_by: 'u-hidden' },
+      ],
+    })
+    render(<OpportunityDetailScreen />)
+
+    const cells = screen.getAllByTestId('supply-attached-by')
+    expect(cells[0]).toHaveTextContent(/^—/)
+    expect(cells[1]).toHaveTextContent(/^—/)
+    expect(cells[1]).not.toHaveTextContent('u-hidden')
+  })
+})
+
 describe('a released opportunity explains itself', () => {
   test('declined says the supply went back to available', () => {
     loaded({ status: 'declined' })
@@ -360,57 +400,51 @@ describe('a released opportunity explains itself', () => {
  * label at all on a screen that exists to keep two quantities apart.
  */
 describe('the harvest options name their figures', () => {
-  test('both quantities are labelled, in sentence case', async () => {
-    loaded({ status: 'proposed' })
-    useAvailableHarvest.mockReturnValue({
-      isLoading: false,
-      data: [
-        {
-          harvest_report_id: 'h9',
-          crop_cycle_id: 'cy9',
-          quantity_kg: 4100,
-          available_kg: 0,
-          harvest_start: '2026-09-01',
-        },
-      ],
-    })
-    render(<OpportunityDetailScreen />)
-
-    await userEvent.click(screen.getByTestId('attach-harvest'))
-    const option = await screen.findByRole('option', { name: /4,100/ })
-    expect(option).toHaveTextContent(/4,100\.00 kg expected/)
-    expect(option).toHaveTextContent(/0\.00 kg available/)
-    expect(option).not.toHaveTextContent('Available')
+  const harvest = (over: Record<string, unknown> = {}) => ({
+    harvest_report_id: 'h9',
+    crop_cycle_id: 'cy9',
+    quantity_kg: 4100,
+    available_kg: 2000,
+    harvest_start: '2026-09-10',
+    farmer: 'Joseph Kalinga',
+    plot_label: 'Shamba la mto',
+    ...over,
   })
+  const openOption = async () => {
+    await userEvent.click(screen.getByTestId('attach-harvest'))
+    return screen.findByRole('option', { name: /4,100/ })
+  }
+  /** The label/value pairs of one option, in order. */
+  const fields = (option: HTMLElement) =>
+    within(option)
+      .getAllByTestId('harvest-option-field')
+      .map((row) => row.textContent?.replace(/\s+/g, ' ').trim())
 
   // Picking an option is picking a farmer, and Attach cannot be undone, so the
-  // option has to say whose harvest it is before the choice, not after.
-  test('each option names the farmer and the plot', async () => {
+  // option says whose harvest it is before the choice, not after. Every figure
+  // carries its own label: an unlabelled number on this screen is exactly the
+  // ambiguity the rest of it exists to avoid.
+  test('each option is grouped: farmer, then labelled plot, figures and harvest date', async () => {
     loaded({ status: 'proposed' })
-    useAvailableHarvest.mockReturnValue({
-      isLoading: false,
-      data: [
-        {
-          harvest_report_id: 'h9',
-          crop_cycle_id: 'cy9',
-          quantity_kg: 4100,
-          available_kg: 2000,
-          harvest_start: null,
-          farmer: 'Joseph Kalinga',
-          plot_label: 'Shamba la mto',
-        },
-      ],
-    })
+    useAvailableHarvest.mockReturnValue({ isLoading: false, data: [harvest()] })
     render(<OpportunityDetailScreen />)
 
-    await userEvent.click(screen.getByTestId('attach-harvest'))
-    const option = await screen.findByRole('option', { name: /4,100/ })
-    expect(option).toHaveTextContent(
-      'Joseph Kalinga · Shamba la mto · 4,100.00 kg expected · 2,000.00 kg available',
-    )
+    const option = await openOption()
+    expect(within(option).getByTestId('harvest-option-farmer')).toHaveTextContent('Joseph Kalinga')
+    expect(fields(option)).toEqual([
+      'Plot Shamba la mto',
+      'Expected 4,100.00 kg',
+      'Available 2,000.00 kg',
+      'Harvest from 10 Sep 2026',
+    ])
+  })
 
-    await userEvent.click(option)
-    expect(screen.getByTestId('attach-harvest')).toHaveTextContent('Joseph Kalinga · Shamba la mto')
+  test('a harvest with no start date has no harvest row', async () => {
+    loaded({ status: 'proposed' })
+    useAvailableHarvest.mockReturnValue({ isLoading: false, data: [harvest({ harvest_start: null })] })
+    render(<OpportunityDetailScreen />)
+
+    expect(fields(await openOption())).toEqual(['Plot Shamba la mto', 'Expected 4,100.00 kg', 'Available 2,000.00 kg'])
   })
 
   // Zero rows is an answer: a name RLS does not return is shown as unknown,
@@ -419,23 +453,26 @@ describe('the harvest options name their figures', () => {
     loaded({ status: 'proposed' })
     useAvailableHarvest.mockReturnValue({
       isLoading: false,
-      data: [
-        {
-          harvest_report_id: 'h9',
-          crop_cycle_id: 'cy9',
-          quantity_kg: 4100,
-          available_kg: 2000,
-          harvest_start: null,
-          farmer: null,
-          plot_label: null,
-        },
-      ],
+      data: [harvest({ farmer: null, plot_label: null })],
     })
     render(<OpportunityDetailScreen />)
 
-    await userEvent.click(screen.getByTestId('attach-harvest'))
-    const option = await screen.findByRole('option', { name: /4,100/ })
-    expect(option).toHaveTextContent('— · — · 4,100.00 kg expected')
+    const option = await openOption()
+    expect(within(option).getByTestId('harvest-option-farmer')).toHaveTextContent('—')
+    expect(fields(option)[0]).toBe('Plot —')
+  })
+
+  // The chosen figure stays readable in the closed control: who, then both
+  // quantities named, in sentence case (QA #12).
+  test('the chosen harvest is summarised in the closed control', async () => {
+    loaded({ status: 'proposed' })
+    useAvailableHarvest.mockReturnValue({ isLoading: false, data: [harvest()] })
+    render(<OpportunityDetailScreen />)
+
+    await userEvent.click(await openOption())
+    const trigger = screen.getByTestId('attach-harvest')
+    expect(within(trigger).getByTestId('harvest-chosen-farmer')).toHaveTextContent('Joseph Kalinga · Shamba la mto')
+    expect(trigger).toHaveTextContent('4,100.00 kg expected · 2,000.00 kg available · harvest from 10 Sep 2026')
   })
 
   // Fully committed figures stay listed: hiding them would be a client-side

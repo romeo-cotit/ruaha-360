@@ -19,6 +19,9 @@ export interface SupplyLine {
   person_id: string | null
   plot_label: string | null
   crop_name: string
+  /** Who attached the line; null for seeded lines written with no actor. */
+  captured_by: string | null
+  captured_at: string | null
 }
 
 export interface OpportunityDetail extends OpportunityRow {
@@ -57,7 +60,7 @@ export function useOpportunity(opportunityId: string) {
            crop ( id, name_en, name_sw ),
            buyer_demand ( id, quantity_kg, buyer ( id, name ) ),
            opportunity_supply (
-             harvest_report_id, crop_cycle_id, contributed_kg,
+             harvest_report_id, crop_cycle_id, contributed_kg, captured_by, captured_at,
              crop_cycle!opportunity_supply_crop_cycle_id_fkey (
                id,
                crop ( name_en, name_sw ),
@@ -109,6 +112,8 @@ export function useOpportunity(opportunityId: string) {
               person_id: farmer.personId,
               plot_label: (plot?.label as string) ?? null,
               crop_name: cycleCrop ? (sw ? cycleCrop.name_sw : cycleCrop.name_en) : '',
+              captured_by: (line.captured_by as string | null) ?? null,
+              captured_at: (line.captured_at as string | null) ?? null,
             }
           }),
         }

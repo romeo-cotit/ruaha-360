@@ -27,7 +27,8 @@ import {
   useOpportunity,
   useOpportunityStatus,
 } from '@/features/ops/useOpportunity'
-import { formatKg, formatPlainDate } from '@/lib/format'
+import { formatKg, formatPlainDate, formatTimestamp } from '@/lib/format'
+import { useActorName } from '@/lib/actorNames'
 import { finishDraftWhenSaved } from '@/lib/drafts'
 import { usePersistentForm } from '@/lib/usePersistentForm'
 
@@ -320,6 +321,7 @@ export function OpportunityDetailScreen() {
                   <Th>{t('opportunity.colFarmer')}</Th>
                   <Th>{t('opportunity.colPlot')}</Th>
                   <Th>{t('opportunity.colCycle')}</Th>
+                  <Th>{t('opportunity.colAttachedBy')}</Th>
                   <Th numeric>{t('opportunity.colContributed')}</Th>
                 </tr>
               </thead>
@@ -343,6 +345,9 @@ export function OpportunityDetailScreen() {
                         {line.crop_name}
                       </DrillLink>
                     </td>
+                    <td className="px-3.5 py-3">
+                      <AttachedBy actorId={line.captured_by} at={line.captured_at} />
+                    </td>
                     <td className="tabular px-3.5 py-3 text-right font-semibold">
                       {formatKg(line.contributed_kg)}
                     </td>
@@ -353,7 +358,7 @@ export function OpportunityDetailScreen() {
                   it up, so the header figure and these rows visibly agree. */}
               <tfoot>
                 <tr style={{ borderTop: '1px solid var(--rule-2)', background: 'var(--sand-2)' }}>
-                  <td colSpan={3} className="px-3.5 py-3" style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+                  <td colSpan={4} className="px-3.5 py-3" style={{ fontSize: 13, color: 'var(--ink-2)' }}>
                     {t('opportunity.offered')}
                   </td>
                   <td className="tabular px-3.5 py-3 text-right font-semibold" style={{ fontSize: 17 }}>
@@ -413,28 +418,50 @@ export function OpportunityDetailScreen() {
               </label>
               <Select value={harvestId} onValueChange={(value) => setHarvestId(value ?? '')}>
                 <SelectTrigger id="attach-harvest" data-testid="attach-harvest" className="w-full">
-                  {selectedHarvest
-                    ? `${grower(selectedHarvest)}${t('opportunity.harvestOption', {
-                        expected: formatKg(selectedHarvest.quantity_kg),
-                        available: formatKg(selectedHarvest.available_kg),
-                      })}${selectedHarvest.harvest_start ? ` · ${formatPlainDate(selectedHarvest.harvest_start)}` : ''}`
-                    : t('opportunity.chooseHarvest')}
+                  {selectedHarvest ? (
+                    <span className="flex min-w-0 flex-col text-left leading-snug">
+                      <span data-testid="harvest-chosen-farmer" className="truncate font-semibold">
+                        {selectedHarvest.farmer ?? '—'} · {selectedHarvest.plot_label ?? '—'}
+                      </span>
+                      <span className="truncate text-[13px] text-ink-2">
+                        {t('opportunity.harvestOption', {
+                          expected: formatKg(selectedHarvest.quantity_kg),
+                          available: formatKg(selectedHarvest.available_kg),
+                        })}
+                        {selectedHarvest.harvest_start
+                          ? ` · ${t('opportunity.harvestFrom', { date: formatPlainDate(selectedHarvest.harvest_start) })}`
+                          : ''}
+                      </span>
+                    </span>
+                  ) : (
+                    t('opportunity.chooseHarvest')
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                 {/* Fully committed figures stay listed. Hiding them would be a
                     client-side pre-check of the guard. */}
                 {rows.map((r) => (
                   <SelectItem key={r.harvest_report_id} value={r.harvest_report_id ?? ''}>
-                    {/* Both figures named, in sentence case: an unlabelled
-                        leading number on this screen is exactly the ambiguity
-                        the rest of it exists to avoid. QA #12. Farmer and
-                        plot lead: picking a figure is picking a farmer. */}
-                    {grower(r)}
-                    {t('opportunity.harvestOption', {
-                      expected: formatKg(r.quantity_kg),
-                      available: formatKg(r.available_kg),
-                    })}
-                    {r.harvest_start ? ` · ${formatPlainDate(r.harvest_start)}` : ''}
+                    {/* Picking a figure is picking a farmer, so the farmer
+                        leads. Every figure carries its own label: an
+                        unlabelled number on this screen is exactly the
+                        ambiguity the rest of it exists to avoid. QA #12. */}
+                    <span className="flex flex-col gap-1 py-0.5">
+                      <span data-testid="harvest-option-farmer" className="font-semibold text-ink">
+                        {r.farmer ?? '—'}
+                      </span>
+                      <span className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 text-[13px] font-normal">
+                        <OptionField label={t('opportunity.colPlot')} value={r.plot_label ?? '—'} />
+                        <OptionField label={t('opportunity.optionExpected')} value={formatKg(r.quantity_kg)} />
+                        <OptionField label={t('opportunity.optionAvailable')} value={formatKg(r.available_kg)} />
+                        {r.harvest_start && (
+                          <OptionField
+                            label={t('opportunity.optionHarvestFrom')}
+                            value={formatPlainDate(r.harvest_start)}
+                          />
+                        )}
+                      </span>
+                    </span>
                   </SelectItem>
                 ))}
                 </SelectContent>
@@ -484,9 +511,32 @@ export function OpportunityDetailScreen() {
 
 const SUPPLY_DEFAULTS = { harvest_report_id: '', contributed_kg: '' }
 
-/** "Farmer · Plot · " ahead of a harvest figure; a name not returned is a dash. */
-function grower(row: { farmer: string | null; plot_label: string | null }) {
-  return `${row.farmer ?? '—'} · ${row.plot_label ?? '—'} · `
+/**
+ * Who attached a supply line, and when. A seeded line has no actor, and a name
+ * the caller may not see comes back as zero rows: both are a dash, never an id.
+ */
+function AttachedBy({ actorId, at }: { actorId: string | null; at: string | null }) {
+  const name = useActorName(actorId)
+  return (
+    <span data-testid="supply-attached-by" className="flex flex-col leading-snug">
+      <span>{name ?? '—'}</span>
+      {at && (
+        <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+          {formatTimestamp(at)}
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** One labelled line of a harvest option; `contents` keeps both cells on the parent grid. */
+function OptionField({ label, value }: { label: string; value: string }) {
+  return (
+    <span data-testid="harvest-option-field" className="contents">
+      <span className="text-ink-2">{label} </span>
+      <span className="tabular-nums text-ink">{value}</span>
+    </span>
+  )
 }
 
 /**

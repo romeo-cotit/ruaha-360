@@ -1,6 +1,6 @@
 # Swahili handover — Ruaha 360
 
-Generated 2026-09-29 from `src/i18n/en/common.json`. Do not edit by hand;
+Generated 2026-10-01 from `src/i18n/en/common.json`. Do not edit by hand;
 regenerate with `pnpm i18n:handover`.
 
 ## What this is
@@ -24,10 +24,10 @@ string is not.
 - **Required** — the farmer and officer surfaces, and the chrome both of
   them render. 712 strings. CLAUDE.md specifies these ship
   complete Swahili.
-- **Optional** — Ops and Tower. 493 strings. These may ship
+- **Optional** — Ops and Tower. 498 strings. These may ship
   English for the demo.
 
-1205 strings in total: 2 reviewed, 1203 draft, 0 missing. 337 flagged for a closer look (see the Flag note).
+1210 strings in total: 2 reviewed, 1208 draft, 0 missing. 342 flagged for a closer look (see the Flag note).
 
 ## How to read the table
 
@@ -855,11 +855,13 @@ string is not.
 | `opportunity.attachTitle` | Attach supply | Ambatisha ugavi | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.chooseHarvest` | Choose a harvest figure | Chagua kiasi cha mavuno | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.chooseHarvestRequired` | Choose a harvest figure to attach. | Chagua kiasi cha mavuno cha kuambatisha. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunity.colAttachedBy` | Attached by | Kiliambatishwa na | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: 'ambatisha' as in opportunity.attach; ki- concord follows colContributed ('Kilichochangiwa', the amount). If read as 'ugavi', it would be 'Uliambatishwa na'. Native reviewer needed. |
 | `opportunity.colContributed` | Contributed | Kilichochangiwa | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.colCycle` | Crop cycle | Msimu wa zao | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.colFarmer` | Farmer | Mkulima | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.colPlot` | Plot | Kipande | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.demandQuantity` | Buyer's demand | Mahitaji ya mnunuzi | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
+| `opportunity.harvestFrom` | harvest from {{date}} | mavuno kuanzia {{date}} | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Keep {{date}} Flag: Drafter: 'kuanzia' (starting from) is NOT in the glossary; composed. Native reviewer needed. |
 | `opportunity.harvestOption` | {{expected}} expected · {{available}} available | {{expected}} yanatarajiwa · {{available}} yanapatikana | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Keep {{expected}} {{available}} |
 | `opportunity.kgDecimals` | Use at most 2 decimal places. | Tumia desimali zisizozidi 2. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.kgMoreThanZero` | A contribution has to be more than zero. | Kiasi kinachochangiwa lazima kiwe zaidi ya sifuri. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
@@ -876,6 +878,9 @@ string is not.
 | `opportunity.notFoundTitle` | Opportunity not found | Fursa haikupatikana | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |
 | `opportunity.offered` | Offered | Kilichopendekezwa | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: 'Offered' total rendered as 'Kilichopendekezwa' (proposed), matching status 'Imependekezwa' and farmer copy; not a sale. Native reviewer to confirm. |
 | `opportunity.offeredNote` | This total is re-summed by the database from the supply lines below. It cannot drift from them. | Jumla hii huhesabiwa upya na hifadhidata kutoka kwenye mistari ya ugavi iliyo hapa chini. Haiwezi kutofautiana nayo. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: 're-summed by the database' rendered with 'hifadhidata' (database) and 'mistari ya ugavi' (supply lines); technical terms for staff, unverified. |
+| `opportunity.optionAvailable` | Available | Yanayopatikana | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: relative form agreeing with mavuno, as in 'Mavuno yanayopatikana' (opportunity.attachHarvest); unverified. |
+| `opportunity.optionExpected` | Expected | Yanayotarajiwa | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: from glossary 'expected harvest' = 'Mavuno yanayotarajiwa' (unverified), shortened to the relative form agreeing with mavuno. |
+| `opportunity.optionHarvestFrom` | Harvest from | Mavuno kuanzia | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Flag: Drafter: 'kuanzia' (starting from) is NOT in the glossary; composed. Native reviewer needed. |
 | `opportunity.releaseDetail` | {{kg}} returns to available supply for this village, and the buyer's coverage falls. This cannot be undone: a declined or lapsed opportunity cannot be reopened. | Kiasi cha {{kg}} kinarudi kwenye ugavi unaopatikana wa kijiji hiki, na sehemu ya mahitaji ya mnunuzi iliyokidhiwa inapungua. Hili haliwezi kutenduliwa: fursa ambayo mnunuzi ameikataa au iliyoisha muda haiwezi kufunguliwa tena. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Keep {{kg}} |
 | `opportunity.releasedNote` | Closed. Its {{kg}} has gone back to available supply for this village. The supply lines below stay on the record — nothing was deleted. | Imefungwa. Kiasi chake cha {{kg}} kimerudi kwenye ugavi unaopatikana wa kijiji hiki. Mistari ya ugavi iliyo hapa chini inabaki kwenye rekodi — hakuna kilichofutwa. | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. Keep {{kg}} |
 | `opportunity.releaseNo` | Cancel | Ghairi | draft | An opportunity is NOT a sale, a delivery or a payment. "Accepted" means both sides agreed to keep talking. |

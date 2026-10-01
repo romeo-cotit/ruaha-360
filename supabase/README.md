@@ -34,7 +34,7 @@ pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
 pnpm db:types       # regenerate src/lib/db.types.ts — commit it
-pnpm db:rls         # the 193 policy assertions
+pnpm db:rls         # the 199 policy assertions
 ```
 
 `db:types` is the exception: it goes through the Management API with

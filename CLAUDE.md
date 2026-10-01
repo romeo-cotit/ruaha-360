@@ -71,7 +71,7 @@ Only when every assertion passes does UI work begin.
 - `app_user` is self-read only; provenance names come from `app_actor_names`.
 - Opportunity writes are ops/admin only; its status machine and the supply
   commitment lock live in Postgres (business-rules §8).
-- `pnpm db:rls` runs 193 assertions (92 until 29 Sep, plus `tests/survey_test.sql`).
+- `pnpm db:rls` runs 199 assertions (92 until 29 Sep, plus `tests/survey_test.sql`, plus 6 in `tests/supply_attached_by_test.sql` from 1 Oct).
   The Playwright journey signs in as the farmer it registered, with the phone
   and temporary password its login card showed, then continues through a
   survey answered, refused to the registrar, and redeemed by a second officer.
@@ -177,7 +177,7 @@ pnpm e2e journey        # the acceptance journey alone
 pnpm db:list            # migration history: files vs database
 pnpm db:push            # apply pending migrations (db:push:dry to preview)
 pnpm db:types           # regenerate src/lib/db.types.ts (Management API)
-pnpm db:rls             # the 193 policy assertions
+pnpm db:rls             # the 199 policy assertions
 ```
 
 **No local Supabase.** The cloud dev project is the only database — every
