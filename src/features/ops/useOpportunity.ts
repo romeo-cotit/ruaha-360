@@ -99,18 +99,14 @@ export function useOpportunity(opportunityId: string) {
             const cycle = line.crop_cycle as Record<string, unknown> | null
             const cycleCrop = cycle?.crop as { name_en: string; name_sw: string } | null
             const plot = cycle?.plot as Record<string, unknown> | null
-            const farm = plot?.farm as Record<string, unknown> | null
-            const managers = (farm?.farm_manager ?? []) as Array<{
-              person: { id: string; given_name: string; family_name: string } | null
-            }>
-            const person = managers[0]?.person ?? null
+            const farmer = farmerName(plot?.farm as FarmWithManagers | null)
 
             return {
               harvest_report_id: line.harvest_report_id as string,
               crop_cycle_id: line.crop_cycle_id as string,
               contributed_kg: line.contributed_kg as number,
-              farmer: person ? `${person.given_name} ${person.family_name}` : null,
-              person_id: person?.id ?? null,
+              farmer: farmer.name,
+              person_id: farmer.personId,
               plot_label: (plot?.label as string) ?? null,
               crop_name: cycleCrop ? (sw ? cycleCrop.name_sw : cycleCrop.name_en) : '',
             }
@@ -122,9 +118,61 @@ export function useOpportunity(opportunityId: string) {
   return { ...query, opportunity: detail }
 }
 
+interface FarmWithManagers {
+  farm_manager?: Array<{
+    person: { id: string; given_name: string; family_name: string } | null
+  }> | null
+}
+
+/**
+ * The farmer a farm is shown under: its first manager. One rule for the
+ * supply lines and the harvest picker, so the name chosen before Attach is the
+ * name listed after it.
+ */
+export function farmerName(farm: FarmWithManagers | null | undefined): {
+  name: string | null
+  personId: string | null
+} {
+  const person = farm?.farm_manager?.[0]?.person ?? null
+  return {
+    name: person ? `${person.given_name} ${person.family_name}` : null,
+    personId: person?.id ?? null,
+  }
+}
+
+interface PlotWithFarm {
+  id: string
+  label: string | null
+  farm: FarmWithManagers | null
+}
+
+export interface AvailableHarvest extends AvailableRow {
+  farmer: string | null
+  plot_label: string | null
+}
+
+/**
+ * Names each available harvest by its plot and farmer, joined on `plot_id`.
+ * A plot RLS did not return leaves the harvest listed without names: zero rows
+ * is an answer, and the figure is still the guard's to refuse.
+ */
+export function withGrowers(rows: AvailableRow[], plots: PlotWithFarm[]): AvailableHarvest[] {
+  const byId = new Map(plots.map((p) => [p.id, p]))
+  return rows.map((row) => {
+    const plot = row.plot_id ? byId.get(row.plot_id) : undefined
+    return {
+      ...row,
+      farmer: farmerName(plot?.farm).name,
+      plot_label: plot?.label ?? null,
+    }
+  })
+}
+
 /**
  * v_harvest_available for this village and crop — current expected figures
- * with their committed and available quantities already worked out.
+ * with their committed and available quantities already worked out — named by
+ * farmer and plot. Picking a figure is picking a farmer, and Attach cannot be
+ * undone, so the picker says whose harvest it is before the choice.
  *
  * Rows with nothing left are still listed: the guard is what refuses an
  * over-commitment, and hiding them would be a client-side pre-check.
@@ -140,7 +188,26 @@ export function useAvailableHarvest(villageId: string | undefined, cropId: strin
         .eq('village_id', villageId!)
         .eq('crop_id', cropId!)
       if (error) throw new Error(error.message)
-      return (data ?? []) as AvailableRow[]
+      const rows = (data ?? []) as AvailableRow[]
+
+      const plotIds = [...new Set(rows.map((r) => r.plot_id).filter((id): id is string => Boolean(id)))]
+      if (plotIds.length === 0) return withGrowers(rows, [])
+
+      // The same plot -> farm -> farm_manager -> person path the supply lines
+      // embed, under the same policies.
+      const { data: plots, error: plotError } = await supabase
+        .from('plot')
+        .select(
+          `id, label,
+           farm!plot_farm_id_fkey (
+             id,
+             farm_manager ( person ( id, given_name, family_name ) )
+           )`,
+        )
+        .in('id', plotIds)
+      if (plotError) throw new Error(plotError.message)
+
+      return withGrowers(rows, (plots ?? []) as unknown as PlotWithFarm[])
     },
   })
 }

@@ -414,7 +414,7 @@ export function OpportunityDetailScreen() {
               <Select value={harvestId} onValueChange={(value) => setHarvestId(value ?? '')}>
                 <SelectTrigger id="attach-harvest" data-testid="attach-harvest" className="w-full">
                   {selectedHarvest
-                    ? `${t('opportunity.harvestOption', {
+                    ? `${grower(selectedHarvest)}${t('opportunity.harvestOption', {
                         expected: formatKg(selectedHarvest.quantity_kg),
                         available: formatKg(selectedHarvest.available_kg),
                       })}${selectedHarvest.harvest_start ? ` · ${formatPlainDate(selectedHarvest.harvest_start)}` : ''}`
@@ -427,7 +427,9 @@ export function OpportunityDetailScreen() {
                   <SelectItem key={r.harvest_report_id} value={r.harvest_report_id ?? ''}>
                     {/* Both figures named, in sentence case: an unlabelled
                         leading number on this screen is exactly the ambiguity
-                        the rest of it exists to avoid. QA #12. */}
+                        the rest of it exists to avoid. QA #12. Farmer and
+                        plot lead: picking a figure is picking a farmer. */}
+                    {grower(r)}
                     {t('opportunity.harvestOption', {
                       expected: formatKg(r.quantity_kg),
                       available: formatKg(r.available_kg),
@@ -481,6 +483,11 @@ export function OpportunityDetailScreen() {
 }
 
 const SUPPLY_DEFAULTS = { harvest_report_id: '', contributed_kg: '' }
+
+/** "Farmer · Plot · " ahead of a harvest figure; a name not returned is a dash. */
+function grower(row: { farmer: string | null; plot_label: string | null }) {
+  return `${row.farmer ?? '—'} · ${row.plot_label ?? '—'} · `
+}
 
 /**
  * One of the two quantities, in a card of its own. Only the offered total is

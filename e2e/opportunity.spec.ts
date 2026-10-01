@@ -158,9 +158,14 @@ test.describe('declining releases the committed supply', () => {
 
     // 1,600 kg out of the 5,600 nobody has promised.
     await chooseSelect(page, 'attach-harvest', '5,600.00 kg')
+    // The picker names the farmer before Attach, and it is the farmer the
+    // supply line lists after it.
+    const picked = (await page.getByTestId('attach-harvest').innerText()).split(' · ')[0].trim()
+    expect(picked).not.toBe('—')
     await page.getByTestId('attach-kg').fill(CLAIM_KG)
     await page.getByTestId('attach-submit').click()
     await expect(page.getByTestId('supply-row')).toHaveCount(1)
+    await expect(page.getByTestId('supply-row')).toContainText(picked)
     await expect(page.getByTestId('offered-total')).toContainText('1,600.00 kg')
 
     // The seeded demand now sees less of Ilundo: 5,600 − 1,600 = 4,000, and

@@ -383,6 +383,61 @@ describe('the harvest options name their figures', () => {
     expect(option).not.toHaveTextContent('Available')
   })
 
+  // Picking an option is picking a farmer, and Attach cannot be undone, so the
+  // option has to say whose harvest it is before the choice, not after.
+  test('each option names the farmer and the plot', async () => {
+    loaded({ status: 'proposed' })
+    useAvailableHarvest.mockReturnValue({
+      isLoading: false,
+      data: [
+        {
+          harvest_report_id: 'h9',
+          crop_cycle_id: 'cy9',
+          quantity_kg: 4100,
+          available_kg: 2000,
+          harvest_start: null,
+          farmer: 'Joseph Kalinga',
+          plot_label: 'Shamba la mto',
+        },
+      ],
+    })
+    render(<OpportunityDetailScreen />)
+
+    await userEvent.click(screen.getByTestId('attach-harvest'))
+    const option = await screen.findByRole('option', { name: /4,100/ })
+    expect(option).toHaveTextContent(
+      'Joseph Kalinga · Shamba la mto · 4,100.00 kg expected · 2,000.00 kg available',
+    )
+
+    await userEvent.click(option)
+    expect(screen.getByTestId('attach-harvest')).toHaveTextContent('Joseph Kalinga · Shamba la mto')
+  })
+
+  // Zero rows is an answer: a name RLS does not return is shown as unknown,
+  // and the figure is still offered.
+  test('a name that did not come back is a dash, not a missing option', async () => {
+    loaded({ status: 'proposed' })
+    useAvailableHarvest.mockReturnValue({
+      isLoading: false,
+      data: [
+        {
+          harvest_report_id: 'h9',
+          crop_cycle_id: 'cy9',
+          quantity_kg: 4100,
+          available_kg: 2000,
+          harvest_start: null,
+          farmer: null,
+          plot_label: null,
+        },
+      ],
+    })
+    render(<OpportunityDetailScreen />)
+
+    await userEvent.click(screen.getByTestId('attach-harvest'))
+    const option = await screen.findByRole('option', { name: /4,100/ })
+    expect(option).toHaveTextContent('— · — · 4,100.00 kg expected')
+  })
+
   // Fully committed figures stay listed: hiding them would be a client-side
   // copy of opportunity_supply_guard.
   test('a fully committed figure is still offered', async () => {
