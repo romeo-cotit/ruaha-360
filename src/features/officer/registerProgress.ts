@@ -1,4 +1,4 @@
-import type { RegisterForm } from '@/features/officer/registerPayload'
+import type { CycleForm, RegisterForm } from '@/features/officer/registerPayload'
 import type { CropMeasure } from '@/features/officer/registerSchema'
 
 /**
@@ -16,6 +16,8 @@ export const REGISTER_GROUPS: readonly RegisterGroup[] = [
   'harvest',
 ]
 
+type Measures = Readonly<Record<string, CropMeasure>>
+
 /**
  * Which groups have everything they need.
  *
@@ -25,16 +27,11 @@ export const REGISTER_GROUPS: readonly RegisterGroup[] = [
  * A group here is "filled in", nothing stronger — a rail that claimed a section
  * was correct would be making a promise this code cannot keep.
  *
- * `measure` comes from the crop chosen, so the crop-cycle group asks for the
- * one measure field that crop allows and ignores the other two.
+ * `measures` maps each crop to its `measured_by`, so each crop asks for the
+ * one measure field it allows and ignores the other two. The crop and harvest
+ * groups are complete only when EVERY crop ticked is.
  */
-export function isGroupComplete(
-  group: RegisterGroup,
-  form: RegisterForm,
-  measure: CropMeasure | undefined,
-): boolean {
-  const filled = (value: string | undefined) => (value ?? '').trim().length > 0
-
+export function isGroupComplete(group: RegisterGroup, form: RegisterForm, measures: Measures): boolean {
   switch (group) {
     case 'person':
       return filled(form.given_name) && filled(form.family_name)
@@ -46,36 +43,34 @@ export function isGroupComplete(
       return filled(form.plot_label) && filled(form.plot_area_ha)
     case 'cycle':
       return (
-        filled(form.crop_id) &&
-        filled(form.harvest_start) &&
-        filled(form.harvest_end) &&
-        measureFilled(form, measure)
+        form.cycles.length > 0 &&
+        form.cycles.every(
+          (c) =>
+            filled(c.harvest_start) && filled(c.harvest_end) && measureFilled(c, measures[c.crop_id]),
+        )
       )
     case 'harvest':
-      return filled(form.harvest_quantity_kg)
+      return form.cycles.length > 0 && form.cycles.every((c) => filled(c.harvest_quantity_kg))
   }
 }
 
-/** A crop measured by area needs its hectares, and nothing else will do. */
-function measureFilled(form: RegisterForm, measure: CropMeasure | undefined): boolean {
-  const filled = (value: string | undefined) => (value ?? '').trim().length > 0
+const filled = (value: string | undefined) => (value ?? '').trim().length > 0
 
+/** A crop measured by area needs its hectares, and nothing else will do. */
+function measureFilled(cycle: CycleForm, measure: CropMeasure | undefined): boolean {
   switch (measure) {
     case 'area':
-      return filled(form.cycle_area_ha)
+      return filled(cycle.area_ha)
     case 'tree_count':
-      return filled(form.cycle_tree_count)
+      return filled(cycle.tree_count)
     case 'unit_count':
-      return filled(form.cycle_unit_count)
-    // No crop chosen yet: there is no measure to ask for.
+      return filled(cycle.unit_count)
+    // A crop the list does not know: there is no measure to ask for.
     default:
       return false
   }
 }
 
-export function completedGroups(
-  form: RegisterForm,
-  measure: CropMeasure | undefined,
-): RegisterGroup[] {
-  return REGISTER_GROUPS.filter((group) => isGroupComplete(group, form, measure))
+export function completedGroups(form: RegisterForm, measures: Measures): RegisterGroup[] {
+  return REGISTER_GROUPS.filter((group) => isGroupComplete(group, form, measures))
 }

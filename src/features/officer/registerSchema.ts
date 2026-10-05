@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { RegisterForm } from '@/features/officer/registerPayload'
+import type { CycleForm, RegisterForm } from '@/features/officer/registerPayload'
 import type { Database } from '@/lib/db.types'
 
 export type CropMeasure = Database['public']['Enums']['crop_measure']
@@ -113,6 +113,16 @@ const longitude = numericText({
 })
 const wholeCount = numericText({ max: 2_147_483_647, integer: true })
 
+const cycle = z.object({
+  crop_id: z.string().min(1, 'register.required'),
+  area_ha: hectares,
+  tree_count: wholeCount,
+  unit_count: wholeCount,
+  harvest_start: z.string(),
+  harvest_end: z.string(),
+  harvest_quantity_kg: quantityKg,
+})
+
 const base = z.object({
   given_name: requiredText,
   family_name: requiredText,
@@ -125,51 +135,48 @@ const base = z.object({
   farm_longitude: longitude,
   plot_label: requiredText,
   plot_area_ha: hectares,
-  crop_id: z.string().min(1, 'register.required'),
   season_label: optionalText,
-  cycle_area_ha: hectares,
-  cycle_tree_count: wholeCount,
-  cycle_unit_count: wholeCount,
   planted_on: z.string(),
-  harvest_start: z.string(),
-  harvest_end: z.string(),
-  harvest_quantity_kg: quantityKg,
+  cycles: z.array(cycle).min(1, 'register.cropsRequired'),
   confidence: z.enum(['low', 'medium', 'high']),
 })
 
-/** Which field the crop's own `measured_by` makes mandatory. */
+/** Which field each crop's own `measured_by` makes mandatory. */
 const MEASURE_FIELD = {
-  area: 'cycle_area_ha',
-  tree_count: 'cycle_tree_count',
-  unit_count: 'cycle_unit_count',
-} as const satisfies Record<CropMeasure, keyof z.infer<typeof base>>
+  area: 'area_ha',
+  tree_count: 'tree_count',
+  unit_count: 'unit_count',
+} as const satisfies Record<CropMeasure, keyof z.infer<typeof cycle>>
 
 /**
- * The schema, for the crop currently chosen.
+ * The schema, for the crops on offer.
  *
- * A factory rather than one static schema because the mandatory measure field
- * depends on another field's ANSWER, not on its presence. With no crop chosen
- * there is no measure to demand, and `crop_id` already carries that error —
- * two messages for one missing answer reads as two problems.
+ * A factory rather than one static schema because each crop's mandatory
+ * measure field depends on that crop's `measured_by`, which arrives with the
+ * crop list. A crop whose measure is unknown demands none: the RPC still
+ * decides, and its message names the measure.
  */
-export function registerSchema(measure: CropMeasure | undefined) {
+export function registerSchema(measures: Readonly<Record<string, CropMeasure>>) {
   return base.superRefine((form, ctx) => {
-    if (measure) {
-      const field = MEASURE_FIELD[measure]
-      if (form[field] === '') {
-        ctx.addIssue({ code: 'custom', path: [field], message: 'register.required' })
+    form.cycles.forEach((c, index) => {
+      const measure = measures[c.crop_id]
+      if (measure) {
+        const field = MEASURE_FIELD[measure]
+        if (c[field] === '') {
+          ctx.addIssue({ code: 'custom', path: ['cycles', index, field], message: 'register.required' })
+        }
       }
-    }
 
-    // `cycle_window_sane`: harvest_end >= harvest_start, either may be null.
-    // Reported on the end date, which is the one that is wrong.
-    if (form.harvest_start && form.harvest_end && form.harvest_end < form.harvest_start) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['harvest_end'],
-        message: 'register.windowBackwards',
-      })
-    }
+      // `cycle_window_sane`: harvest_end >= harvest_start, either may be null.
+      // Reported on the end date, which is the one that is wrong.
+      if (c.harvest_start && c.harvest_end && c.harvest_end < c.harvest_start) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['cycles', index, 'harvest_end'],
+          message: 'register.windowBackwards',
+        })
+      }
+    })
   })
 }
 
@@ -192,7 +199,7 @@ export function roundedTo(value: string, dp: number): string | null {
   return Number(rounded) === n ? null : rounded
 }
 
-/** Every field a `RegisterForm` holds, with the type it must hold. */
+/** Every top-level field a `RegisterForm` holds, with the type it must hold. */
 const DRAFT_FIELDS = {
   given_name: 'string',
   family_name: 'string',
@@ -204,19 +211,42 @@ const DRAFT_FIELDS = {
   farm_longitude: 'string',
   plot_label: 'string',
   plot_area_ha: 'string',
-  crop_id: 'string',
   season_label: 'string',
-  cycle_area_ha: 'string',
-  cycle_tree_count: 'string',
-  cycle_unit_count: 'string',
   planted_on: 'string',
-  harvest_start: 'string',
-  harvest_end: 'string',
-  harvest_quantity_kg: 'string',
   confidence: 'string',
 } as const
 
+const CYCLE_FIELDS = [
+  'crop_id',
+  'area_ha',
+  'tree_count',
+  'unit_count',
+  'harvest_start',
+  'harvest_end',
+  'harvest_quantity_kg',
+] as const satisfies readonly (keyof CycleForm)[]
+
+/** The crop fields of the one-crop form (before 5 Oct 2026), flat on the draft. */
+const LEGACY_CYCLE_FIELDS = {
+  crop_id: 'crop_id',
+  cycle_area_ha: 'area_ha',
+  cycle_tree_count: 'tree_count',
+  cycle_unit_count: 'unit_count',
+  harvest_start: 'harvest_start',
+  harvest_end: 'harvest_end',
+  harvest_quantity_kg: 'harvest_quantity_kg',
+} as const satisfies Record<string, keyof CycleForm>
+
 const CONFIDENCE = ['low', 'medium', 'high']
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isCycle = (value: unknown) =>
+  isRecord(value) && CYCLE_FIELDS.every((field) => typeof value[field] === 'string')
+
+const isLegacyCycles = (draft: Record<string, unknown>) =>
+  Object.keys(LEGACY_CYCLE_FIELDS).every((field) => typeof draft[field] === 'string')
 
 /**
  * Is this stored object still a draft of THIS form? — QA #22.
@@ -229,14 +259,35 @@ const CONFIDENCE = ['low', 'medium', 'high']
  * The realistic producer is a draft written by an older deployment of the
  * form, on a phone that was mid-registration when the app updated. An extra
  * key is therefore tolerated — a field this version dropped costs nothing —
- * while a missing or retyped one is not.
+ * while a missing or retyped one is not. A draft of the one-crop form is
+ * accepted too, and `toRegisterForm` turns its crop into the first of the list.
  */
 export function isRegisterDraft(value: unknown): value is RegisterForm {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  if (!isRecord(value)) return false
 
-  const draft = value as Record<string, unknown>
   for (const [field, type] of Object.entries(DRAFT_FIELDS)) {
-    if (typeof draft[field] !== type) return false
+    if (typeof value[field] !== type) return false
   }
-  return CONFIDENCE.includes(draft.confidence as string)
+  if (!CONFIDENCE.includes(value.confidence as string)) return false
+
+  if ('cycles' in value) return Array.isArray(value.cycles) && value.cycles.every(isCycle)
+  return isLegacyCycles(value)
+}
+
+/** A draft of the one-crop form (before 5 Oct 2026). */
+export type LegacyRegisterDraft = Omit<RegisterForm, 'cycles'> &
+  Record<keyof typeof LEGACY_CYCLE_FIELDS, string>
+
+/** A draft that passed `isRegisterDraft`, in the shape the form holds today. */
+export function toRegisterForm(draft: RegisterForm | LegacyRegisterDraft): RegisterForm {
+  const raw = draft as unknown as Record<string, unknown>
+  if (Array.isArray(raw.cycles)) return draft as RegisterForm
+
+  const rest = { ...raw }
+  const cycle = {} as CycleForm
+  for (const [legacy, field] of Object.entries(LEGACY_CYCLE_FIELDS)) {
+    cycle[field] = raw[legacy] as string
+    delete rest[legacy]
+  }
+  return { ...(rest as Omit<RegisterForm, 'cycles'>), cycles: cycle.crop_id === '' ? [] : [cycle] }
 }

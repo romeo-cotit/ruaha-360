@@ -115,9 +115,9 @@ test.describe('the acceptance journey', () => {
       await page.getByTestId('register-farm-label').fill(farmLabel)
       await page.getByTestId('register-plot-label').fill(`${family} plot`)
       await page.getByTestId('register-plot-area').fill('1.5')
-      // Selected by id: crop names come from the database per the user's
+      // Ticked by id: crop names come from the database per the user's
       // locale, and the seeded Ilundo officer reads Swahili.
-      await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
+      await page.getByTestId(`register-crop-${CROP.MAIZE.id}`).check()
       await page.getByTestId('register-cycle-area').fill('1.2')
       // September, so the figure lands in the same production and supply
       // window as the seeded maize the later steps read.

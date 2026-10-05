@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { CROP } from './support/seed'
+
 /**
  * QA #8 — the ops surface below ~800px.
  *
@@ -304,6 +306,8 @@ test.describe('the officer surface on a phone', () => {
   test('the harvest dates stack in full-width rows inside their card', async ({ page }) => {
     await signInAsOfficer(page)
     await page.goto('/officer/register')
+    // The window belongs to a crop, so it appears once one is ticked.
+    await page.getByTestId(`register-crop-${CROP.MAIZE.id}`).check()
 
     const start = page.getByTestId('register-harvest-start')
     const end = page.getByTestId('register-harvest-end')

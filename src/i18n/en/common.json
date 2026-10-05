@@ -169,7 +169,7 @@
       "household": "Household",
       "farm": "Farm",
       "plot": "Plot",
-      "cycle": "Crop cycle",
+      "cycle": "Crops",
       "harvest": "Expected harvest"
     },
     "givenName": "First name",
@@ -218,7 +218,11 @@
     "latitudeRange": "Latitude runs from -90 to 90.",
     "longitudeRange": "Longitude runs from -180 to 180.",
     "phoneHint": "Include the country code, for example +255700000101.",
-    "roundedNote": "This will be stored as {{value}}."
+    "roundedNote": "This will be stored as {{value}}.",
+    "crops": "Crops grown on this plot",
+    "cropsHint": "Tick every crop. Each one gets its own measure, harvest window and expected harvest.",
+    "cropsRequired": "Choose at least one crop.",
+    "plantedAcrossNote": "Planted area is entered for each crop below. Across several crops it can add up to more than the plot's area."
   },
   "confidence": {
     "low": "Low",

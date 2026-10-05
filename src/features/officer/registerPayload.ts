@@ -3,12 +3,27 @@ import type { Database } from '@/lib/db.types'
 type CropMeasure = Database['public']['Enums']['crop_measure']
 type Confidence = Database['public']['Enums']['confidence_level']
 
+/** One crop grown on the plot: its measure, its harvest window, its expected kg. */
+export interface CycleForm {
+  crop_id: string
+  area_ha: string
+  tree_count: string
+  unit_count: string
+  harvest_start: string
+  harvest_end: string
+  harvest_quantity_kg: string
+}
+
 /**
  * The register form, as strings.
  *
  * Kept as strings deliberately: the RPC takes jsonb and nullifs empty text
  * itself (`nullif(cy->>'area_ha','')::hectares`), so the client does not
  * second-guess which blanks mean null.
+ *
+ * `cycles` holds one entry per crop ticked. A plot carries several concurrent
+ * cycles (intercropping), which is why planted area across cycles can exceed
+ * the plot's own area.
  */
 export interface RegisterForm {
   given_name: string
@@ -21,16 +36,24 @@ export interface RegisterForm {
   farm_longitude: string
   plot_label: string
   plot_area_ha: string
+  season_label: string
+  planted_on: string
+  cycles: CycleForm[]
+  confidence: Confidence
+}
+
+export interface CyclePayload {
   crop_id: string
   season_label: string
-  cycle_area_ha: string
-  cycle_tree_count: string
-  cycle_unit_count: string
+  area_ha: string
+  tree_count: string
+  unit_count: string
   planted_on: string
   harvest_start: string
   harvest_end: string
-  harvest_quantity_kg: string
+  status: string
   confidence: Confidence
+  harvest: { quantity_kg: string; reported_for: string; confidence: Confidence }
 }
 
 export interface RegisterPayload {
@@ -40,19 +63,7 @@ export interface RegisterPayload {
   household: { label: string; is_head: boolean }
   farm: { label: string; latitude: string; longitude: string; confidence: Confidence }
   plot: { label: string; area_ha: string; confidence: Confidence }
-  cycle: {
-    crop_id: string
-    season_label: string
-    area_ha: string
-    tree_count: string
-    unit_count: string
-    planted_on: string
-    harvest_start: string
-    harvest_end: string
-    status: string
-    confidence: Confidence
-  }
-  harvest: { quantity_kg: string; reported_for: string; confidence: Confidence }
+  cycles: CyclePayload[]
 }
 
 /**
@@ -62,15 +73,17 @@ export interface RegisterPayload {
  * and captured_by = auth.uid() itself, which is what keeps an officer from
  * asserting who captured a record.
  *
- * Only the measure matching `crop.measured_by` is sent. The RPC raises
- * "this crop is measured by area: area_ha is required" and its siblings, so
- * sending the wrong one is a guaranteed round trip to a known failure.
+ * Each crop sends only the measure matching its `crop.measured_by`. The RPC
+ * raises "this crop is measured by area: area_ha is required" and its
+ * siblings, so sending the wrong one is a guaranteed round trip to a known
+ * failure — and a crop with no known measure is refused here for the same
+ * reason.
  */
 export function buildRegisterPayload(
   form: RegisterForm,
-  context: { clientRef: string; villageId: string; measure: CropMeasure },
+  context: { clientRef: string; villageId: string; measures: Readonly<Record<string, CropMeasure>> },
 ): RegisterPayload {
-  const { clientRef, villageId, measure } = context
+  const { clientRef, villageId, measures } = context
 
   return {
     client_ref: clientRef,
@@ -96,23 +109,28 @@ export function buildRegisterPayload(
       area_ha: form.plot_area_ha,
       confidence: form.confidence,
     },
-    cycle: {
-      crop_id: form.crop_id,
-      season_label: form.season_label,
-      area_ha: measure === 'area' ? form.cycle_area_ha : '',
-      tree_count: measure === 'tree_count' ? form.cycle_tree_count : '',
-      unit_count: measure === 'unit_count' ? form.cycle_unit_count : '',
-      planted_on: form.planted_on,
-      harvest_start: form.harvest_start,
-      harvest_end: form.harvest_end,
-      // Matches the RPC's own default for a registration.
-      status: 'growing',
-      confidence: form.confidence,
-    },
-    harvest: {
-      quantity_kg: form.harvest_quantity_kg,
-      reported_for: form.harvest_start,
-      confidence: form.confidence,
-    },
+    cycles: form.cycles.map((cycle) => {
+      const measure = measures[cycle.crop_id]
+      if (!measure) throw new Error(`unknown crop: ${cycle.crop_id}`)
+
+      return {
+        crop_id: cycle.crop_id,
+        season_label: form.season_label,
+        area_ha: measure === 'area' ? cycle.area_ha : '',
+        tree_count: measure === 'tree_count' ? cycle.tree_count : '',
+        unit_count: measure === 'unit_count' ? cycle.unit_count : '',
+        planted_on: form.planted_on,
+        harvest_start: cycle.harvest_start,
+        harvest_end: cycle.harvest_end,
+        // Matches the RPC's own default for a registration.
+        status: 'growing',
+        confidence: form.confidence,
+        harvest: {
+          quantity_kg: cycle.harvest_quantity_kg,
+          reported_for: cycle.harvest_start,
+          confidence: form.confidence,
+        },
+      }
+    }),
   }
 }

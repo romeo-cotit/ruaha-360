@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
@@ -51,15 +51,9 @@ const EMPTY_DRAFT = {
   farm_longitude: '',
   plot_label: '',
   plot_area_ha: '',
-  crop_id: '',
   season_label: '',
-  cycle_area_ha: '',
-  cycle_tree_count: '',
-  cycle_unit_count: '',
   planted_on: '',
-  harvest_start: '',
-  harvest_end: '',
-  harvest_quantity_kg: '',
+  cycles: [],
   confidence: 'medium',
 }
 
@@ -103,12 +97,12 @@ function renderScreen() {
   )
 }
 
-/** Fills a complete, valid registration. */
+/** Ticks (or unticks) one crop grown on the plot. */
 async function chooseCrop(label: string) {
-  await userEvent.click(screen.getByTestId('register-crop'))
-  await userEvent.click(await screen.findByRole('option', { name: label }))
+  await userEvent.click(screen.getByRole('checkbox', { name: label }))
 }
 
+/** Fills a complete, valid registration. */
 async function fillValid() {
   fireEvent.change(screen.getByTestId('register-given-name'), { target: { value: 'Neema' } })
   fireEvent.change(screen.getByTestId('register-family-name'), { target: { value: 'Mwakalinga' } })
@@ -176,6 +170,7 @@ describe('the conditional measure field', () => {
   test('follows the crop: a tree crop asks for trees', async () => {
     renderScreen()
     await fillValid()
+    await chooseCrop('Mahindi')
     await chooseCrop('Kahawa')
     submit()
 
@@ -334,8 +329,9 @@ describe('silent rounding', () => {
   })
 
   // quantity_kg is numeric(12,2) — a different scale on the same form.
-  test('uses each column own scale', () => {
+  test('uses each column own scale', async () => {
     renderScreen()
+    await chooseCrop('Mahindi')
     fireEvent.change(screen.getByTestId('register-harvest-kg'), { target: { value: '4100.567' } })
 
     expect(screen.getByTestId('register-harvest-kg-rounded')).toHaveTextContent('4100.57')
@@ -403,6 +399,97 @@ describe('a valid registration', () => {
 
     await screen.findByTestId('register-success')
     expect(screen.queryByTestId('farmer-login-card')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * A farmer grows more than one crop, often on the same plot. Each crop ticked
+ * becomes its own cycle with its own measure, window and expected harvest.
+ */
+describe('several crops', () => {
+  test('a crop must be chosen before anything is sent', async () => {
+    renderScreen()
+    await fillValid()
+    await chooseCrop('Mahindi')
+    submit()
+
+    await waitFor(() => expect(screen.getByTestId('register-cycles-error')).toBeInTheDocument())
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  test('each crop ticked gets its own card, asking for its own measure', async () => {
+    renderScreen()
+    await chooseCrop('Mahindi')
+    await chooseCrop('Kahawa')
+
+    const cards = screen.getAllByTestId('register-cycle-card')
+    expect(cards).toHaveLength(2)
+    expect(within(cards[0]).getByTestId('register-cycle-area')).toBeInTheDocument()
+    expect(within(cards[1]).getByTestId('register-cycle-tree-count')).toBeInTheDocument()
+    expect(screen.getAllByTestId('register-harvest-row')).toHaveLength(2)
+  })
+
+  test('unticking a crop removes its card', async () => {
+    renderScreen()
+    await chooseCrop('Mahindi')
+    await chooseCrop('Kahawa')
+    await chooseCrop('Mahindi')
+
+    const cards = screen.getAllByTestId('register-cycle-card')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]).toHaveAttribute('data-crop-id', COFFEE)
+  })
+
+  test('both crops are sent, each with its own measure and harvest', async () => {
+    renderScreen()
+    await fillValid()
+    await chooseCrop('Kahawa')
+    const coffee = screen.getAllByTestId('register-cycle-card')[1]
+    fireEvent.change(within(coffee).getByTestId('register-cycle-tree-count'), { target: { value: '40' } })
+    const rows = screen.getAllByTestId('register-harvest-row')
+    fireEvent.change(within(rows[0]).getByTestId('register-harvest-kg'), { target: { value: '2000' } })
+    fireEvent.change(within(rows[1]).getByTestId('register-harvest-kg'), { target: { value: '300' } })
+    submit()
+
+    await waitFor(() => expect(rpc).toHaveBeenCalledTimes(1))
+    const payload = rpc.mock.calls[0][1].payload as {
+      cycles: Array<{ crop_id: string; area_ha: string; tree_count: string; harvest: { quantity_kg: string } }>
+    }
+    expect(payload.cycles).toHaveLength(2)
+    expect(payload.cycles[0]).toMatchObject({ crop_id: MAIZE, area_ha: '1.6', harvest: { quantity_kg: '2000' } })
+    expect(payload.cycles[1]).toMatchObject({ crop_id: COFFEE, tree_count: '40', harvest: { quantity_kg: '300' } })
+  })
+
+  test('says planted area across crops can exceed the plot area', () => {
+    renderScreen()
+    expect(screen.getByTestId('register-plot-area-note')).toHaveTextContent(/across/i)
+  })
+
+  // A phone mid-registration when the app updated: its one crop restores as
+  // the first of the list, with everything typed for it.
+  test('a draft from the one-crop form restores its crop', async () => {
+    const { cycles: _cycles, ...rest } = EMPTY_DRAFT
+    useDraft.mockReturnValue({
+      status: 'dirty',
+      draft: {
+        ...rest,
+        given_name: 'Neema',
+        crop_id: MAIZE,
+        cycle_area_ha: '1.4',
+        cycle_tree_count: '',
+        cycle_unit_count: '',
+        harvest_start: '',
+        harvest_end: '',
+        harvest_quantity_kg: '900',
+      },
+      save,
+      clear,
+    })
+    renderScreen()
+
+    await waitFor(() => expect(screen.getByTestId('register-cycle-area')).toHaveValue('1.4'))
+    expect(screen.getByRole('checkbox', { name: 'Mahindi' })).toBeChecked()
+    expect(screen.getByTestId('register-harvest-kg')).toHaveValue('900')
   })
 })
 

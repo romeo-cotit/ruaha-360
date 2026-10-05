@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, type Resolver } from 'react-hook-form'
+import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { LocateFixed } from 'lucide-react'
@@ -13,12 +13,16 @@ import { ErrorState } from '@/components/ErrorState'
 import { UnsavedDraftBadge } from '@/components/UnsavedDraftBadge'
 import { BangMark, PlannedMark, VerificationMark } from '@/components/marks'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { buildRegisterPayload, type RegisterForm } from '@/features/officer/registerPayload'
+import {
+  buildRegisterPayload,
+  type CycleForm,
+  type RegisterForm,
+} from '@/features/officer/registerPayload'
 import {
   isRegisterDraft,
   registerSchema,
   roundedTo,
+  toRegisterForm,
   type CropMeasure,
 } from '@/features/officer/registerSchema'
 import {
@@ -43,6 +47,9 @@ interface RegisterResult {
   plot_id: string | null
   crop_cycle_id: string | null
   harvest_report_id: string | null
+  crop_cycle_ids?: string[]
+  harvest_report_ids?: string[]
+  village_id?: string
   replayed: boolean
 }
 
@@ -57,17 +64,26 @@ const EMPTY: RegisterForm = {
   farm_longitude: '',
   plot_label: '',
   plot_area_ha: '',
-  crop_id: '',
   season_label: '',
-  cycle_area_ha: '',
-  cycle_tree_count: '',
-  cycle_unit_count: '',
   planted_on: '',
+  cycles: [],
+  confidence: 'medium',
+}
+
+/** A crop just ticked: nothing typed for it yet. */
+const emptyCycle = (cropId: string): CycleForm => ({
+  crop_id: cropId,
+  area_ha: '',
+  tree_count: '',
+  unit_count: '',
   harvest_start: '',
   harvest_end: '',
   harvest_quantity_kg: '',
-  confidence: 'medium',
-}
+})
+
+/** Top-level fields with an error line of their own; crops have theirs per card. */
+type FlatField = Exclude<keyof RegisterForm, 'cycles'>
+type CycleField = Exclude<keyof CycleForm, 'crop_id'>
 
 // By route id rather than by importing the route, which would be circular.
 const route = getRouteApi('/_officer/officer/register')
@@ -118,19 +134,18 @@ export function RegisterScreen() {
     isRegisterDraft,
   )
 
-  // The mandatory measure field depends on the CROP CHOSEN, so the schema has
-  // to be built at validation time rather than captured once at mount. A ref
-  // holds the current measure and the resolver reads it on each submit; a
-  // resolver passed directly would freeze the crop that was selected when the
-  // form first rendered.
-  const measureRef = useRef<CropMeasure | undefined>(undefined)
+  // Each crop's mandatory measure field depends on that crop's `measured_by`,
+  // which arrives with the crop list, so the schema is built at validation
+  // time. A ref holds the current map and the resolver reads it on each
+  // submit; a resolver passed directly would freeze the list at first render.
+  const measuresRef = useRef<Record<string, CropMeasure>>({})
   const resolver = useMemo<Resolver<RegisterForm, unknown, RegisterForm>>(
     () => (values, context, options) =>
-      zodResolver(registerSchema(measureRef.current))(values, context, options),
+      zodResolver(registerSchema(measuresRef.current))(values, context, options),
     [],
   )
 
-  const { register, handleSubmit, watch, reset, setValue, getValues, formState } = useForm<
+  const { control, register, handleSubmit, watch, reset, setValue, getValues, formState } = useForm<
     RegisterForm,
     unknown,
     RegisterForm
@@ -145,7 +160,8 @@ export function RegisterScreen() {
   useEffect(() => {
     if (restored) return
     if (draft.status === 'restoring') return
-    if (draft.draft) reset(draft.draft)
+    // A draft of the one-crop form restores with its crop as the first.
+    if (draft.draft) reset(toRegisterForm(draft.draft))
     setRestored(true)
   }, [draft.status, draft.draft, reset, restored])
 
@@ -189,8 +205,9 @@ export function RegisterScreen() {
     setValue('farm_longitude', location.coords.longitude, { shouldDirty: true })
   }, [gpsEligible, wantFill, location.status, location.coords, getValues, setValue])
 
-  // Only the crop drives rendering, so only it is subscribed for render.
-  const cropId = watch('crop_id')
+  // One entry per crop ticked. Keyed by react-hook-form's own field id, so a
+  // crop removed from the middle does not shift what was typed for the others.
+  const cycleFields = useFieldArray({ control, name: 'cycles' })
 
   // Autosave on change, via react-hook-form's own subscription rather than an
   // effect over stringified values. Local only — the badge stays up until the
@@ -204,8 +221,10 @@ export function RegisterScreen() {
     // correctly scoped.
     // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = watch((value) => {
-      const dirty = Object.entries(value).some(
-        ([key, v]) => v !== EMPTY[key as keyof RegisterForm],
+      const dirty = Object.entries(value).some(([key, v]) =>
+        key === 'cycles'
+          ? Array.isArray(v) && v.length > 0
+          : v !== EMPTY[key as keyof RegisterForm],
       )
       if (dirty) void save(value as RegisterForm)
     })
@@ -215,29 +234,30 @@ export function RegisterScreen() {
   const villageIds = writableVillageIds(activeMemberships(session.data?.memberships ?? []))
   const villageId = villageIds[0]
 
-  const crop = useMemo(
-    () => cropsQuery.crops.find((c) => c.id === cropId),
-    [cropsQuery.crops, cropId],
+  const measures = useMemo(
+    () => Object.fromEntries(cropsQuery.crops.map((c) => [c.id, c.measured_by])) as Record<string, CropMeasure>,
+    [cropsQuery.crops],
   )
-  const measure = crop?.measured_by
-  // Named, so the branch says which crop decided it rather than silently
-  // swapping one field for another.
-  const cropName = crop?.name ?? ''
-  measureRef.current = measure
+  measuresRef.current = measures
+  const cropName = (id: string) => cropsQuery.crops.find((c) => c.id === id)?.name ?? ''
 
-  // The two hectares fields and the harvest figure, watched only so the form
-  // can say what a column's scale will do to what was typed (QA #27).
+  // Watched so the form can say what a column's scale will do to what was
+  // typed (QA #27), and so each crop card renders the measure its crop uses.
   const plotArea = watch('plot_area_ha')
-  const cycleArea = watch('cycle_area_ha')
-  const harvestKg = watch('harvest_quantity_kg')
+  const cycles = watch('cycles')
   const confidence = watch('confidence')
+
+  const toggleCrop = (cropId: string) => {
+    const index = cycles.findIndex((c) => c.crop_id === cropId)
+    if (index >= 0) cycleFields.remove(index)
+    else cycleFields.append(emptyCycle(cropId), { shouldFocus: false })
+  }
 
   const submit = useMutation({
     mutationFn: async (form: RegisterForm) => {
       if (!villageId) throw new Error(t('register.noVillage'))
-      if (!measure) throw new Error(t('register.required'))
 
-      const payload = buildRegisterPayload(form, { clientRef, villageId, measure })
+      const payload = buildRegisterPayload(form, { clientRef, villageId, measures })
       // The generated signature types the argument as Json, which is a
       // recursive index-signature type an interface cannot satisfy. The shape
       // itself is asserted by registerPayload.test.ts.
@@ -346,37 +366,44 @@ export function RegisterScreen() {
    * this resolves it at render. `register.required` is the fallback for an
    * error react-hook-form raised itself, which carries no message.
    */
-  const err = (name: keyof RegisterForm) => {
-    const message = formState.errors[name]?.message
-    if (!formState.errors[name]) return null
-    return (
-      <p
-        id={`register-${fieldId(name)}-error`}
-        data-testid={`register-${fieldId(name)}-error`}
-        className="flex items-start gap-[7px] font-medium"
-        style={{ fontSize: 13, color: 'var(--flag-ink)', textWrap: 'pretty' }}
-      >
-        <BangMark />
-        {t(message ?? 'register.required')}
-      </p>
-    )
+  const errorLine = (id: string, message: string | undefined) => (
+    <p
+      id={`register-${id}-error`}
+      data-testid={`register-${id}-error`}
+      className="flex items-start gap-[7px] font-medium"
+      style={{ fontSize: 13, color: 'var(--flag-ink)', textWrap: 'pretty' }}
+    >
+      <BangMark />
+      {t(message ?? 'register.required')}
+    </p>
+  )
+
+  const err = (name: FlatField) =>
+    formState.errors[name] ? errorLine(fieldId(name), formState.errors[name]?.message) : null
+
+  /** A crop card's own field. Test ids match the one-crop form's. */
+  const cycleError = (index: number, name: CycleField) => formState.errors.cycles?.[index]?.[name]
+  const cycleErr = (index: number, name: CycleField) => {
+    const error = cycleError(index, name)
+    return error ? errorLine(CYCLE_FIELD_ID[name], error.message) : null
   }
+
+  // "Choose at least one crop": zod's array issue lands on the list itself.
+  const cyclesError = formState.errors.cycles?.message ?? formState.errors.cycles?.root?.message
 
   /**
    * A field's whole presentation, in one place: the 48px control, and — when it
    * failed validation — the red edge, `aria-invalid` and a pointer at the
    * message, so the failure reaches assistive tech as well as the eye.
    */
-  const fieldProps = (name: keyof RegisterForm) => {
-    const failed = Boolean(formState.errors[name])
-    return {
-      className: inputClass,
-      style: failed ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle,
-      ...(failed
-        ? { 'aria-invalid': true as const, 'aria-describedby': `register-${fieldId(name)}-error` }
-        : {}),
-    }
-  }
+  const controlProps = (failed: boolean, errorId: string) => ({
+    className: inputClass,
+    style: failed ? { ...inputStyle, border: '1.5px solid var(--flag-ink)' } : inputStyle,
+    ...(failed ? { 'aria-invalid': true as const, 'aria-describedby': `register-${errorId}-error` } : {}),
+  })
+  const fieldProps = (name: FlatField) => controlProps(Boolean(formState.errors[name]), fieldId(name))
+  const cycleProps = (index: number, name: CycleField) =>
+    controlProps(Boolean(cycleError(index, name)), CYCLE_FIELD_ID[name])
 
   /** The status line for a GPS read that isn't quietly succeeding. */
   const gpsMessageKey = (status: FarmLocationStatus): string | null => {
@@ -410,7 +437,7 @@ export function RegisterScreen() {
   }
 
   const values = watch()
-  const done = (group: RegisterGroup) => isGroupComplete(group, values, measure)
+  const done = (group: RegisterGroup) => isGroupComplete(group, values, measures)
   const completeCount = REGISTER_GROUPS.filter(done).length
 
   return (
@@ -677,6 +704,10 @@ export function RegisterScreen() {
           </Field>
           {err('plot_area_ha')}
           {rounded('register-plot-area', plotArea, 4)}
+          {/* cycle area is "planted area across cycles", never "land area". */}
+          <p data-testid="register-plot-area-note" className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
+            {t('register.plantedAcrossNote')}
+          </p>
         </Fieldset>
 
         <Fieldset
@@ -685,113 +716,127 @@ export function RegisterScreen() {
           complete={done('cycle')}
           testId="register-group-cycle"
         >
-          <Field label={t('register.crop')} id="register-crop">
-            <Select
-              value={cropId}
-              onValueChange={(value) => setValue('crop_id', value ?? '', { shouldDirty: true, shouldValidate: true })}
-            >
-              <SelectTrigger id="register-crop" data-testid="register-crop" {...fieldProps('crop_id')}>
-                {cropsQuery.crops.find((crop) => crop.id === cropId)?.name ?? t('register.chooseCrop')}
-              </SelectTrigger>
-              <SelectContent>
+          <fieldset className="flex flex-col gap-2">
+            <legend style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+              {t('register.crops')}
+            </legend>
+            <p className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
+              {t('register.cropsHint')}
+            </p>
+            <div data-testid="register-crops" className="flex flex-wrap gap-2">
               {cropsQuery.crops.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
+                <CropTarget
+                  key={c.id}
+                  id={c.id}
+                  label={c.name}
+                  selected={cycles.some((cycle) => cycle.crop_id === c.id)}
+                  onToggle={() => toggleCrop(c.id)}
+                />
               ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          {err('crop_id')}
+            </div>
+            {cyclesError && errorLine('cycles', cyclesError)}
+          </fieldset>
 
-          {/* Branches on crop.measured_by: the RPC rejects the wrong measure,
-              so only the right field is offered. */}
-          {measure === 'area' && (
-            <Field
-              label={t('register.cycleArea')}
-              id="register-cycle-area"
-              hint={t('register.measuredBy', { crop: cropName })}
-            >
-              <input
-                id="register-cycle-area"
-                data-testid="register-cycle-area"
-                inputMode="decimal"
-                {...fieldProps('cycle_area_ha')}
-              {...register('cycle_area_ha')}
-              />
-              {err('cycle_area_ha')}
-              {rounded('register-cycle-area', cycleArea, 4)}
-            </Field>
-          )}
-          {measure === 'tree_count' && (
-            <Field
-              label={t('register.treeCount')}
-              id="register-cycle-tree-count"
-              hint={t('register.measuredBy', { crop: cropName })}
-            >
-              <input
-                id="register-cycle-tree-count"
-                data-testid="register-cycle-tree-count"
-                inputMode="numeric"
-                {...fieldProps('cycle_tree_count')}
-              {...register('cycle_tree_count')}
-              />
-              {err('cycle_tree_count')}
-            </Field>
-          )}
-          {measure === 'unit_count' && (
-            <Field
-              label={t('register.unitCount')}
-              id="register-cycle-unit-count"
-              hint={t('register.measuredBy', { crop: cropName })}
-            >
-              <input
-                id="register-cycle-unit-count"
-                data-testid="register-cycle-unit-count"
-                inputMode="numeric"
-                {...fieldProps('cycle_unit_count')}
-              {...register('cycle_unit_count')}
-              />
-              {err('cycle_unit_count')}
-            </Field>
-          )}
+          {cycleFields.fields.map((field, index) => {
+            const cropId = cycles[index]?.crop_id ?? field.crop_id
+            const measure = measures[cropId]
+            const name = cropName(cropId)
+            return (
+              <div
+                key={field.id}
+                data-testid="register-cycle-card"
+                data-crop-id={cropId}
+                className="flex flex-col gap-3.5 p-3.5"
+                style={{ border: '1px solid var(--rule)', borderRadius: 'var(--radius-card)', background: 'var(--sand-1, var(--paper))' }}
+              >
+                <h3 className="type-section" style={{ color: 'var(--ink)' }}>{name}</h3>
 
-          {/* One column: an iOS date input has an intrinsic minimum width that a
-              half-width column on a phone cannot hold. */}
-          <Field label={t('register.harvestStart')} id="register-harvest-start">
-            <input
-              id="register-harvest-start"
-              data-testid="register-harvest-start"
-              type="date"
-              {...fieldProps('harvest_start')}
-              {...register('harvest_start')}
-            />
-            {err('harvest_start')}
-          </Field>
-          <Field label={t('register.harvestEnd')} id="register-harvest-end">
-            <input
-              id="register-harvest-end"
-              data-testid="register-harvest-end"
-              type="date"
-              {...fieldProps('harvest_end')}
-              {...register('harvest_end')}
-            />
-            {err('harvest_end')}
-          </Field>
+                {/* Branches on crop.measured_by: the RPC rejects the wrong
+                    measure, so only the right field is offered. */}
+                {measure === 'area' && (
+                  <Field label={t('register.cycleArea')} id={`register-cycle-area-${index}`} hint={t('register.measuredBy', { crop: name })}>
+                    <input
+                      id={`register-cycle-area-${index}`}
+                      data-testid="register-cycle-area"
+                      inputMode="decimal"
+                      {...cycleProps(index, 'area_ha')}
+                      {...register(`cycles.${index}.area_ha`)}
+                    />
+                    {cycleErr(index, 'area_ha')}
+                    {rounded('register-cycle-area', cycles[index]?.area_ha, 4)}
+                  </Field>
+                )}
+                {measure === 'tree_count' && (
+                  <Field label={t('register.treeCount')} id={`register-cycle-tree-count-${index}`} hint={t('register.measuredBy', { crop: name })}>
+                    <input
+                      id={`register-cycle-tree-count-${index}`}
+                      data-testid="register-cycle-tree-count"
+                      inputMode="numeric"
+                      {...cycleProps(index, 'tree_count')}
+                      {...register(`cycles.${index}.tree_count`)}
+                    />
+                    {cycleErr(index, 'tree_count')}
+                  </Field>
+                )}
+                {measure === 'unit_count' && (
+                  <Field label={t('register.unitCount')} id={`register-cycle-unit-count-${index}`} hint={t('register.measuredBy', { crop: name })}>
+                    <input
+                      id={`register-cycle-unit-count-${index}`}
+                      data-testid="register-cycle-unit-count"
+                      inputMode="numeric"
+                      {...cycleProps(index, 'unit_count')}
+                      {...register(`cycles.${index}.unit_count`)}
+                    />
+                    {cycleErr(index, 'unit_count')}
+                  </Field>
+                )}
+
+                {/* One column: an iOS date input has an intrinsic minimum width
+                    that a half-width column on a phone cannot hold. */}
+                <Field label={t('register.harvestStart')} id={`register-harvest-start-${index}`}>
+                  <input
+                    id={`register-harvest-start-${index}`}
+                    data-testid="register-harvest-start"
+                    type="date"
+                    {...cycleProps(index, 'harvest_start')}
+                    {...register(`cycles.${index}.harvest_start`)}
+                  />
+                  {cycleErr(index, 'harvest_start')}
+                </Field>
+                <Field label={t('register.harvestEnd')} id={`register-harvest-end-${index}`}>
+                  <input
+                    id={`register-harvest-end-${index}`}
+                    data-testid="register-harvest-end"
+                    type="date"
+                    {...cycleProps(index, 'harvest_end')}
+                    {...register(`cycles.${index}.harvest_end`)}
+                  />
+                  {cycleErr(index, 'harvest_end')}
+                </Field>
+              </div>
+            )
+          })}
         </Fieldset>
 
         <Fieldset number={6} legend={t('register.sections.harvest')} complete={done('harvest')}>
-          <Field label={t('register.harvestKg')} id="register-harvest-kg">
-            <input
-              id="register-harvest-kg"
-              data-testid="register-harvest-kg"
-              inputMode="decimal"
-              {...fieldProps('harvest_quantity_kg')}
-              {...register('harvest_quantity_kg')}
-            />
-          </Field>
-          {err('harvest_quantity_kg')}
-          {rounded('register-harvest-kg', harvestKg, 2)}
+          {cycleFields.fields.map((field, index) => {
+            const name = cropName(cycles[index]?.crop_id ?? field.crop_id)
+            return (
+              <div key={field.id} data-testid="register-harvest-row" className="flex flex-col gap-1.5">
+                <Field label={t('register.harvestKg')} id={`register-harvest-kg-${index}`} hint={name}>
+                  <input
+                    id={`register-harvest-kg-${index}`}
+                    data-testid="register-harvest-kg"
+                    inputMode="decimal"
+                    {...cycleProps(index, 'harvest_quantity_kg')}
+                    {...register(`cycles.${index}.harvest_quantity_kg`)}
+                  />
+                </Field>
+                {cycleErr(index, 'harvest_quantity_kg')}
+                {rounded('register-harvest-kg', cycles[index]?.harvest_quantity_kg, 2)}
+              </div>
+            )
+          })}
           {/*
             Three targets rather than a select. Confidence is the one field on
             this form an officer sets from judgement rather than from something
@@ -898,8 +943,56 @@ const inputStyle = {
   fontVariantNumeric: 'tabular-nums',
 }
 
-function fieldId(name: keyof RegisterForm) {
+function fieldId(name: FlatField) {
   return name.replace(/_/g, '-')
+}
+
+/** The one-crop form's error ids, kept so a crop card's errors read the same. */
+const CYCLE_FIELD_ID: Record<CycleField, string> = {
+  area_ha: 'cycle-area-ha',
+  tree_count: 'cycle-tree-count',
+  unit_count: 'cycle-unit-count',
+  harvest_start: 'harvest-start',
+  harvest_end: 'harvest-end',
+  harvest_quantity_kg: 'harvest-quantity-kg',
+}
+
+/** One crop to tick, a 48px target like the confidence choices. */
+function CropTarget({
+  id,
+  label,
+  selected,
+  onToggle,
+}: {
+  id: string
+  label: string
+  selected: boolean
+  onToggle: () => void
+}) {
+  return (
+    <label
+      className="flex items-center gap-2 p-2.5"
+      style={{
+        flex: '1 1 130px',
+        minHeight: 48,
+        border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--rule-2)'}`,
+        borderRadius: 'var(--radius-control)',
+        background: selected ? 'var(--primary-tint)' : 'var(--paper)',
+        fontSize: 15,
+        fontWeight: selected ? 600 : 400,
+        color: selected ? 'var(--primary-ink)' : 'var(--ink-2)',
+      }}
+    >
+      <input
+        type="checkbox"
+        data-testid={`register-crop-${id}`}
+        checked={selected}
+        onChange={onToggle}
+        style={{ width: 20, height: 20, accentColor: '#1d70b7' }}
+      />
+      {label}
+    </label>
+  )
 }
 
 /** A numbered section card. The number is the officer's place in the form. */

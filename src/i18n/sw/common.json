@@ -169,7 +169,7 @@
       "household": "Kaya",
       "farm": "Shamba",
       "plot": "Kipande",
-      "cycle": "Msimu wa zao",
+      "cycle": "Mazao",
       "harvest": "Mavuno yanayotarajiwa"
     },
     "givenName": "Jina la kwanza",
@@ -218,7 +218,11 @@
     "latitudeRange": "Latitudo ni kati ya -90 na 90.",
     "longitudeRange": "Longitudo ni kati ya -180 na 180.",
     "phoneHint": "Weka msimbo wa nchi, kwa mfano +255700000101.",
-    "roundedNote": "Itahifadhiwa kama {{value}}."
+    "roundedNote": "Itahifadhiwa kama {{value}}.",
+    "crops": "Mazao yanayolimwa kwenye kipande hiki",
+    "cropsHint": "Weka alama kwenye kila zao. Kila zao lina kipimo chake, kipindi chake cha mavuno na mavuno yake yanayotarajiwa.",
+    "cropsRequired": "Chagua angalau zao moja.",
+    "plantedAcrossNote": "Eneo lililopandwa linaandikwa kwa kila zao hapa chini. Kwa mazao kadhaa, jumla yake inaweza kuzidi eneo la kipande."
   },
   "confidence": {
     "low": "Chini",

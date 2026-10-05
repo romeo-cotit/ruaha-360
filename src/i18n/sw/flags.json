@@ -159,7 +159,7 @@
   "register.plantedOn": "Drafter: Used 'Tarehe ya kupanda' rather than 'Ilipopandwa'; glossary notes sources disagree on kupanda vs kuotesha.",
   "register.provenanceNote": "Drafter: 'Field-verified' rendered 'imehakikiwa shambani' (UNVERIFIED glossary); 'imeingizwa na wewe' for 'captured by you'. Shortened 30 Sep 2026 to fit one line on a phone; the former 'This is not a choice' clause was dropped.",
   "register.required": "Drafter: Used 'Sehemu hii ni lazima.' (glossary gives 'ni lazima'; sentence form composed).",
-  "register.sections.cycle": "Drafter: Crop cycle = 'msimu wa zao' (UNVERIFIED, composed).",
+  "register.sections.cycle": "Drafter: 'Mazao' (plural of zao, glossary-attested for crop). Section became a list of crops on 5 Oct 2026; was 'Msimu wa zao'.",
   "register.sections.harvest": "Drafter: 'Mavuno yanayotarajiwa' UNVERIFIED (glossary). person.expected uses 'Inatarajiwa' for the short column label; person.actual 'Halisi' unchecked.",
   "register.sections.plot": "Drafter: Plot = 'kipande cha shamba' (UNVERIFIED, glossary). Used in full everywhere; long for a wizard rail label, may want 'Kipande'.",
   "register.submit": "Drafter: 'Sajili' as imperative for registering someone else (glossary). registerAnother 'Sajili mwingine' assumes 'mkulima' understood.",
@@ -340,5 +340,6 @@
   "voucher.expired": "Drafter: 'expired' phrasing 'iliisha muda wake' UNVERIFIED in glossary.",
   "voucher.expires": "Drafter: 'Valid until' -> 'Inatumika hadi' (usable until); composed.",
   "voucher.redeemedBy": "Drafter: 'Collected' = 'Imechukuliwa' (glossary UNVERIFIED) paired with 'imekabidhiwa' (handed over) for the officer; 'Collected/handed over' distinction mirrors English.",
-  "voucher.showAtOffice": "Drafter: 'staff member' -> 'Mfanyakazi' (no glossary term); 'ataskani' verb form from loan 'skani' unattested. 'Vocha hii inaweza kutumika mara moja' used for 'It can be used once'."
+  "voucher.showAtOffice": "Drafter: 'staff member' -> 'Mfanyakazi' (no glossary term); 'ataskani' verb form from loan 'skani' unattested. 'Vocha hii inaweza kutumika mara moja' used for 'It can be used once'.",
+  "register.plantedAcrossNote": "Drafter: composed from the glossary's 'eneo lililopandwa' and 'kipande'. Carries the labelling rule that planted area across cycles can exceed land area. Native reviewer."
 }

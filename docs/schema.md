@@ -40,6 +40,7 @@ than a rewrite.
 | `20260929090002_household_four_eyes.sql` | `app_verify` refuses a household to the officer who registered it |
 | `20260929090003_surveys.sql` | `survey` `survey_question` `survey_response` `survey_answer` `survey_voucher` `voucher_event`, the survey and redeem RPCs, the audit timeline, three staff views |
 | `20261005090001_village_create.sql` | `village` / `village_capacity` writes scoped to `app_manages_project`; `app_create_village` (village + first capacity row) |
+| `20261005090002_register_many_cycles.sql` | `app_register_farmer` takes `cycles[]`, one per crop on the plot; the single `cycle` payload is still accepted |
 | `seed.sql` | labelled demo data, two villages, six accounts |
 | `seed_surveys.sql` | run after `seed.sql`: a second Ilundo officer, household verifiers, five demo surveys, three vouchers |
 | `tests/rls_test.sql` | 193 assertions on the policies, including `tests/mvp_security_test.sql` and `tests/survey_test.sql` |

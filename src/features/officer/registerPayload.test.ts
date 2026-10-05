@@ -1,10 +1,28 @@
 import { describe, expect, test } from 'vitest'
 
-import { buildRegisterPayload, type RegisterForm } from '@/features/officer/registerPayload'
+import {
+  buildRegisterPayload,
+  type CycleForm,
+  type RegisterForm,
+} from '@/features/officer/registerPayload'
 
 const VILLAGE = '30000000-0000-4000-8000-000000000001'
 const CLIENT_REF = 'c0ffee00-0000-4000-8000-000000000001'
 const MAIZE = '40000000-0000-4000-8000-000000000001'
+const COFFEE = '40000000-0000-4000-8000-000000000003'
+const HONEY = '40000000-0000-4000-8000-000000000005'
+const MEASURES = { [MAIZE]: 'area', [COFFEE]: 'tree_count', [HONEY]: 'unit_count' } as const
+
+const cycle = (over: Partial<CycleForm> = {}): CycleForm => ({
+  crop_id: MAIZE,
+  area_ha: '1.2',
+  tree_count: '',
+  unit_count: '',
+  harvest_start: '2026-09-01',
+  harvest_end: '2026-09-30',
+  harvest_quantity_kg: '3000',
+  ...over,
+})
 
 const form = (over: Partial<RegisterForm> = {}): RegisterForm => ({
   given_name: 'Test',
@@ -17,21 +35,15 @@ const form = (over: Partial<RegisterForm> = {}): RegisterForm => ({
   farm_longitude: '',
   plot_label: 'E2E-abc plot',
   plot_area_ha: '1.5',
-  crop_id: MAIZE,
   season_label: '',
-  cycle_area_ha: '1.2',
-  cycle_tree_count: '',
-  cycle_unit_count: '',
   planted_on: '',
-  harvest_start: '2026-09-01',
-  harvest_end: '2026-09-30',
-  harvest_quantity_kg: '3000',
+  cycles: [cycle()],
   confidence: 'high',
   ...over,
 })
 
-const build = (over: Partial<RegisterForm> = {}, measure: 'area' | 'tree_count' | 'unit_count' = 'area') =>
-  buildRegisterPayload(form(over), { clientRef: CLIENT_REF, villageId: VILLAGE, measure })
+const build = (over: Partial<RegisterForm> = {}) =>
+  buildRegisterPayload(form(over), { clientRef: CLIENT_REF, villageId: VILLAGE, measures: MEASURES })
 
 describe('buildRegisterPayload', () => {
   test('carries the client_ref and village at the top level', () => {
@@ -46,6 +58,7 @@ describe('buildRegisterPayload', () => {
     expect(p.person).not.toHaveProperty('source')
     expect(p.person).not.toHaveProperty('captured_by')
     expect(p.farm).not.toHaveProperty('source')
+    expect(p.cycles[0]).not.toHaveProperty('source')
   })
 
   test('an omitted phone is sent as empty, which the RPC nullifs', () => {
@@ -62,48 +75,53 @@ describe('buildRegisterPayload', () => {
     expect(build({ is_head: false }).household.is_head).toBe(false)
   })
 
+  test('sends one cycle per crop chosen, never the old single cycle', () => {
+    const p = build({ cycles: [cycle(), cycle({ crop_id: COFFEE, area_ha: '', tree_count: '40' })] })
+    expect(p.cycles.map((c) => c.crop_id)).toEqual([MAIZE, COFFEE])
+    expect(p).not.toHaveProperty('cycle')
+    expect(p).not.toHaveProperty('harvest')
+  })
+
   // The RPC raises 'this crop is measured by area: area_ha is required' and
-  // its siblings. Sending the wrong measure is a guaranteed failure, so only
-  // the matching one goes.
-  test('an area crop sends area_ha and neither count', () => {
-    const cycle = build({ cycle_area_ha: '1.2', cycle_tree_count: '99', cycle_unit_count: '7' }, 'area').cycle
-    expect(cycle.area_ha).toBe('1.2')
-    expect(cycle.tree_count).toBe('')
-    expect(cycle.unit_count).toBe('')
+  // its siblings. Each crop sends only the measure it is measured by.
+  test('each crop sends its own measure and no other', () => {
+    const p = build({
+      cycles: [
+        cycle({ area_ha: '1.2', tree_count: '99', unit_count: '7' }),
+        cycle({ crop_id: COFFEE, area_ha: '1.2', tree_count: '40' }),
+        cycle({ crop_id: HONEY, area_ha: '1.2', unit_count: '24' }),
+      ],
+    })
+    expect(p.cycles[0]).toMatchObject({ area_ha: '1.2', tree_count: '', unit_count: '' })
+    expect(p.cycles[1]).toMatchObject({ area_ha: '', tree_count: '40', unit_count: '' })
+    expect(p.cycles[2]).toMatchObject({ area_ha: '', tree_count: '', unit_count: '24' })
   })
 
-  test('a tree-count crop sends tree_count only', () => {
-    const cycle = build({ cycle_area_ha: '1.2', cycle_tree_count: '99' }, 'tree_count').cycle
-    expect(cycle.tree_count).toBe('99')
-    expect(cycle.area_ha).toBe('')
-    expect(cycle.unit_count).toBe('')
-  })
-
-  test('a unit-count crop sends unit_count only', () => {
-    const cycle = build({ cycle_unit_count: '24', cycle_area_ha: '1.2' }, 'unit_count').cycle
-    expect(cycle.unit_count).toBe('24')
-    expect(cycle.area_ha).toBe('')
-    expect(cycle.tree_count).toBe('')
-  })
-
-  test('the harvest figure travels with the cycle', () => {
-    expect(build().harvest.quantity_kg).toBe('3000')
+  test('each crop carries its own expected harvest, reported for its own window', () => {
+    const p = build({
+      cycles: [
+        cycle({ harvest_quantity_kg: '3000' }),
+        cycle({ crop_id: COFFEE, tree_count: '40', harvest_start: '2027-01-10', harvest_quantity_kg: '600' }),
+      ],
+    })
+    expect(p.cycles[0].harvest).toMatchObject({ quantity_kg: '3000', reported_for: '2026-09-01' })
+    expect(p.cycles[1].harvest).toMatchObject({ quantity_kg: '600', reported_for: '2027-01-10' })
   })
 
   // An expected harvest is optional: a cycle can be registered without one.
   test('an omitted harvest quantity is sent empty so the RPC skips the report', () => {
-    expect(build({ harvest_quantity_kg: '' }).harvest.quantity_kg).toBe('')
+    expect(build({ cycles: [cycle({ harvest_quantity_kg: '' })] }).cycles[0].harvest.quantity_kg).toBe('')
   })
 
   test('dates pass through untouched, never timezone-converted', () => {
-    const p = build({ harvest_start: '2026-09-01', harvest_end: '2026-09-30', planted_on: '2026-03-05' })
-    expect(p.cycle.harvest_start).toBe('2026-09-01')
-    expect(p.cycle.harvest_end).toBe('2026-09-30')
-    expect(p.cycle.planted_on).toBe('2026-03-05')
+    const p = build({ planted_on: '2026-03-05' })
+    expect(p.cycles[0].harvest_start).toBe('2026-09-01')
+    expect(p.cycles[0].harvest_end).toBe('2026-09-30')
+    expect(p.cycles[0].planted_on).toBe('2026-03-05')
   })
 
   test('the cycle status defaults to growing, matching the RPC default', () => {
-    expect(build().cycle.status).toBe('growing')
+    expect(build().cycles[0].status).toBe('growing')
   })
 
   test('confidence is carried on each observed record', () => {
@@ -111,14 +129,19 @@ describe('buildRegisterPayload', () => {
     expect(p.person.confidence).toBe('medium')
     expect(p.farm.confidence).toBe('medium')
     expect(p.plot.confidence).toBe('medium')
-    expect(p.cycle.confidence).toBe('medium')
-    expect(p.harvest.confidence).toBe('medium')
+    expect(p.cycles[0].confidence).toBe('medium')
+    expect(p.cycles[0].harvest.confidence).toBe('medium')
   })
 
-  test('GPS is optional and sent empty when not captured', () => {
-    expect(build({ farm_latitude: '', farm_longitude: '' }).farm.latitude).toBe('')
+  test('GPS is sent as typed', () => {
     const p = build({ farm_latitude: '-8.1301', farm_longitude: '35.1892' })
     expect(p.farm.latitude).toBe('-8.1301')
     expect(p.farm.longitude).toBe('35.1892')
+  })
+
+  // A crop the list no longer knows has no measure to send. Better to stop
+  // than to send a cycle the RPC is certain to refuse.
+  test('refuses a crop whose measure is unknown', () => {
+    expect(() => build({ cycles: [cycle({ crop_id: 'gone' })] })).toThrow()
   })
 })

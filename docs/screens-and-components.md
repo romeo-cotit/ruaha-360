@@ -168,9 +168,10 @@ expected harvest_report together.
   2. Household — `label`, is this person the head
   3. Farm — `label`, GPS point (optional), link to household
   4. Plot — `label`, `area_ha`
-  5. Crop cycle — crop, measure (branches on `crop.measured_by`),
-     `planted_on`, `harvest_start`, `harvest_end`
-  6. Expected harvest — `quantity_kg`, `confidence`
+  5. Crops — tick every crop grown on the plot (added 5 Oct 2026). Each
+     crop gets its own card: measure (branches on its `crop.measured_by`),
+     `harvest_start`, `harvest_end`. One `crop_cycle` per crop.
+  6. Expected harvest — `quantity_kg` per crop, one `confidence`
 - Every section writes `source = 'field_verified'` and `captured_by` = current
   user. Provenance is never optional and never a user-facing choice here.
 - **Draft persistence:** the whole form autosaves to IndexedDB keyed by a

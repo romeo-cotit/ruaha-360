@@ -42,9 +42,9 @@ async function fillRegistration(page: Page, family: string, phone = markedPhone(
   await page.getByTestId('register-farm-label').fill(`${family} farm`)
   await page.getByTestId('register-plot-label').fill(`${family} plot`)
   await page.getByTestId('register-plot-area').fill('1.5')
-  // Selected by id, not by label: crop names come from the database per the
+  // Ticked by id, not by label: crop names come from the database per the
   // user's locale, and the seeded Ilundo officer reads Swahili.
-  await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
+  await page.getByTestId(`register-crop-${CROP.MAIZE.id}`).check()
   await page.getByTestId('register-cycle-area').fill('1.2')
   await page.getByTestId('register-harvest-start').fill('2026-09-01')
   await page.getByTestId('register-harvest-end').fill('2026-09-30')
@@ -83,16 +83,42 @@ test.describe('/officer/register', () => {
     await signInAsOfficer(page)
     await page.goto('/officer/register')
 
-    await chooseSelect(page, 'register-crop', CROP.MAIZE.id)
+    const crop = (id: string) => page.getByTestId(`register-crop-${id}`)
+    await crop(CROP.MAIZE.id).check()
     await expect(page.getByTestId('register-cycle-area')).toBeVisible()
     await expect(page.getByTestId('register-cycle-tree-count')).toHaveCount(0)
 
-    await chooseSelect(page, 'register-crop', CROP.AVOCADO.sw)
+    await crop(CROP.MAIZE.id).uncheck()
+    await crop(CROP.AVOCADO.id).check()
     await expect(page.getByTestId('register-cycle-tree-count')).toBeVisible()
     await expect(page.getByTestId('register-cycle-area')).toHaveCount(0)
 
-    await chooseSelect(page, 'register-crop', CROP.HONEY.sw)
+    await crop(CROP.AVOCADO.id).uncheck()
+    await crop(CROP.HONEY.id).check()
     await expect(page.getByTestId('register-cycle-unit-count')).toBeVisible()
+  })
+
+  // A farmer grows more than one crop on a plot: each is its own cycle, with
+  // its own measure and its own expected harvest.
+  test('a farmer with two crops is registered with both', async ({ page }) => {
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    const family = markedName()
+    await fillRegistration(page, family)
+    await page.getByTestId(`register-crop-${CROP.AVOCADO.id}`).check()
+    const avocado = page.getByTestId('register-cycle-card').nth(1)
+    await avocado.getByTestId('register-cycle-tree-count').fill('40')
+    await page.getByTestId('register-harvest-row').nth(1).getByTestId('register-harvest-kg').fill('600')
+    await page.getByTestId('register-submit').click()
+
+    await expect(page.getByTestId('register-success')).toBeVisible()
+    await page.getByTestId('register-view-person').click()
+    // Either language: the crop names are the database's, in the officer's locale.
+    const detail = page.getByTestId('person-detail')
+    await expect(detail).toContainText(new RegExp(`${CROP.MAIZE.sw}|${CROP.MAIZE.en}`))
+    await expect(detail).toContainText(new RegExp(`${CROP.AVOCADO.sw}|${CROP.AVOCADO.en}`))
+    await expect(detail).toContainText('600.00 kg')
   })
 
   // THE acceptance criterion for this screen.
@@ -160,9 +186,7 @@ test.describe('/officer/register', () => {
     // The seeded Ilundo officer has app_user.locale = 'sw'. The language names
     // are read from the bundle in the language showing when they are chosen:
     // the English option under sw, the Swahili option under en.
-    await page.getByTestId('register-crop').click()
-    await expect(page.getByRole('option', { name: CROP.MAIZE.sw, exact: true })).toBeVisible()
-    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('register-crops')).toContainText(CROP.MAIZE.sw)
 
     // Each switch is awaited on its PATCH to app_user, not on the control
     // looking idle: the officer's seeded locale must be restored before the
@@ -170,9 +194,7 @@ test.describe('/officer/register', () => {
     const toEnglish = localeSaved(page)
     await chooseSelect(page, 'language-switch', tr('sw', 'language.en'))
     expect((await toEnglish).ok()).toBe(true)
-    await page.getByTestId('register-crop').click()
-    await expect(page.getByRole('option', { name: CROP.MAIZE.en, exact: true })).toBeVisible()
-    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('register-crops')).toContainText(CROP.MAIZE.en)
 
     // Leave the seeded locale as it was found.
     const toSwahili = localeSaved(page)

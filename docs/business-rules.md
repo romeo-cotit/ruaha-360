@@ -29,8 +29,10 @@ work around it.
 
 ## 1 · Registration — `app_register_farmer(payload jsonb)`
 
-Migration `..._rpc.sql`. `SECURITY INVOKER`, so RLS applies inside: an officer
-can only register into a village they are assigned to.
+Migration `..._rpc.sql`, rewritten by `20260925090001_mvp_security` and
+`20261005090002_register_many_cycles`. `SECURITY DEFINER`, owned by the
+`NOLOGIN`, `NOBYPASSRLS` role `ruaha_observed_writer`, so RLS still applies
+inside: an officer can only register into a village they are assigned to.
 
 ### Why an RPC and not five inserts
 
@@ -49,21 +51,34 @@ changes nothing.
   "household": { "label": "", "is_head": true },          // or { "existing_household_id": "uuid" }
   "farm":      { "label": "", "latitude": null, "longitude": null },  // or { "existing_farm_id": "uuid" }
   "plot":      { "label": "", "area_ha": "1.8" },
-  "cycle":     { "crop_id": "uuid", "season_label": "", "area_ha": "1.6",
-                 "tree_count": null, "unit_count": null,
-                 "planted_on": "2026-03-05", "harvest_start": "2026-09-01",
-                 "harvest_end": "2026-09-30", "status": "growing" },
-  "harvest":   { "quantity_kg": "4100", "confidence": "medium", "reported_for": "2026-09-15" }
+  "cycles": [                    // one per crop grown on the plot
+    { "crop_id": "uuid", "season_label": "", "area_ha": "1.6",
+      "tree_count": null, "unit_count": null,
+      "planted_on": "2026-03-05", "harvest_start": "2026-09-01",
+      "harvest_end": "2026-09-30", "status": "growing",
+      "harvest": { "quantity_kg": "4100", "confidence": "medium", "reported_for": "2026-09-15" } }
+  ]
 }
 ```
 
-`cycle` and `harvest` are optional. `person`, `plot` and a farm are not.
+`cycles` and each cycle's `harvest` are optional. `person`, `plot` and a farm
+are not. A plot carries several concurrent cycles (intercropping), so planted
+area across them can exceed the plot's area. The same crop twice on one plot
+is refused (`each crop may be registered once per plot`); one crop's missing
+measure refuses the whole registration.
+
+Before 5 Oct 2026 the payload took a single `cycle` plus `harvest`. That shape
+is still accepted, as a one-element `cycles`, so a draft typed on an older
+build submits unchanged.
 
 ### Returns
 
 ```json
 { "person_id":"…", "household_id":"…", "farm_id":"…", "plot_id":"…",
-  "crop_cycle_id":"…", "harvest_report_id":"…", "replayed": false }
+  "village_id":"…",
+  "crop_cycle_ids":["…"], "harvest_report_ids":["…"],
+  "crop_cycle_id":"…", "harvest_report_id":"…",   // the first of each, for older clients
+  "replayed": false }
 ```
 
 ### Idempotency — `client_ref`
