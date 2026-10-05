@@ -91,7 +91,8 @@
     "duplicateEquipmentCode": "That equipment code is already in use in this project.",
     "surveyAlreadyAnswered": "Your household has already answered this survey.",
     "personHasLogin": "This person already has an app login.",
-    "accountUnreadable": "Your account could not be read. Try again."
+    "accountUnreadable": "Your account could not be read. Try again.",
+    "duplicateVillageCode": "A village with that code already exists in this project."
   },
   "dbError": {
     "surveyNotFound": "This survey could not be found.",
@@ -792,7 +793,24 @@
     "colSimultaneity": "Simultaneity factor",
     "colEffectiveFrom": "Effective from",
     "noneTitle": "No villages",
-    "noneDetail": "No villages are visible for this project."
+    "noneDetail": "No villages are visible for this project.",
+    "create": "Add village",
+    "creating": "Adding…",
+    "createTitle": "New village",
+    "name": "Village name",
+    "code": "Code",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "gpsHint": "Optional. Decimal degrees, for example -7.91.",
+    "capacity": "Planned capacity (kW)",
+    "basis": "Capacity basis",
+    "simultaneity": "Simultaneity factor",
+    "simultaneityHint": "Between 0 and 1. Leave 1 if not yet planned.",
+    "sourceNote": "Where the figure comes from",
+    "effectiveFrom": "Effective from",
+    "required": "Required.",
+    "notANumber": "Enter a number, using a point for decimals.",
+    "officerNote": "Field officers see a new village only once they are assigned to it."
   },
   "farmerOpportunities": {
     "title": "Opportunities",

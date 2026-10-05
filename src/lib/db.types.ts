@@ -2560,6 +2560,7 @@ export type Database = {
       }
       app_actor_role: { Args: never; Returns: string }
       app_admins_project: { Args: { p: string }; Returns: boolean }
+      app_create_village: { Args: { payload: Json }; Returns: Json }
       app_farmer_login_issue: { Args: { p_person_id: string }; Returns: Json }
       app_farms: { Args: never; Returns: string[] }
       app_has_role: {

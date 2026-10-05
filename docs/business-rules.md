@@ -502,6 +502,7 @@ them as bugs to fix, not conditions to handle politely.
 | `opportunity_supply` change | `['opportunity', id]` `['demand', demandId]` `['tower','market',village]` |
 | `app_farmer_login_issue` | `['loginHistory', person]` |
 | `app_survey_submit` | `['surveyEligibility']` `['farmerVouchers']` `['voucherTimeline', id]` |
+| `app_create_village` | `['villageCapacity']` `['villages']` `['tower']` |
 | survey write / publish / close | `['surveyAdmin']` `['surveyAdmin', id]` `['surveyEligibility']` |
 | `app_voucher_redeem` · `app_voucher_void` | `['voucherTimeline', id]` `['surveyVouchers', survey]` `['surveyAdmin']` `['redemptionLog']` |
 

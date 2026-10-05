@@ -63,6 +63,7 @@ const UNIQUE_CONSTRAINT: Record<string, string> = {
   buyer_project_id_name_key: 'error.duplicateBuyer',
   opportunity_supply_opportunity_id_harvest_report_id_key: 'error.duplicateSupply',
   equipment_project_id_code_key: 'error.duplicateEquipmentCode',
+  village_project_id_code_key: 'error.duplicateVillageCode',
   // One try per household per survey: the backstop behind app_survey_submit.
   survey_response_one_per_household: 'error.surveyAlreadyAnswered',
   app_user_person_unique: 'error.personHasLogin',

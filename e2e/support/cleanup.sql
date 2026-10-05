@@ -112,6 +112,11 @@ delete from person where id in (select id from _e2e_person);
 
 delete from registration_receipt where client_ref in (select client_ref from _e2e_receipt);
 
+-- Villages ops created in the suite, marked through their name. Nothing else
+-- is ever registered into one, so only the capacity row hangs off it.
+delete from village_capacity where village_id in (select id from village where name like 'E2E-%');
+delete from village where name like 'E2E-%';
+
 -- Requests and observed rows have been removed, so no provenance FK points
 -- at the synthetic login. Membership is removed before the auth identity.
 delete from membership where user_id in (select id from _e2e_auth_user);

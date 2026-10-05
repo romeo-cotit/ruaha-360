@@ -338,6 +338,12 @@ List of `buyer_demand` plus a create form: buyer, crop, `quantity_kg`, window,
 ### 7.9 `/ops/villages` — T2
 Village list, `village_capacity` with `basis` and `simultaneity_factor` shown
 explicitly.
+- **Action (added 5 Oct 2026):** add a village. An inline panel like Demand's
+  takes name, code, optional GPS and the first capacity row (planned kW,
+  basis, simultaneity factor, effective from, source note). One call,
+  `app_create_village`, writes both: a village with no capacity row has no
+  energy figures and is missing from the Tower. Officers see the village only
+  once a membership assigns it.
 
 ### 7.9a `/ops/surveys`, `/ops/surveys/$surveyId`, `/ops/surveys/redemptions` — surveys feature
 The survey list with its figures. **Admin** authors: a draft editor

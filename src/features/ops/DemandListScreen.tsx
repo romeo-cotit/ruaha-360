@@ -10,7 +10,7 @@ import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
 import { CONTROL } from '@/components/controlStyles'
 import { IndicativePill, Loading } from '@/components/controls'
-import { BangMark } from '@/components/marks'
+import { FormField as Field } from '@/components/FormField'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
 import { TableSurface } from '@/components/TableSurface'
@@ -317,41 +317,4 @@ function priceErrorKey(value: string): string | undefined {
   // it is rejected with the database's own message, not a client copy.
   if (!hasAtMostDecimals(n, 2)) return 'demand.twoDecimals'
   return undefined
-}
-
-function Field({
-  label,
-  id,
-  error,
-  errorTestId,
-  children,
-}: {
-  label: string
-  id: string
-  error?: string
-  errorTestId?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1.5">
-      <label
-        className="block"
-        htmlFor={id}
-        style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}
-      >
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p
-          data-testid={errorTestId}
-          className="flex items-start gap-[7px] font-medium"
-          style={{ fontSize: 13, color: 'var(--flag-ink)' }}
-        >
-          <BangMark />
-          {error}
-        </p>
-      )}
-    </div>
-  )
 }

@@ -1,15 +1,40 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const useVillageCapacity = vi.fn()
+const mutateAsync = vi.fn()
+const createState = { isPending: false, isError: false, error: null as Error | null }
 vi.mock('@/features/ops/useOpsReference', () => ({
   useVillageCapacity: () => useVillageCapacity(),
+  useCreateVillage: () => ({ mutateAsync, reset: vi.fn(), ...createState }),
 }))
+vi.mock('@/app/session', () => ({
+  useSession: () => ({
+    data: {
+      userId: undefined,
+      memberships: [
+        { id: 'm1', role: 'ops', project_id: '20000000-0000-4000-8000-000000000001', village_id: null, revoked_at: null },
+      ],
+    },
+  }),
+}))
+vi.mock('@/lib/drafts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/drafts')>()
+  return { ...actual, indexedDbDraftStore: actual.createMemoryDraftStore() }
+})
 
 const { VillagesScreen } = await import('@/features/ops/VillagesScreen')
 await import('@/i18n')
 
-beforeEach(() => useVillageCapacity.mockReset())
+beforeEach(() => {
+  useVillageCapacity.mockReset()
+  mutateAsync.mockReset()
+  mutateAsync.mockResolvedValue({ village_id: 'v1', replayed: false })
+  createState.isPending = false
+  createState.isError = false
+  createState.error = null
+})
 
 const village = (over: Record<string, unknown> = {}) => ({
   id: '30000000-0000-4000-8000-000000000001',
@@ -117,5 +142,112 @@ describe('VillagesScreen content', () => {
     render(<VillagesScreen />)
 
     expect(screen.queryByText(/measured capacity/i)).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * Ops adds a village with its first PLANNED capacity row. One call writes
+ * both, because a village with no capacity row has no energy figures and
+ * drops off the Tower.
+ */
+describe('the village create form', () => {
+  const ready = () =>
+    useVillageCapacity.mockReturnValue({ isLoading: false, error: null, data: [village()] })
+  const set = (testId: string, value: string) =>
+    fireEvent.change(screen.getByTestId(testId), { target: { value } })
+  const submit = () =>
+    fireEvent.submit(screen.getByTestId('village-create-submit').closest('form')!)
+  const open = () => userEvent.click(screen.getByTestId('village-create-open'))
+  const fill = async () => {
+    await open()
+    set('village-name', 'Mlowa')
+    set('village-code', 'MLW')
+    set('village-capacity', '250')
+  }
+
+  test('stays collapsed until asked for', () => {
+    ready()
+    render(<VillagesScreen />)
+
+    expect(screen.queryByTestId('village-create-panel')).not.toBeInTheDocument()
+    expect(screen.getByTestId('village-create-open')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('sends the village and its first planned capacity together', async () => {
+    ready()
+    render(<VillagesScreen />)
+    await fill()
+    set('village-latitude', '-7.91')
+    set('village-longitude', '35.62')
+    set('village-simultaneity', '0.65')
+
+    submit()
+
+    expect(mutateAsync).toHaveBeenCalledTimes(1)
+    expect(mutateAsync.mock.calls[0][0]).toMatchObject({
+      project_id: '20000000-0000-4000-8000-000000000001',
+      name: 'Mlowa',
+      code: 'MLW',
+      latitude: '-7.91',
+      longitude: '35.62',
+      capacity: { capacity_kw: '250', basis: 'planned', simultaneity_factor: '0.65' },
+    })
+    expect(typeof mutateAsync.mock.calls[0][0].id).toBe('string')
+  })
+
+  test('labels the capacity as planned, with its basis', async () => {
+    ready()
+    render(<VillagesScreen />)
+    await open()
+
+    expect(screen.getByText(/planned capacity \(kW\)/i)).toBeInTheDocument()
+    expect(screen.getByTestId('village-basis-select')).toHaveTextContent('Planned')
+  })
+
+  test('an empty form reports what is missing and writes nothing', async () => {
+    ready()
+    render(<VillagesScreen />)
+    await open()
+
+    submit()
+
+    expect(screen.getByTestId('village-name-error')).toBeInTheDocument()
+    expect(screen.getByTestId('village-code-error')).toBeInTheDocument()
+    expect(screen.getByTestId('village-capacity-error')).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  test('a capacity that is not a number is refused, not dropped', async () => {
+    ready()
+    render(<VillagesScreen />)
+    await fill()
+    set('village-capacity', '25,5')
+
+    submit()
+
+    expect(screen.getByTestId('village-capacity-error')).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  test('a second submit in the same tick does not write twice', async () => {
+    ready()
+    render(<VillagesScreen />)
+    await fill()
+
+    submit()
+    submit()
+
+    expect(mutateAsync).toHaveBeenCalledTimes(1)
+  })
+
+  test("the database's refusal names the collision", async () => {
+    ready()
+    createState.isError = true
+    createState.error = new Error('duplicate key value violates unique constraint "village_project_id_code_key"')
+    render(<VillagesScreen />)
+    await open()
+
+    // The constraint name is machine noise; the app names the collision.
+    expect(screen.getByTestId('village-create-error')).toHaveTextContent(/village with that code/i)
   })
 })

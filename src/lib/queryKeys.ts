@@ -25,6 +25,7 @@
  *   app_voucher_redeem       voucherTimeline(id), surveyVouchers(survey),
  *                            surveySummary, redemptionLog
  *   app_voucher_void         as redeem
+ *   app_create_village       villageCapacity, villages, tower (all)
  */
 export const queryKeys = {
   session: () => ['session'] as const,

@@ -91,7 +91,8 @@
     "duplicateEquipmentCode": "Msimbo huo wa kifaa tayari unatumika katika mradi huu.",
     "surveyAlreadyAnswered": "Kaya yako tayari imejibu dodoso hili.",
     "personHasLogin": "Mtu huyu tayari ana akaunti ya kuingia kwenye programu.",
-    "accountUnreadable": "Akaunti yako haikuweza kusomwa. Jaribu tena."
+    "accountUnreadable": "Akaunti yako haikuweza kusomwa. Jaribu tena.",
+    "duplicateVillageCode": "Kijiji chenye msimbo huo tayari kipo katika mradi huu."
   },
   "dbError": {
     "surveyNotFound": "Dodoso hili halikupatikana.",
@@ -792,7 +793,24 @@
     "colSimultaneity": "Kigezo cha matumizi ya wakati mmoja",
     "colEffectiveFrom": "Inatumika kuanzia",
     "noneTitle": "Hakuna vijiji",
-    "noneDetail": "Hakuna vijiji vinavyoonekana kwa mradi huu."
+    "noneDetail": "Hakuna vijiji vinavyoonekana kwa mradi huu.",
+    "create": "Ongeza kijiji",
+    "creating": "Inaongeza…",
+    "createTitle": "Kijiji kipya",
+    "name": "Jina la kijiji",
+    "code": "Msimbo",
+    "latitude": "Latitudo",
+    "longitude": "Longitudo",
+    "gpsHint": "Si lazima. Nyuzi kwa desimali, kwa mfano -7.91.",
+    "capacity": "Uwezo uliopangwa (kW)",
+    "basis": "Msingi wa uwezo",
+    "simultaneity": "Kigezo cha matumizi ya wakati mmoja",
+    "simultaneityHint": "Kati ya 0 na 1. Acha 1 kama bado haijapangwa.",
+    "sourceNote": "Takwimu inatoka wapi",
+    "effectiveFrom": "Inatumika kuanzia",
+    "required": "Hii ni lazima.",
+    "notANumber": "Andika namba, ukitumia nukta kwa desimali.",
+    "officerNote": "Maafisa wa uwandani wataona kijiji kipya pale tu watakapopangiwa."
   },
   "farmerOpportunities": {
     "title": "Fursa",

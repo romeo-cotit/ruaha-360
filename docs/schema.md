@@ -39,6 +39,7 @@ than a rewrite.
 | `20260929090001_farmer_login.sql` | `app_user.must_change_password`, `login_issue`, phone normalisation, phone + GPS required at registration, `app_farmer_login_issue`, `app_password_changed` |
 | `20260929090002_household_four_eyes.sql` | `app_verify` refuses a household to the officer who registered it |
 | `20260929090003_surveys.sql` | `survey` `survey_question` `survey_response` `survey_answer` `survey_voucher` `voucher_event`, the survey and redeem RPCs, the audit timeline, three staff views |
+| `20261005090001_village_create.sql` | `village` / `village_capacity` writes scoped to `app_manages_project`; `app_create_village` (village + first capacity row) |
 | `seed.sql` | labelled demo data, two villages, six accounts |
 | `seed_surveys.sql` | run after `seed.sql`: a second Ilundo officer, household verifiers, five demo surveys, three vouchers |
 | `tests/rls_test.sql` | 193 assertions on the policies, including `tests/mvp_security_test.sql` and `tests/survey_test.sql` |

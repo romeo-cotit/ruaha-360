@@ -131,3 +131,45 @@ export async function fetchVillageCapacity(): Promise<VillageCapacity[]> {
 export function useVillageCapacity() {
   return useQuery({ queryKey: queryKeys.villageCapacity(), queryFn: fetchVillageCapacity })
 }
+
+export interface NewVillage {
+  id: string
+  project_id: string
+  name: string
+  code: string
+  latitude: string
+  longitude: string
+  capacity: {
+    capacity_kw: string
+    basis: Enums['capacity_basis']
+    simultaneity_factor: string
+    source_note: string
+    effective_from: string
+  }
+}
+
+/**
+ * Create a village with its first capacity row — one RPC, one transaction.
+ *
+ * `app_create_village` is SECURITY INVOKER: `village_write` requires
+ * `app_manages_project`, so RLS decides. The id is the draft's client ref, so
+ * a retried submit replays rather than adding a second village. Range, code
+ * and basis rules are the database's; its message is shown as written.
+ */
+export function useCreateVillage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (village: NewVillage) => {
+      const { data, error } = await supabase.rpc('app_create_village', { payload: { ...village } })
+      if (error) throw new Error(error.message)
+      return data as { village_id: string; replayed: boolean }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.villageCapacity() })
+      // The scope names, the Tower's village picker and its tiles all read villages.
+      await queryClient.invalidateQueries({ queryKey: queryKeys.villages() })
+      await queryClient.invalidateQueries({ queryKey: ['tower'] })
+    },
+  })
+}
