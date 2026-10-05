@@ -196,6 +196,7 @@ describe('loan listings', () => {
 
     const row = screen.getByTestId('catalogue-loan-row')
     expect(row).toHaveTextContent('Input loan: seed and fertiliser')
+    expect(screen.getByRole('columnheader', { name: 'Loan' })).toBeInTheDocument()
     expect(screen.getByTestId('catalogue-loan-range')).toHaveTextContent('TZS 200,000.00 – TZS 1,500,000.00')
     expect(screen.getByTestId('catalogue-loan-range')).toHaveTextContent(/indicative/i)
     expect(screen.getByTestId('catalogue-loan-note')).toHaveTextContent(/not an offer/i)

@@ -160,7 +160,7 @@ function LoanTable() {
   const columns = useMemo(() => {
     const col = createColumnHelper<LoanItem>()
     return [
-      col.accessor('name', { header: t('catalogue.colName') }),
+      col.accessor('name', { header: t('catalogue.colLoan') }),
       col.accessor('description', {
         header: t('catalogue.colDescription'),
         cell: (c) => c.getValue() ?? DASH,

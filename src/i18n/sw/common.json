@@ -734,7 +734,8 @@
     "required": "Hii ni lazima.",
     "notANumber": "Andika namba, ukitumia nukta kwa desimali.",
     "adding": "Inaongeza…",
-    "addSubmit": "Ongeza kwenye orodha"
+    "addSubmit": "Ongeza kwenye orodha",
+    "colLoan": "Mkopo"
   },
   "people": {
     "title": "Watu",

@@ -734,7 +734,8 @@
     "required": "Required.",
     "notANumber": "Enter a number, using a point for decimals.",
     "adding": "Adding…",
-    "addSubmit": "Add to the catalogue"
+    "addSubmit": "Add to the catalogue",
+    "colLoan": "Loan"
   },
   "people": {
     "title": "People",
