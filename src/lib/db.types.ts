@@ -1422,6 +1422,60 @@ export type Database = {
           },
         ]
       }
+      plot_document: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          plot_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string
+          village_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type: string
+          plot_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string
+          village_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          plot_id?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string
+          village_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plot_document_plot_fk"
+            columns: ["plot_id", "village_id"]
+            isOneToOne: false
+            referencedRelation: "plot"
+            referencedColumns: ["id", "village_id"]
+          },
+          {
+            foreignKeyName: "plot_document_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project: {
         Row: {
           code: string
@@ -2589,6 +2643,10 @@ export type Database = {
           kind: string
           must_change_password: boolean
         }[]
+      }
+      app_plot_document_village: {
+        Args: { object_name: string }
+        Returns: string
       }
       app_projects: { Args: never; Returns: string[] }
       app_random_crockford: { Args: { p_length: number }; Returns: string }

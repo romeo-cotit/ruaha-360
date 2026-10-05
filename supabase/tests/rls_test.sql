@@ -265,6 +265,7 @@ rollback;
 \ir supply_attached_by_test.sql
 \ir village_create_test.sql
 \ir register_cycles_test.sql
+\ir plot_documents_test.sql
 
 drop function pg_temp.assert_eq(bigint, bigint, text);
 drop function pg_temp.assert_raises(text, text, text);

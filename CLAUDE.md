@@ -345,7 +345,7 @@ been seen by a native reader**. Rules that still hold:
 ## Do not build
 
 Training · Services · Progress · translations admin · user admin · photo
-upload · farm polygons · PostGIS · offline sync queues · notifications (beyond the
+upload (except plot title documents: staff only, approved 5 Oct 2026) · farm polygons · PostGIS · offline sync queues · notifications (beyond the
 in-app survey badge) · meter screens · tariffs · finance terms, schedules or
 repayments · crowdfarming · wallets or QR payment rails (survey vouchers are
 single-use cash claims, not payments) · export or shipment tracking · buyer

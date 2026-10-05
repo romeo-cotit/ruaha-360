@@ -103,6 +103,13 @@ delete from energy_estimate where pue_request_id in (
 delete from pue_request
  where person_id in (select id from _e2e_person) or purpose like 'E2E-%';
 delete from crop_cycle where id in (select id from _e2e_cycle);
+-- Title documents filed against marked plots: the rows, then the storage
+-- rows (storage refuses a direct delete unless this transaction opts in).
+delete from plot_document where plot_id in (select id from _e2e_plot);
+select set_config('storage.allow_delete_query', 'true', true);
+delete from storage.objects
+ where bucket_id = 'plot-documents'
+   and split_part(name, '/', 2) in (select id::text from _e2e_plot);
 delete from plot where id in (select id from _e2e_plot);
 delete from farm_manager where farm_id in (select id from _e2e_farm);
 delete from farm where id in (select id from _e2e_farm);

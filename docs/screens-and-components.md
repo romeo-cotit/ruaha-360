@@ -167,7 +167,11 @@ expected harvest_report together.
   1. Person — `given_name`, `family_name`, `phone` (optional)
   2. Household — `label`, is this person the head
   3. Farm — `label`, GPS point (optional), link to household
-  4. Plot — `label`, `area_ha`
+  4. Plot — `label`, `area_ha`, and title documents (photos or PDFs of the
+     title deed, staff only, added 5 Oct 2026). Picked files wait in their
+     own IndexedDB draft and are filed against the plot once the RPC returns
+     its `plot_id`; a file that fails is named and offered again. Person
+     detail shows each plot's documents for the verifier.
   5. Crops — tick every crop grown on the plot (added 5 Oct 2026). Each
      crop gets its own card: measure (branches on its `crop.measured_by`),
      `harvest_start`, `harvest_end`. One `crop_cycle` per crop.
@@ -511,7 +515,8 @@ interrupted save in step 1.
 ## 12 · Do not build
 
 Training · Services · Progress · translations admin · user admin · photo
-upload · farm polygons · offline sync queues · notifications (beyond the
+upload (one exception, approved 5 Oct 2026: plot title documents, staff only,
+see business-rules §19) · farm polygons · offline sync queues · notifications (beyond the
 in-app survey badge) · meter screens · crowdfarming · wallets or QR payment
 rails (a survey voucher is a single-use cash claim, not a payment — added 29
 Sep 2026 by decision) · export or shipment tracking · buyer

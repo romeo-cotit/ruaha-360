@@ -26,6 +26,7 @@
  *                            surveySummary, redemptionLog
  *   app_voucher_void         as redeem
  *   app_create_village       villageCapacity, villages, tower (all)
+ *   plot_document upload     plotDocuments(plot)
  */
 export const queryKeys = {
   session: () => ['session'] as const,
@@ -61,6 +62,8 @@ export const queryKeys = {
   buyers: () => ['buyers'] as const,
   /** Spec 7.9's village list with its current capacity row. */
   villageCapacity: () => ['villageCapacity'] as const,
+  /** A plot's title documents, with short-lived signed links. */
+  plotDocuments: (plotId: string) => ['plotDocuments', plotId] as const,
   /** Spec 6.6's farmer-facing opportunities. Language is chosen at render. */
   farmerOpportunities: () => ['farmerOpportunities'] as const,
 

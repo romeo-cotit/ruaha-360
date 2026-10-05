@@ -62,6 +62,13 @@ vi.mock('@/features/officer/OfficerEditDialog', () => ({
   ),
 }))
 
+// The documents panel has its own tests; here only that each plot carries one.
+vi.mock('@/features/officer/PlotDocuments', () => ({
+  PlotDocuments: ({ plotId, villageId }: { plotId: string; villageId: string }) => (
+    <div data-testid={`stub-plot-documents-${plotId}`} data-village={villageId} />
+  ),
+}))
+
 const { PersonDetailScreen } = await import('@/features/officer/PersonDetailScreen')
 await import('@/i18n')
 
@@ -150,6 +157,12 @@ describe('PersonDetailScreen', () => {
       await user.click(screen.getByTestId('screen-edit-cancel'))
     }
     expect(editReset).toHaveBeenCalled()
+  })
+
+  // The verifier checks a plot against its title documents, so they sit on it.
+  test('each plot carries its title documents', () => {
+    render(<PersonDetailScreen />)
+    expect(within(screen.getByTestId('plot-plot1')).getByTestId('stub-plot-documents-plot1')).toBeInTheDocument()
   })
 
   // A season the officer can edit must also be visible where they edit it.

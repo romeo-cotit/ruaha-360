@@ -222,7 +222,17 @@
     "crops": "Crops grown on this plot",
     "cropsHint": "Tick every crop. Each one gets its own measure, harvest window and expected harvest.",
     "cropsRequired": "Choose at least one crop.",
-    "plantedAcrossNote": "Planted area is entered for each crop below. Across several crops it can add up to more than the plot's area."
+    "plantedAcrossNote": "Planted area is entered for each crop below. Across several crops it can add up to more than the plot's area.",
+    "documents": "Title documents",
+    "documentsHint": "Photos or PDFs of the title deed or other land papers, so whoever verifies this plot can check it against them. Staff only: the farmer does not see them.",
+    "documentsAdd": "Add photos or files",
+    "documentsRemove": "Remove {{name}}",
+    "documentsRemoveShort": "Remove",
+    "documentsUploading": "Filing the title documents…",
+    "documentsFiled_one": "{{count}} title document filed with the plot.",
+    "documentsFiled_other": "{{count}} title documents filed with the plot.",
+    "documentsFailed": "The farmer is registered, but these documents were not filed:",
+    "documentsRetry": "Try filing them again"
   },
   "confidence": {
     "low": "Low",
@@ -1396,5 +1406,13 @@
     "voucherFor": "Voucher for {{household}}",
     "noRedemptions": "Nothing handed over in these dates",
     "noRedemptionsDetail": "Try a wider date range."
+  },
+  "plotDocuments": {
+    "title_one": "Title documents ({{count}})",
+    "title_other": "Title documents ({{count}})",
+    "staffOnly": "Staff only. The farmer does not see these.",
+    "none": "No title documents filed for this plot.",
+    "add": "Add documents",
+    "adding": "Filing…"
   }
 }

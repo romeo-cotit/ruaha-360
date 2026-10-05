@@ -222,7 +222,17 @@
     "crops": "Mazao yanayolimwa kwenye kipande hiki",
     "cropsHint": "Weka alama kwenye kila zao. Kila zao lina kipimo chake, kipindi chake cha mavuno na mavuno yake yanayotarajiwa.",
     "cropsRequired": "Chagua angalau zao moja.",
-    "plantedAcrossNote": "Eneo lililopandwa linaandikwa kwa kila zao hapa chini. Kwa mazao kadhaa, jumla yake inaweza kuzidi eneo la kipande."
+    "plantedAcrossNote": "Eneo lililopandwa linaandikwa kwa kila zao hapa chini. Kwa mazao kadhaa, jumla yake inaweza kuzidi eneo la kipande.",
+    "documents": "Hati za umiliki wa ardhi",
+    "documentsHint": "Picha au PDF za hati miliki au karatasi nyingine za ardhi, ili anayehakiki kipande hiki aweze kukilinganisha nazo. Ni kwa watumishi tu: mkulima hazioni.",
+    "documentsAdd": "Ongeza picha au faili",
+    "documentsRemove": "Ondoa {{name}}",
+    "documentsRemoveShort": "Ondoa",
+    "documentsUploading": "Inahifadhi hati za ardhi…",
+    "documentsFiled_one": "Hati {{count}} ya ardhi imehifadhiwa pamoja na kipande.",
+    "documentsFiled_other": "Hati {{count}} za ardhi zimehifadhiwa pamoja na kipande.",
+    "documentsFailed": "Mkulima amesajiliwa, lakini hati hizi hazijahifadhiwa:",
+    "documentsRetry": "Jaribu kuzihifadhi tena"
   },
   "confidence": {
     "low": "Chini",
@@ -1396,5 +1406,13 @@
     "voucherFor": "Vocha ya {{household}}",
     "noRedemptions": "Hakuna kilichokabidhiwa katika tarehe hizi",
     "noRedemptionsDetail": "Jaribu kipindi kirefu zaidi cha tarehe."
+  },
+  "plotDocuments": {
+    "title_one": "Hati za ardhi ({{count}})",
+    "title_other": "Hati za ardhi ({{count}})",
+    "staffOnly": "Kwa watumishi tu. Mkulima hazioni.",
+    "none": "Hakuna hati ya ardhi iliyohifadhiwa kwa kipande hiki.",
+    "add": "Ongeza hati",
+    "adding": "Inahifadhi…"
   }
 }

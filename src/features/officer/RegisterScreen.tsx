@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useFieldArray, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { LocateFixed } from 'lucide-react'
+import { FileImage, FileText, LocateFixed, Paperclip } from 'lucide-react'
 
 import { activeMemberships, writableVillageIds } from '@/app/membership'
 import { useSession } from '@/app/session'
@@ -35,6 +35,12 @@ import { FarmerLoginCard } from '@/features/officer/FarmerLoginCard'
 import { useFarmLocation, type FarmLocationStatus } from '@/features/officer/useFarmLocation'
 import { draftKey, indexedDbDraftStore, useDraft } from '@/lib/drafts'
 import { newUuid } from '@/lib/ids'
+import {
+  PLOT_DOCUMENT_ACCEPT,
+  isDraftFiles,
+  uploadPlotDocuments,
+  type DraftFile,
+} from '@/lib/plotDocuments'
 import { queryKeys, isTowerQueryForVillage } from '@/lib/queryKeys'
 import { supabase } from '@/lib/supabase'
 import type { Json } from '@/lib/db.types'
@@ -133,6 +139,54 @@ export function RegisterScreen() {
     indexedDbDraftStore,
     isRegisterDraft,
   )
+
+  /**
+   * Title documents picked for the plot. The plot does not exist until the RPC
+   * returns, so the files wait in a draft of their own — beside the form's,
+   * not inside it, so the form's shape guard is untouched — and are filed
+   * against the new plot afterwards. Kept until every one is filed.
+   */
+  const docsDraft = useDraft<DraftFile[]>(draftKey('register-docs', clientRef), indexedDbDraftStore, isDraftFiles)
+  const [files, setFiles] = useState<DraftFile[]>([])
+  const [filesRestored, setFilesRestored] = useState(false)
+  useEffect(() => {
+    if (filesRestored || docsDraft.status === 'restoring') return
+    setFiles(docsDraft.draft ?? [])
+    setFilesRestored(true)
+  }, [docsDraft.status, docsDraft.draft, filesRestored])
+
+  const keepFiles = (next: DraftFile[]) => {
+    setFiles(next)
+    void (next.length > 0 ? docsDraft.save(next) : docsDraft.clear())
+  }
+  const pickFiles = (picked: FileList | null) => {
+    if (!picked || picked.length === 0) return
+    keepFiles([
+      ...files,
+      ...Array.from(picked).map((file) => ({
+        id: newUuid(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        blob: file,
+      })),
+    ])
+  }
+
+  /** Filing happens after the registration, against the plot it created. */
+  const [filedCount, setFiledCount] = useState(0)
+  const fileDocs = useMutation({
+    mutationFn: (target: { villageId: string; plotId: string; files: DraftFile[] }) =>
+      uploadPlotDocuments(target.villageId, target.plotId, target.files),
+    onSuccess: (result, target) => {
+      setFiledCount((n) => n + result.filed.length)
+      keepFiles(target.files.filter((f) => !result.filed.includes(f.id)))
+    },
+  })
+  const fileTarget = useRef<{ villageId: string; plotId: string } | null>(null)
+  const fileRemaining = () => {
+    if (fileTarget.current && files.length > 0) fileDocs.mutate({ ...fileTarget.current, files })
+  }
 
   // Each crop's mandatory measure field depends on that crop's `measured_by`,
   // which arrives with the crop list, so the schema is built at validation
@@ -271,7 +325,12 @@ export function RegisterScreen() {
       // the idempotency receipt rather than creating a second farmer.
       return data as unknown as RegisterResult
     },
-    onSuccess: async () => {
+    onSuccess: async (created) => {
+      // The registration is saved; now its title documents, if any.
+      if (created?.plot_id && files.length > 0) {
+        fileTarget.current = { villageId: created.village_id ?? villageId ?? '', plotId: created.plot_id }
+        fileDocs.mutate({ ...fileTarget.current, files })
+      }
       // Cleared ONLY after the RPC returned success.
       await draft.clear()
       await queryClient.invalidateQueries({ queryKey: queryKeys.people(villageId ?? '') })
@@ -309,6 +368,33 @@ export function RegisterScreen() {
           {t('register.successDetail')}
         </p>
         {/* The farmer's app login, created now and shown once (business-rules §15). */}
+        {fileDocs.isPending && (
+          <p data-testid="register-documents-uploading" className="type-note" style={{ color: 'var(--ink-2)' }}>
+            {t('register.documentsUploading')}
+          </p>
+        )}
+        {!fileDocs.isPending && filedCount > 0 && files.length === 0 && (
+          <p data-testid="register-documents-filed" className="type-note inline-flex items-center gap-2" style={{ color: 'var(--green-ink)' }}>
+            <VerificationMark verification="verified" size={13} />
+            {t('register.documentsFiled', { count: filedCount })}
+          </p>
+        )}
+        {!fileDocs.isPending && (fileDocs.isError || (fileDocs.data && files.length > 0)) && (
+          <div data-testid="register-documents-failed" className="flex flex-col gap-2">
+            <p className="type-note font-medium" style={{ color: 'var(--flag-ink)' }}>
+              {t('register.documentsFailed')}
+            </p>
+            <ul className="type-note flex flex-col gap-1" style={{ color: 'var(--ink-2)' }}>
+              {fileDocs.isError && <li>{(fileDocs.error as Error).message}</li>}
+              {(fileDocs.data?.failed ?? []).map((f) => (
+                <li key={f.id}>{f.name}: {f.message}</li>
+              ))}
+            </ul>
+            <Button type="button" variant="secondary" data-testid="register-documents-retry" className="w-fit" onClick={fileRemaining}>
+              {t('register.documentsRetry')}
+            </Button>
+          </div>
+        )}
         {created?.person_id && <FarmerLoginCard personId={created.person_id} autoIssue />}
         {created?.person_id && (
           <Link
@@ -344,6 +430,10 @@ export function RegisterScreen() {
             reset(EMPTY)
             setRestored(true)
             submit.reset()
+            fileDocs.reset()
+            fileTarget.current = null
+            setFiles([])
+            setFiledCount(0)
             // A fresh client_ref, so the next registration is a new one rather
             // than an idempotent replay of the one just completed.
             void navigate({
@@ -708,6 +798,74 @@ export function RegisterScreen() {
           <p data-testid="register-plot-area-note" className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
             {t('register.plantedAcrossNote')}
           </p>
+
+          {/* Title documents: what the verifier checks this plot against. */}
+          <div className="flex flex-col gap-2">
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+              {t('register.documents')}
+              <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}> · {t('common.optional')}</span>
+            </span>
+            <p data-testid="register-documents-note" className="type-note" style={{ color: 'var(--ink-3)', textWrap: 'pretty' }}>
+              {t('register.documentsHint')}
+            </p>
+            {files.length > 0 && (
+              <ul className="flex flex-col gap-1.5">
+                {files.map((f) => (
+                  <li
+                    key={f.id}
+                    data-testid="register-document-item"
+                    className="flex items-center gap-2.5 px-3 py-2"
+                    style={{ border: '1px solid var(--rule)', borderRadius: 'var(--radius-control)', fontSize: 15 }}
+                  >
+                    {f.type === 'application/pdf' ? <FileText size={18} aria-hidden /> : <FileImage size={18} aria-hidden />}
+                    <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                    <span className="type-note tabular" style={{ color: 'var(--ink-3)' }}>
+                      {formatFileSize(f.size)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      data-testid="register-document-remove"
+                      aria-label={t('register.documentsRemove', { name: f.name })}
+                      onClick={() => keepFiles(files.filter((other) => other.id !== f.id))}
+                    >
+                      {t('register.documentsRemoveShort')}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {/* A real file input behind a 48px label: the phone offers camera
+                or files itself. */}
+            <label
+              htmlFor="register-plot-documents"
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 font-medium"
+              style={{
+                minHeight: 48,
+                border: '1.5px dashed var(--rule-2)',
+                borderRadius: 'var(--radius-control)',
+                background: 'var(--paper)',
+                color: 'var(--primary-ink)',
+                fontSize: 15,
+              }}
+            >
+              <Paperclip size={18} aria-hidden />
+              {t('register.documentsAdd')}
+            </label>
+            <input
+              id="register-plot-documents"
+              data-testid="register-plot-documents"
+              type="file"
+              multiple
+              accept={PLOT_DOCUMENT_ACCEPT}
+              className="sr-only"
+              onChange={(e) => {
+                pickFiles(e.target.files)
+                e.target.value = ''
+              }}
+            />
+          </div>
         </Fieldset>
 
         <Fieldset
@@ -941,6 +1099,12 @@ const inputStyle = {
   fontFamily: 'inherit',
   color: 'var(--ink)',
   fontVariantNumeric: 'tabular-nums',
+}
+
+/** A file's size, for the officer's eye only. */
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function fieldId(name: FlatField) {

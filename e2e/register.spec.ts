@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 import { expect, test, type Page } from '@playwright/test'
 
 import { tr } from './support/i18n'
@@ -119,6 +121,29 @@ test.describe('/officer/register', () => {
     await expect(detail).toContainText(new RegExp(`${CROP.MAIZE.sw}|${CROP.MAIZE.en}`))
     await expect(detail).toContainText(new RegExp(`${CROP.AVOCADO.sw}|${CROP.AVOCADO.en}`))
     await expect(detail).toContainText('600.00 kg')
+  })
+
+  // Title documents: picked at registration, kept through a reload, filed
+  // against the new plot, and there on the person's record for the verifier.
+  test('a title photo is filed with the plot and shown to staff', async ({ page }) => {
+    const title = fileURLToPath(new URL('./fixtures/title-demo.png', import.meta.url))
+    await signInAsOfficer(page)
+    await page.goto('/officer/register')
+
+    await fillRegistration(page, markedName())
+    await page.getByTestId('register-plot-documents').setInputFiles(title)
+    await expect(page.getByTestId('register-document-item')).toContainText('title-demo.png')
+
+    await page.reload()
+    await expect(page.getByTestId('register-document-item')).toContainText('title-demo.png')
+
+    await page.getByTestId('register-submit').click()
+    await expect(page.getByTestId('register-documents-filed')).toBeVisible()
+
+    await page.getByTestId('register-view-person').click()
+    const doc = page.getByTestId('plot-document')
+    await expect(doc).toContainText('title-demo.png')
+    await expect(doc).toHaveAttribute('href', /plot-documents/)
   })
 
   // THE acceptance criterion for this screen.

@@ -718,3 +718,29 @@ three staff, catch it at random, and put a name on every step.
   C (BoT Tier 2 classification) is unresolved and nothing here models lending
 - Meter ingestion — no tables, no `sensor_derived` writer. Provider unselected
   (S22)
+
+## 19 · Plot title documents — staff only (added 5 Oct 2026)
+
+The one exception to "no photo upload", approved by the product owner on
+5 Oct 2026. Migration `20261005090003_plot_documents`.
+
+- **What:** photos or PDFs of a plot's title deed or other land papers, taken
+  at registration so whoever verifies the plot can check its fields against
+  them. Demo images only in this build.
+- **Where:** private bucket `plot-documents`, path
+  `{village_id}/{plot_id}/{id}-{file name}`, 10 MB a file, JPEG / PNG / WebP /
+  HEIC / PDF. A row in `plot_document` describes each file.
+- **Who:** field officers, ops and admin of the plot's village read and add
+  (`app_staff_villages()`), on both the rows and the files. **Farmers see
+  nothing**, including their own plot's documents.
+- **Append-only:** no update or delete for any client. A wrong upload is
+  followed by a right one; the record of what was shown stays.
+  `uploaded_by` is the caller, never what the client sends.
+- **Order:** the plot exists only after `app_register_farmer` returns, so the
+  register screen keeps picked files in a separate IndexedDB draft
+  (`register-docs:{client_ref}`) and files them against the returned
+  `plot_id`. A retry lands on the same path; "already exists" counts as filed.
+  The draft is cleared only once every file is filed.
+- **Not validated in the client:** size and type are the bucket's rules; a
+  refused file shows storage's own message.
+

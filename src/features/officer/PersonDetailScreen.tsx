@@ -11,6 +11,7 @@ import { Loading } from '@/components/controls'
 import { VerificationMark } from '@/components/marks'
 import { countUnverified, type PersonDetail, type Provenance } from '@/features/officer/personDetail'
 import { usePersonDetail, useVerify } from '@/features/officer/usePersonDetail'
+import { PlotDocuments } from '@/features/officer/PlotDocuments'
 import { VerifyButton } from '@/features/officer/VerifyButton'
 import { FarmerLoginCard } from '@/features/officer/FarmerLoginCard'
 import { useLoginHistory, type LoginHistoryRow } from '@/features/officer/useFarmerLogin'
@@ -208,6 +209,7 @@ export function PersonDetailScreen() {
                       />
                     }
                   />
+                  <PlotDocuments plotId={plot.id} villageId={detail.person.village_id} />
 
                   {plot.cycles.map((cycle) => (
                     <div

@@ -19,13 +19,24 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('@/app/session', () => ({ useSession: () => useSession() }))
 vi.mock('@/features/officer/useCrops', () => ({ useCrops: () => useCrops() }))
 const useDraftArgs: unknown[][] = []
+// The picked title documents keep their own draft, beside the form's.
+const docsDraft = vi.fn()
+const docsSave = vi.fn()
+const docsClear = vi.fn()
 vi.mock('@/lib/drafts', () => ({
   draftKey: (a: string, b: string) => `${a}:${b}`,
   indexedDbDraftStore: { get: vi.fn(), set: vi.fn(), clear: vi.fn() },
   useDraft: (...args: unknown[]) => {
     useDraftArgs.push(args)
-    return useDraft()
+    const form = useDraft()
+    const docs = docsDraft()
+    return String(args[0]).startsWith('register-docs:') ? docs : form
   },
+}))
+const uploadPlotDocuments = vi.fn()
+vi.mock('@/lib/plotDocuments', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/plotDocuments')>()),
+  uploadPlotDocuments: (...args: unknown[]) => uploadPlotDocuments(...args),
 }))
 vi.mock('@/lib/supabase', () => ({ supabase: { rpc: (...args: unknown[]) => rpc(...args) } }))
 // The login card has its own tests; here only WHERE and FOR WHOM it appears.
@@ -86,6 +97,11 @@ beforeEach(() => {
   })
   useDraft.mockReturnValue({ status: 'clean', draft: null, save, clear })
   rpc.mockResolvedValue({ data: { person_id: 'new-person' }, error: null })
+  docsSave.mockReset()
+  docsClear.mockReset()
+  docsDraft.mockReturnValue({ status: 'empty', draft: undefined, save: docsSave, clear: docsClear })
+  uploadPlotDocuments.mockReset()
+  uploadPlotDocuments.mockResolvedValue({ filed: [], failed: [] })
 })
 
 function renderScreen() {
@@ -494,6 +510,106 @@ describe('several crops', () => {
 })
 
 /**
+ * Title documents, photographed at registration so whoever verifies the plot
+ * can check it against them. Staff only. They are kept in their own draft
+ * until the plot exists, then filed against it.
+ */
+describe('title documents', () => {
+  const photo = (name: string) => new File(['abc'], name, { type: 'image/jpeg' })
+  const pick = (...files: File[]) =>
+    fireEvent.change(screen.getByTestId('register-plot-documents'), { target: { files } })
+
+  test('picked files are listed and kept in their own draft', async () => {
+    renderScreen()
+    pick(photo('title.jpg'), photo('survey.jpg'))
+
+    expect(await screen.findAllByTestId('register-document-item')).toHaveLength(2)
+    await waitFor(() => expect(docsSave).toHaveBeenLastCalledWith(
+      expect.arrayContaining([expect.objectContaining({ name: 'title.jpg' }), expect.objectContaining({ name: 'survey.jpg' })]),
+    ))
+  })
+
+  test('a picked file can be taken off again', async () => {
+    renderScreen()
+    pick(photo('title.jpg'), photo('survey.jpg'))
+    await userEvent.click((await screen.findAllByTestId('register-document-remove'))[0])
+
+    expect(screen.getAllByTestId('register-document-item')).toHaveLength(1)
+    expect(screen.getByTestId('register-document-item')).toHaveTextContent('survey.jpg')
+  })
+
+  test('says the farmer does not see them', () => {
+    renderScreen()
+    expect(screen.getByTestId('register-documents-note')).toHaveTextContent(/staff/i)
+  })
+
+  test('a reload brings the picked files back', async () => {
+    docsDraft.mockReturnValue({
+      status: 'dirty',
+      draft: [{ id: 'f1', name: 'title.jpg', type: 'image/jpeg', size: 3, blob: new Blob(['abc']) }],
+      save: docsSave,
+      clear: docsClear,
+    })
+    renderScreen()
+
+    expect(await screen.findByTestId('register-document-item')).toHaveTextContent('title.jpg')
+  })
+
+  test('once the farmer is registered, they are filed against the new plot', async () => {
+    rpc.mockResolvedValue({ data: { person_id: 'new-person', plot_id: 'new-plot', village_id: VILLAGE }, error: null })
+    uploadPlotDocuments.mockImplementation(async (_v, _p, files: Array<{ id: string }>) => ({
+      filed: files.map((f) => f.id),
+      failed: [],
+    }))
+    renderScreen()
+    await fillValid()
+    pick(photo('title.jpg'))
+    submit()
+
+    await screen.findByTestId('register-documents-filed')
+    expect(uploadPlotDocuments).toHaveBeenCalledWith(VILLAGE, 'new-plot', [expect.objectContaining({ name: 'title.jpg' })])
+    await waitFor(() => expect(docsClear).toHaveBeenCalled())
+  })
+
+  // The registration is saved either way. What was not filed says so, keeps
+  // its draft, and can be tried again.
+  test('a file that failed is named, kept and offered again', async () => {
+    rpc.mockResolvedValue({ data: { person_id: 'new-person', plot_id: 'new-plot', village_id: VILLAGE }, error: null })
+    uploadPlotDocuments.mockImplementationOnce(async (_v, _p, files: Array<{ id: string; name: string }>) => ({
+      filed: [],
+      failed: files.map((f) => ({ id: f.id, name: f.name, message: 'Payload too large' })),
+    }))
+    renderScreen()
+    await fillValid()
+    pick(photo('title.jpg'))
+    submit()
+
+    const failed = await screen.findByTestId('register-documents-failed')
+    expect(failed).toHaveTextContent('title.jpg')
+    expect(failed).toHaveTextContent('Payload too large')
+    expect(docsClear).not.toHaveBeenCalled()
+
+    uploadPlotDocuments.mockImplementationOnce(async (_v, _p, files: Array<{ id: string }>) => ({
+      filed: files.map((f) => f.id),
+      failed: [],
+    }))
+    await userEvent.click(screen.getByTestId('register-documents-retry'))
+    await screen.findByTestId('register-documents-filed')
+  })
+
+  test('no files picked, nothing to file', async () => {
+    rpc.mockResolvedValue({ data: { person_id: 'new-person', plot_id: 'new-plot', village_id: VILLAGE }, error: null })
+    renderScreen()
+    await fillValid()
+    submit()
+
+    await screen.findByTestId('register-success')
+    expect(uploadPlotDocuments).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('register-documents-filed')).not.toBeInTheDocument()
+  })
+})
+
+/**
  * QA #23. Measured directly at the time: `register-submit.disabled` was false
  * immediately after the first click and still false after three clicks in the
  * same tick. Spec 5.2 names six states for this screen and one of them is
@@ -567,7 +683,8 @@ describe('a draft that no longer matches this form', () => {
   test('and the draft store is told to check the shape', () => {
     renderScreen()
     // The guard is passed to useDraft, which is what discards and clears it.
-    expect(useDraftArgs.at(-1)?.[2]).toBe(isRegisterDraft)
+    const formDraft = [...useDraftArgs].reverse().find((args) => String(args[0]).startsWith('register:'))
+    expect(formDraft?.[2]).toBe(isRegisterDraft)
   })
 
   // A good draft still restores: the point is the feature, not the check.

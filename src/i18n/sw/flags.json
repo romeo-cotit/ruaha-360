@@ -341,5 +341,9 @@
   "voucher.expires": "Drafter: 'Valid until' -> 'Inatumika hadi' (usable until); composed.",
   "voucher.redeemedBy": "Drafter: 'Collected' = 'Imechukuliwa' (glossary UNVERIFIED) paired with 'imekabidhiwa' (handed over) for the officer; 'Collected/handed over' distinction mirrors English.",
   "voucher.showAtOffice": "Drafter: 'staff member' -> 'Mfanyakazi' (no glossary term); 'ataskani' verb form from loan 'skani' unattested. 'Vocha hii inaweza kutumika mara moja' used for 'It can be used once'.",
-  "register.plantedAcrossNote": "Drafter: composed from the glossary's 'eneo lililopandwa' and 'kipande'. Carries the labelling rule that planted area across cycles can exceed land area. Native reviewer."
+  "register.plantedAcrossNote": "Drafter: composed from the glossary's 'eneo lililopandwa' and 'kipande'. Carries the labelling rule that planted area across cycles can exceed land area. Native reviewer.",
+  "register.documents": "Drafter: 'hati za umiliki wa ardhi' (title deed = 'hati miliki' in common Tanzanian usage) is NOT in the glossary: unverified. Native reviewer.",
+  "register.documentsHint": "Drafter: 'hati miliki' and 'watumishi' (staff) composed, unverified.",
+  "plotDocuments.title_one": "Drafter: shorter 'hati za ardhi' (land documents), unverified; see register.documents.",
+  "plotDocuments.staffOnly": "Drafter: 'watumishi' for staff, unverified."
 }
