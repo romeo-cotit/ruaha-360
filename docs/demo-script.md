@@ -68,7 +68,7 @@ else. If a list is empty the tour skips what it would have opened.
 | --- | --- |
 | Farmer | Welcome · Your home screen · My farm · Equipment · My requests · Opportunities · Surveys and vouchers · Your voucher · What happens next |
 | Officer | Welcome · Your home screen · Registering a farmer · People and their records · Verifying records · Redeeming a voucher · What happens next |
-| Ops | Welcome · What is waiting · Equipment requests · Buyer demand and opportunities · Catalogue, buyers and villages · Surveys and vouchers · Redemptions and cash counts · Control Tower · What happens next |
+| Ops | Welcome · What is waiting · Equipment requests · Buyer demand and opportunities · Resource catalogue, buyers and villages · Surveys and vouchers · Redemptions and cash counts · Control Tower · What happens next |
 | Admin | The ops chapters, plus **Writing a survey** |
 
 *What happens next* only appears on the demo build. It names the next account to

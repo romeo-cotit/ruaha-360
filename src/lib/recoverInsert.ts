@@ -15,7 +15,7 @@ function same(stored: unknown, submitted: unknown) {
  * the row under this id is the success only when it holds what was submitted.
  */
 export async function recoverInsert(
-  table: 'pue_request' | 'buyer' | 'buyer_demand' | 'opportunity_supply',
+  table: 'pue_request' | 'buyer' | 'buyer_demand' | 'opportunity_supply' | 'equipment' | 'loan_product',
   id: string | undefined,
   error: { message: string },
   submitted: Record<string, unknown>,

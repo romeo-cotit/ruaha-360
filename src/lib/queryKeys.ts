@@ -27,6 +27,8 @@
  *   app_voucher_void         as redeem
  *   app_create_village       villageCapacity, villages, tower (all)
  *   plot_document upload     plotDocuments(plot)
+ *   equipment insert         equipment('mine')
+ *   loan_product insert      loanProducts
  */
 export const queryKeys = {
   session: () => ['session'] as const,
@@ -64,6 +66,9 @@ export const queryKeys = {
   villageCapacity: () => ['villageCapacity'] as const,
   /** A plot's title documents, with short-lived signed links. */
   plotDocuments: (plotId: string) => ['plotDocuments', plotId] as const,
+  /** Loan listings in the resource catalogue. Listings only: no finance terms. */
+  loanProducts: () => ['loanProducts'] as const,
+  equipmentCategories: () => ['equipmentCategories'] as const,
   /** Spec 6.6's farmer-facing opportunities. Language is chosen at render. */
   farmerOpportunities: () => ['farmerOpportunities'] as const,
 

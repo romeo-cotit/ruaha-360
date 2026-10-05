@@ -59,7 +59,7 @@ describe('SurfaceNav marks its destinations', () => {
       (link) => link.textContent,
     )
 
-    expect(labels).toEqual(['My farm', 'Equipment', 'Requests', 'Opportunities', 'Surveys'])
+    expect(labels).toEqual(['My farm', 'Equipment & loans', 'Requests', 'Opportunities', 'Surveys'])
   })
 
   test('every icon is hidden from assistive tech, since the label already says it', () => {

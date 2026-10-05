@@ -247,6 +247,7 @@ test.describe('the acceptance journey', () => {
       await expect(page.getByTestId('estimate-power')).toHaveText('15.000 kW')
 
       await page.getByTestId('request-purpose').fill('E2E-journey-mill')
+      await page.getByTestId('equipment-acquisition-buy').check()
       await page.getByTestId('request-submit').click()
       await expect(page.getByTestId('request-success')).toBeVisible()
 

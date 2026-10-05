@@ -36,6 +36,12 @@ beforeEach(() => {
 })
 
 describe('OpsRequestsScreen', () => {
+  test('shows whether each request is to rent or to buy', () => {
+    useOpsRequests.mockReturnValue({ isLoading: false, error: null, requests: [{ ...request, acquisition: 'buy' }], refetch: vi.fn() })
+    render(<OpsRequestsScreen />)
+    expect(screen.getByTestId('requests-table')).toHaveTextContent(/to buy/i)
+  })
+
   test('renders a white table surface with both custom filters and rows', () => {
     render(<OpsRequestsScreen />)
 

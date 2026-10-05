@@ -63,6 +63,9 @@ beforeEach(() => {
       currency: 'TZS',
       typical_hours_per_day: 6,
       typical_days_per_week: 5,
+      can_rent: false,
+      can_buy: true,
+      indicative_rent_per_day: null,
     },
   })
 })
@@ -308,5 +311,56 @@ describe('the draft after a confirmed save', () => {
     await act(async () => resolve({ id: 'r1' }))
 
     await waitFor(async () => expect(await indexedDbDraftStore.get(key)).toBeUndefined())
+  })
+})
+
+/**
+ * A machine may be offered to rent, to buy, or both. The farmer says which;
+ * whether it is offered that way is the database's call.
+ */
+describe('rent or buy', () => {
+  const offered = (over: Record<string, unknown>) =>
+    useEquipmentItem.mockReturnValue({
+      isLoading: false,
+      error: null,
+      item: {
+        id: 'eq1', name: 'Mill', category_name: 'Processing', rated_power_kw: 15,
+        indicative_price: 1000, indicative_rent_per_day: 50, currency: 'TZS',
+        typical_hours_per_day: 6, typical_days_per_week: 5, ...over,
+      },
+    })
+
+  test('a machine offered only for sale is requested to buy, with nothing to choose', async () => {
+    offered({ can_rent: false, can_buy: true })
+    render(<EquipmentDetailScreen />)
+
+    expect(screen.getByTestId('equipment-acquisition')).toHaveTextContent(/buy/i)
+    expect(screen.queryByTestId('equipment-acquisition-rent')).not.toBeInTheDocument()
+    submit()
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    expect(mutateAsync.mock.calls[0][0]).toMatchObject({ acquisition: 'buy' })
+  })
+
+  test('offered both ways, the farmer has to choose', async () => {
+    offered({ can_rent: true, can_buy: true })
+    render(<EquipmentDetailScreen />)
+    submit()
+
+    expect(await screen.findByTestId('request-acquisition-error')).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  test('and renting sends rent, with the indicative rent per day shown', async () => {
+    offered({ can_rent: true, can_buy: true })
+    render(<EquipmentDetailScreen />)
+
+    expect(screen.getByTestId('equipment-rent')).toHaveTextContent('TZS 50.00')
+    expect(screen.getByTestId('equipment-rent')).toHaveTextContent(/indicative/i)
+    fireEvent.click(screen.getByTestId('equipment-acquisition-rent'))
+    submit()
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1))
+    expect(mutateAsync.mock.calls[0][0]).toMatchObject({ acquisition: 'rent' })
   })
 })

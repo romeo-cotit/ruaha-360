@@ -418,8 +418,16 @@ export function TowerScreen() {
                           {t('tower.requestCount', { count: row.request_count ?? 0 })}
                         </span>
                       </Link>
-                      <span className="tabular font-semibold" style={{ fontSize: 15 }}>
-                        {formatMoney(row.indicative_value, row.currency ?? 'TZS')}
+                      <span className="flex flex-col items-end">
+                        <span className="tabular font-semibold" style={{ fontSize: 15 }}>
+                          {formatMoney(row.indicative_value, row.currency ?? 'TZS')}
+                        </span>
+                        {/* A rent is not a purchase price: shown apart, per day. */}
+                        {typeof row.indicative_rent_per_day === 'number' && (
+                          <span data-testid="tile-pue-rent" className="tabular type-note" style={{ color: 'var(--ink-2)' }}>
+                            {t('tower.rentPerDay', { value: formatMoney(row.indicative_rent_per_day, row.currency ?? 'TZS') })}
+                          </span>
+                        )}
                       </span>
                     </div>
                   ))}

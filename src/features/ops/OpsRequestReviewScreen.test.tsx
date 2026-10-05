@@ -44,6 +44,12 @@ beforeEach(() => {
 })
 
 describe('OpsRequestReviewScreen', () => {
+  test('says whether the farmer asked to rent or to buy', () => {
+    useOpsRequest.mockReturnValue({ isLoading: false, error: null, request: { ...request, acquisition: 'rent' }, refetch: vi.fn() })
+    render(<OpsRequestReviewScreen />)
+    expect(screen.getByTestId('request-acquisition')).toHaveTextContent(/rent/i)
+  })
+
   test('renders request details, decision actions, breadcrumbs, and loading/not-found/error states', () => {
     const { rerender } = render(<OpsRequestReviewScreen />)
     expect(screen.getByTestId('request-review')).toHaveTextContent('Baraka Mgeni')

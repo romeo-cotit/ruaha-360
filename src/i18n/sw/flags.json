@@ -86,7 +86,7 @@
   "login.email": "Drafter: Key name says email but string is 'phone number or email'; 'barua pepe' is standard for email.",
   "login.emailInvalid": "Drafter: Example number 0712 345 678 kept as is.",
   "myFarm.plots": "Drafter: 'Kipande cha shamba' for plot is glossary UNVERIFIED; used throughout.",
-  "nav.catalogue": "Drafter: 'Katalogi' unverified; alternative 'Orodha ya vifaa'.",
+  "nav.catalogue": "Drafter: 'Rasilimali' (resources) not in glossary: unverified.",
   "nav.redeem": "Drafter: 'Kabidhi' (hand over) per glossary for the officer redeem action; unverified, sense is handing cash over at the office. Cross-check (meaning): 'Kabidhi' back-translates to 'Hand over', dropping the voucher/redeem sense; as a bare nav label it does not say what is being handed over or that it is a voucher claim at the office.",
   "nav.signOut": "Drafter: 'Toka' chosen, unverified (alt 'Ondoka').",
   "nav.signingOut": "Drafter: 'Inatoka…' follows 'Toka'; could read as 'is leaving'. Alternative 'Inakutoa…' is not natural.",
@@ -345,5 +345,14 @@
   "register.documents": "Drafter: 'hati za umiliki wa ardhi' (title deed = 'hati miliki' in common Tanzanian usage) is NOT in the glossary: unverified. Native reviewer.",
   "register.documentsHint": "Drafter: 'hati miliki' and 'watumishi' (staff) composed, unverified.",
   "plotDocuments.title_one": "Drafter: shorter 'hati za ardhi' (land documents), unverified; see register.documents.",
-  "plotDocuments.staffOnly": "Drafter: 'watumishi' for staff, unverified."
+  "plotDocuments.staffOnly": "Drafter: 'watumishi' for staff, unverified.",
+  "nav.equipment": "Drafter: 'Vifaa na mikopo'. 'Vifaa' is the glossary term; 'mikopo' (loans) attested only in a Vodacom FAQ: unverified.",
+  "catalogue.title": "Drafter: 'Orodha ya rasilimali' composed; 'rasilimali' unverified.",
+  "resources.kind.loan": "Drafter: 'Mikopo' (loans) attested only in a Vodacom FAQ in the glossary: unverified.",
+  "resources.offered.rent": "Drafter: 'Kukodi' (to rent) not in glossary: unverified.",
+  "resources.offered.buy": "Drafter: 'Kununua' (to buy) composed: unverified.",
+  "resources.loanNote": "Drafter: 'si ahadi wala idhini ya mkopo' (not a promise nor approval of a loan) composed to carry 'not an offer'. Labelling rule: must not read as an offer. Native reviewer.",
+  "catalogue.priceInput": "Drafter: 'bei elekezi' per glossary, which warns it may read as a regulated price. Same open question as equipment.indicativePrice.",
+  "catalogue.rentInput": "Drafter: 'kodi elekezi' composed from glossary 'elekezi'; 'kodi' also means tax in Swahili. Native reviewer must confirm it reads as rent.",
+  "tower.rentPerDay": "Drafter: 'kodi' can also mean tax; reviewer to confirm it reads as rent here."
 }

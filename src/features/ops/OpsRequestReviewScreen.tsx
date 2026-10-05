@@ -9,6 +9,7 @@ import { Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { PageHeader } from '@/components/PageHeader'
 import { StatusPill } from '@/components/StatusPill'
+import { AcquisitionPill } from '@/components/OfferedPills'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import {
   requiresDecisionNote,
@@ -70,7 +71,7 @@ export function OpsRequestReviewScreen() {
   return (
     <section className="flex w-full flex-col gap-[18px]" data-testid="request-review">
       <PageHeader
-        title={<>{request.equipment_name} <StatusPill kind="request" status={request.status} /></>}
+        title={<>{request.equipment_name} <StatusPill kind="request" status={request.status} /> <AcquisitionPill mode={request.acquisition} /></>}
         backTo="/ops/requests"
         backLabel={t('tour.back')}
         breadcrumbs={[{ label: t('nav.requests'), to: '/ops/requests' }, { label: request.equipment_name }]}

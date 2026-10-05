@@ -50,7 +50,8 @@ vi.mock('@/features/tower/useTower', () => ({
   }),
   useTowerPipeline: () => ({
     data: [
-      { status: 'approved', request_count: 2, indicative_value: 38600000, currency: 'TZS' },
+      { status: 'approved', request_count: 2, indicative_value: 38600000, currency: 'TZS', indicative_rent_per_day: null },
+      { status: 'submitted', request_count: 1, indicative_value: null, currency: 'TZS', indicative_rent_per_day: 150000 },
     ],
     isLoading: false,
     error: null,
@@ -159,6 +160,13 @@ describe('the Control Tower keeps planted area honest', () => {
   test('the equipment pipeline says its value is indicative', () => {
     render(<TowerScreen />)
     expect(screen.getByTestId('tile-pue')).toHaveTextContent(/indicative/i)
+  })
+
+  // A rent is not a purchase price: it is shown apart, per day, never added in.
+  test('requests to rent show their rent per day, apart from purchase value', () => {
+    render(<TowerScreen />)
+    expect(screen.getByTestId('tile-pue-rent')).toHaveTextContent('TZS 150,000.00 rent per day')
+    expect(screen.getAllByTestId('tile-pue-rent')).toHaveLength(1)
   })
 })
 

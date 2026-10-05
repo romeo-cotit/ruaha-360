@@ -42,6 +42,7 @@ than a rewrite.
 | `20261005090001_village_create.sql` | `village` / `village_capacity` writes scoped to `app_manages_project`; `app_create_village` (village + first capacity row) |
 | `20261005090002_register_many_cycles.sql` | `app_register_farmer` takes `cycles[]`, one per crop on the plot; the single `cycle` payload is still accepted |
 | `20261005090003_plot_documents.sql` | private bucket `plot-documents`, `plot_document` (staff only, append-only), storage policies by village folder |
+| `20261005090004_resource_catalogue.sql` | `equipment.can_rent` / `can_buy` / `indicative_rent_per_day`, `pue_request.acquisition` (`acquisition_mode`), `loan_product` (listings only, no finance terms), pipeline view splits buy value from rent |
 | `seed.sql` | labelled demo data, two villages, six accounts |
 | `seed_surveys.sql` | run after `seed.sql`: a second Ilundo officer, household verifiers, five demo surveys, three vouchers |
 | `tests/rls_test.sql` | 193 assertions on the policies, including `tests/mvp_security_test.sql` and `tests/survey_test.sql` |

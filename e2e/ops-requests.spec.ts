@@ -35,6 +35,7 @@ async function farmerSubmitsRequest(page: Page, purpose: string) {
   await signIn(page, 'neema@demo.ruaha360.test', /\/farm$/)
   await page.goto(`/farm/equipment/${MILL}`)
   await page.getByTestId('request-purpose').fill(purpose)
+  await page.getByTestId('equipment-acquisition-buy').check()
   await page.getByTestId('request-submit').click()
   await expect(page.getByTestId('request-success')).toBeVisible()
   await page.getByTestId('sign-out').click()

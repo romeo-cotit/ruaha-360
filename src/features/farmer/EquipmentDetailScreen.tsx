@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, getRouteApi } from '@tanstack/react-router'
 import { useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +13,7 @@ import { IndicativePill, Loading } from '@/components/controls'
 import { BangMark } from '@/components/marks'
 import { useEquipmentItem } from '@/features/farmer/useEquipment'
 import { requestSchema, type RequestForm } from '@/features/farmer/requestSchema'
+import { z } from 'zod'
 import { useSubmitRequest } from '@/features/farmer/useRequests'
 import { formatKw, formatMoney } from '@/lib/format'
 import { finishDraftWhenSaved } from '@/lib/drafts'
@@ -21,12 +22,28 @@ import { FormDraftStatus } from '@/components/FormDraftStatus'
 
 const route = getRouteApi('/_farmer/farm/equipment/$equipmentId')
 
-const EMPTY: RequestForm = {
+type Acquisition = 'rent' | 'buy'
+
+/** The request as typed, plus how the farmer wants the machine. */
+type RequestDraft = RequestForm & { acquisition: string }
+
+const EMPTY: RequestDraft = {
   quantity: '1',
   hours_per_day: '',
   days_per_week: '',
   purpose: '',
+  acquisition: '',
 }
+
+/**
+ * The persisted form carries `acquisition` beside the estimate's inputs. It is
+ * not part of `requestSchema`, which also gates the live estimate: a machine
+ * draws the same power rented or owned, so an unanswered choice must not
+ * withhold the estimate.
+ */
+const draftSchema = requestSchema.extend({ acquisition: z.string() })
+
+const isAcquisition = (value: string): value is Acquisition => value === 'rent' || value === 'buy'
 
 /**
  * Spec 6.4 — detail plus the request form, with a live estimate.
@@ -47,12 +64,14 @@ export function EquipmentDetailScreen() {
   const query = useEquipmentItem(equipmentId)
   const submit = useSubmitRequest()
 
-  const draft = usePersistentForm<RequestForm>('equipment-request', equipmentId, EMPTY, zodResolver(requestSchema))
+  const draft = usePersistentForm<RequestDraft>('equipment-request', equipmentId, EMPTY, zodResolver(draftSchema))
   const { handleSubmit, control, reset, formState: { errors, isSubmitting } } = draft
   const [quantity, setQuantity] = draft.field('quantity')
   const [hoursPerDay, setHoursPerDay] = draft.field('hours_per_day')
   const [daysPerWeek, setDaysPerWeek] = draft.field('days_per_week')
   const [purpose, setPurpose] = draft.field('purpose')
+  const [acquisition, setAcquisition] = draft.field('acquisition')
+  const [acquisitionMissing, setAcquisitionMissing] = useState(false)
 
   const item = query.item
 
@@ -70,6 +89,16 @@ export function EquipmentDetailScreen() {
       days_per_week: item.typical_days_per_week === null ? '' : String(item.typical_days_per_week),
     })
   }, [item, reset, draft.ready, draft.dirty])
+
+  // Offered one way only: that is the answer, and there is nothing to choose.
+  // Whether it is offered that way at all is pue_request_acquisition_check's.
+  const offered: Acquisition[] = item
+    ? ([item.can_rent && 'rent', item.can_buy && 'buy'].filter(Boolean) as Acquisition[])
+    : []
+  const only = offered.length === 1 ? offered[0] : undefined
+  useEffect(() => {
+    if (draft.ready && only && acquisition !== only) setAcquisition(only)
+  }, [draft.ready, only, acquisition, setAcquisition])
 
   // Subscribed so the estimate recalculates live, and so it can be withheld
   // while the assumptions behind it are not possible. `useWatch` rather than
@@ -142,7 +171,14 @@ export function EquipmentDetailScreen() {
    */
   const onSubmit = handleSubmit((form) => {
     if (!draft.ready) return
+    // A choice to make, not a rule to copy: when both are offered the farmer
+    // has to say which. The database still decides what is offered.
+    if (!isAcquisition(form.acquisition)) {
+      setAcquisitionMissing(true)
+      return
+    }
     void finishDraftWhenSaved(submit.mutateAsync({
+      acquisition: form.acquisition,
       id: draft.clientRef,
       actorId: session.data!.userId,
       villageId: villageId!,
@@ -188,15 +224,28 @@ export function EquipmentDetailScreen() {
               {formatKw(item.rated_power_kw)}
             </span>
           </span>
-          <span data-testid="equipment-price" className="flex flex-col gap-0.5 px-3 py-2" style={SPEC_CELL}>
-            <span className="type-note inline-flex flex-wrap items-center gap-2" style={{ color: 'var(--ink-2)' }}>
-              {t('equipment.price')}
-              <IndicativePill />
+          {item.can_buy && (
+            <span data-testid="equipment-price" className="flex flex-col gap-0.5 px-3 py-2" style={SPEC_CELL}>
+              <span className="type-note inline-flex flex-wrap items-center gap-2" style={{ color: 'var(--ink-2)' }}>
+                {t('equipment.price')}
+                <IndicativePill />
+              </span>
+              <span className="tabular font-semibold" style={{ fontSize: 17 }}>
+                {formatMoney(item.indicative_price, item.currency)}
+              </span>
             </span>
-            <span className="tabular font-semibold" style={{ fontSize: 17 }}>
-              {formatMoney(item.indicative_price, item.currency)}
+          )}
+          {item.can_rent && (
+            <span data-testid="equipment-rent" className="flex flex-col gap-0.5 px-3 py-2" style={SPEC_CELL}>
+              <span className="type-note inline-flex flex-wrap items-center gap-2" style={{ color: 'var(--ink-2)' }}>
+                {t('resources.rentPerDay')}
+                <IndicativePill />
+              </span>
+              <span className="tabular font-semibold" style={{ fontSize: 17 }}>
+                {formatMoney(item.indicative_rent_per_day, item.currency)}
+              </span>
             </span>
-          </span>
+          )}
         </div>
         <p style={{ fontSize: 13, color: 'var(--ink-2)', textWrap: 'pretty' }}>
           {t('equipment.notAQuotation')}
@@ -213,6 +262,57 @@ export function EquipmentDetailScreen() {
             one anchor for the guided tour, which cuts a spotlight around it. The submit
             button is deliberately outside. */}
         <div className="flex flex-col gap-4">
+          <fieldset data-testid="equipment-acquisition" className="flex flex-col gap-2">
+            <legend style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+              {t('equipment.acquisition')}
+            </legend>
+            {only ? (
+              <p style={{ fontSize: 15, fontWeight: 600 }}>{t(`equipment.acquisitionOnly.${only}`)}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {offered.map((mode) => (
+                  <label
+                    key={mode}
+                    className="flex items-center justify-center gap-2 p-2.5"
+                    style={{
+                      flex: '1 1 120px',
+                      minHeight: 48,
+                      border: `1.5px solid ${acquisition === mode ? 'var(--primary)' : 'var(--rule-2)'}`,
+                      borderRadius: 'var(--radius-control)',
+                      background: acquisition === mode ? 'var(--primary-tint)' : 'var(--paper)',
+                      fontSize: 15,
+                      fontWeight: acquisition === mode ? 600 : 400,
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="acquisition"
+                      data-testid={`equipment-acquisition-${mode}`}
+                      value={mode}
+                      checked={acquisition === mode}
+                      onChange={() => {
+                        setAcquisition(mode)
+                        setAcquisitionMissing(false)
+                      }}
+                      style={{ accentColor: '#1d70b7' }}
+                    />
+                    {t(`resources.offered.${mode}`)}
+                  </label>
+                ))}
+              </div>
+            )}
+            {acquisitionMissing && !isAcquisition(acquisition) && (
+              <p
+                data-testid="request-acquisition-error"
+                className="flex items-start gap-[7px] font-medium"
+                style={{ fontSize: 13, color: 'var(--flag-ink)' }}
+              >
+                <BangMark />
+                {t('equipment.chooseAcquisition')}
+              </p>
+            )}
+          </fieldset>
+
           <div data-testid="request-inputs" className="flex flex-col gap-3">
             <NumberField label={t('equipment.quantity')} testId="request-quantity">
               <input

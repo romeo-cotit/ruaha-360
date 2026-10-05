@@ -240,6 +240,21 @@ export const OPS_PROGRAMME_CHAPTERS: Chapter[] = [
         bodyKey: 'tour.ops.referenceCatalogueBody',
       },
       {
+        route: '/ops/catalogue',
+        testId: 'catalogue-kinds',
+        titleKey: 'tour.ops.referenceLoansTitle',
+        bodyKey: 'tour.ops.referenceLoansBody',
+      },
+      // Only the button is lit, as with buyers: the form opens below, and
+      // nothing is kept until it is submitted.
+      {
+        route: '/ops/catalogue',
+        testId: 'catalogue-create-open',
+        titleKey: 'tour.ops.referenceCatalogueCreateTitle',
+        bodyKey: 'tour.ops.referenceCatalogueCreateBody',
+        tryIt: true,
+      },
+      {
         route: '/ops/buyers',
         testId: 'buyers-table',
         titleKey: 'tour.ops.referenceBuyersTitle',

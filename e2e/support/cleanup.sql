@@ -119,6 +119,12 @@ delete from person where id in (select id from _e2e_person);
 
 delete from registration_receipt where client_ref in (select client_ref from _e2e_receipt);
 
+-- Catalogue rows ops created in the suite, marked through their code. No
+-- request is ever made against them, so nothing else points at them.
+delete from equipment where code like 'E2E-%'
+  and not exists (select 1 from pue_request where equipment_id = equipment.id);
+delete from loan_product where code like 'E2E-%';
+
 -- Villages ops created in the suite, marked through their name. Nothing else
 -- is ever registered into one, so only the capacity row hangs off it.
 delete from village_capacity where village_id in (select id from village where name like 'E2E-%');

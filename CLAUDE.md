@@ -71,7 +71,7 @@ Only when every assertion passes does UI work begin.
 - `app_user` is self-read only; provenance names come from `app_actor_names`.
 - Opportunity writes are ops/admin only; its status machine and the supply
   commitment lock live in Postgres (business-rules §8).
-- `pnpm db:rls` runs 199 assertions (92 until 29 Sep, plus `tests/survey_test.sql`, plus 6 in `tests/supply_attached_by_test.sql` from 1 Oct).
+- `pnpm db:rls` runs 250 assertions (92 until 29 Sep, plus `tests/survey_test.sql`, plus 6 in `tests/supply_attached_by_test.sql` from 1 Oct, plus 51 across the four 5 Oct test files).
   The Playwright journey signs in as the farmer it registered, with the phone
   and temporary password its login card showed, then continues through a
   survey answered, refused to the registrar, and redeemed by a second officer.
@@ -96,6 +96,26 @@ business-rules §15–17.
 - Three migrations (`20260929090001`–`…03`), `supabase/seed_surveys.sql`
   (run after `seed.sql`), `pnpm db:rls` now 193 assertions.
 - Dependencies `uqr` (QR drawing) and `qr-scanner` (camera) were approved.
+
+## Change requests — 5 October 2026
+
+Approved by the product owner on 5 Oct 2026. Four migrations
+(`20261005090001`–`…04`) and `supabase/seed_resources.sql` (run after
+`seed.sql`).
+
+- **Several crops at registration.** `app_register_farmer` takes `cycles[]`,
+  one per crop on the plot, each with its own measure, window and expected
+  harvest. The single `cycle` payload is still accepted.
+- **Plot title documents** — the one exception to "no photo upload": a private
+  `plot-documents` bucket and `plot_document`, staff only, append-only, demo
+  images only (business-rules §19).
+- **Resource catalogue.** `/ops/catalogue` lists equipment offered to rent,
+  to buy, or both (`can_rent`, `can_buy`, `indicative_rent_per_day`) and loan
+  LISTINGS (`loan_product`: name, description, indicative range — no finance
+  terms, research item C is open). Ops adds rows. A farmer's request records
+  `acquisition` (rent or buy); a loan cannot be requested in the app.
+- **Villages.** Ops adds a village with its first planned capacity row
+  (`app_create_village`); village writes are now scoped to the project.
 
 ## Guided tour — 30 September 2026
 
@@ -177,7 +197,7 @@ pnpm e2e journey        # the acceptance journey alone
 pnpm db:list            # migration history: files vs database
 pnpm db:push            # apply pending migrations (db:push:dry to preview)
 pnpm db:types           # regenerate src/lib/db.types.ts (Management API)
-pnpm db:rls             # the 199 policy assertions
+pnpm db:rls             # the 250 policy assertions
 ```
 
 **No local Supabase.** The cloud dev project is the only database — every
@@ -305,7 +325,10 @@ misrepresents the programme.
 - Capacity is **planned**, never measured. Always shown with its `basis`
 - Prospective and approved demand are separate figures, **never summed**
 - An estimate is always labelled an estimate
-- Prices are always labelled **indicative**. They are not quotations
+- Prices are always labelled **indicative**. They are not quotations. So are
+  rents per day and loan amounts
+- A loan listing is **not** an offer and not an approval. No interest,
+  deposit, term or repayment appears anywhere (research item C)
 - An opportunity is **not** a sale, a delivery or a payment
 - `cycle_area_ha` is "planted area across cycles", never "land area" —
   intercropping means it can exceed the village's hectares

@@ -8,6 +8,7 @@ import { DataTable } from '@/components/DataTable'
 import { ErrorState } from '@/components/ErrorState'
 import { Loading } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
+import { AcquisitionPill } from '@/components/OfferedPills'
 import { PageHeader } from '@/components/PageHeader'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { TableSurface } from '@/components/TableSurface'
@@ -53,6 +54,10 @@ export function OpsRequestsScreen() {
       col.accessor('applicant', { header: t('ops.colApplicant') }),
       col.accessor('village_name', { header: t('ops.colVillage') }),
       col.accessor('equipment_name', { header: t('ops.colEquipment') }),
+      col.accessor('acquisition', {
+        header: t('ops.colAcquisition'),
+        cell: (c) => <AcquisitionPill mode={c.getValue()} testId="request-row-acquisition" />,
+      }),
       col.accessor((r) => r.estimate?.est_power_kw ?? null, {
         id: 'est_kw',
         header: t('ops.colEstKw'),

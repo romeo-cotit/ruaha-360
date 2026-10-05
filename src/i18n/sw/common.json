@@ -12,14 +12,14 @@
     "userMenu": "Menyu ya akaunti",
     "signOut": "Toka",
     "myFarm": "Shamba langu",
-    "equipment": "Vifaa",
+    "equipment": "Vifaa na mikopo",
     "requests": "Maombi",
     "opportunities": "Fursa",
     "register": "Sajili",
     "people": "Watu",
     "verify": "Hakiki",
     "demand": "Mahitaji",
-    "catalogue": "Katalogi",
+    "catalogue": "Rasilimali",
     "buyers": "Wanunuzi",
     "villages": "Vijiji",
     "tower": "Control Tower",
@@ -92,7 +92,10 @@
     "surveyAlreadyAnswered": "Kaya yako tayari imejibu dodoso hili.",
     "personHasLogin": "Mtu huyu tayari ana akaunti ya kuingia kwenye programu.",
     "accountUnreadable": "Akaunti yako haikuweza kusomwa. Jaribu tena.",
-    "duplicateVillageCode": "Kijiji chenye msimbo huo tayari kipo katika mradi huu."
+    "duplicateVillageCode": "Kijiji chenye msimbo huo tayari kipo katika mradi huu.",
+    "equipmentOffered": "Kifaa lazima kitolewe kwa kukodi, kwa kununua, au vyote viwili.",
+    "loanRange": "Kiasi cha chini lazima kiwe zaidi ya sifuri na kisizidi kiasi cha juu.",
+    "duplicateLoanCode": "Msimbo huo wa mkopo tayari unatumika katika mradi huu."
   },
   "dbError": {
     "surveyNotFound": "Dodoso hili halikupatikana.",
@@ -412,7 +415,13 @@
     "estimateBlockedTitle": "Bado hakuna makadirio",
     "estimateBlockedDetail": "Jaza idadi, saa kwa siku na siku kwa wiki, na makadirio yataonekana hapa.",
     "estimateImpossibleTitle": "Hili haliwezi kukadiriwa",
-    "estimateImpossibleDetail": "Moja ya namba zilizo hapo juu iko nje ya kinachowezekana, kwa hiyo hakuna makadirio yanayoonyeshwa kwake. Irekebishe, na makadirio yatarudi."
+    "estimateImpossibleDetail": "Moja ya namba zilizo hapo juu iko nje ya kinachowezekana, kwa hiyo hakuna makadirio yanayoonyeshwa kwake. Irekebishe, na makadirio yatarudi.",
+    "acquisition": "Kukodi au kununua?",
+    "acquisitionOnly": {
+      "rent": "Kinapatikana kwa kukodi tu.",
+      "buy": "Kinapatikana kwa kununua tu."
+    },
+    "chooseAcquisition": "Chagua kama unataka kukikodi au kukinunua."
   },
   "requests": {
     "title": "Maombi yangu",
@@ -474,7 +483,8 @@
     "notFoundTitle": "Ombi halikupatikana",
     "notFoundDetail": "Huenda halipo, au huna ruhusa ya kulifikia.",
     "noHeadroom": "Hakuna uwezo uliorekodiwa kwa kijiji hiki",
-    "noHeadroomDetail": "Rekodi ya sasa ya village_capacity inahitajika kabla uwezo uliobaki haujaonyeshwa."
+    "noHeadroomDetail": "Rekodi ya sasa ya village_capacity inahitajika kabla uwezo uliobaki haujaonyeshwa.",
+    "colAcquisition": "Kukodi au kununua"
   },
   "capacityBasis": {
     "planned": "Uliopangwa",
@@ -615,7 +625,7 @@
     "requestCount_one": "Ombi 1",
     "requestCount_other": "Maombi {{count}}",
     "indicativeValue": "Thamani ya makadirio",
-    "indicativeValueNote": "Thamani ya makadirio ya katalogi: bei mara kiasi. Si thamani iliyofadhiliwa wala si daftari la mikopo.",
+    "indicativeValueNote": "Thamani ya makadirio ya katalogi kwa maombi ya kununua: bei mara kiasi. Maombi ya kukodi yanaonyesha kodi elekezi kwa siku badala yake. Si thamani iliyofadhiliwa wala si daftari la mikopo.",
     "capacity": "Uwezo uliopangwa",
     "basis": "Msingi",
     "prospectivePeak": "Kilele kinachotarajiwa",
@@ -670,7 +680,8 @@
     "timesFactor": "× kigezo cha matumizi ya wakati mmoja {{factor}} =",
     "noneInFigure": "Hakuna maombi katika takwimu hii.",
     "excludedFromFigures_one": "Ombi 1 zaidi katika kijiji hiki ni rasimu, limekataliwa au limeondolewa. Halichangii takwimu yoyote kati ya hizo mbili — kigae cha mtiririko wa maombi ya vifaa kinahesabu kila hali.",
-    "excludedFromFigures_other": "Maombi {{count}} zaidi katika kijiji hiki ni rasimu, yamekataliwa au yameondolewa. Hayachangii takwimu yoyote kati ya hizo mbili — kigae cha mtiririko wa maombi ya vifaa kinahesabu kila hali."
+    "excludedFromFigures_other": "Maombi {{count}} zaidi katika kijiji hiki ni rasimu, yamekataliwa au yameondolewa. Hayachangii takwimu yoyote kati ya hizo mbili — kigae cha mtiririko wa maombi ya vifaa kinahesabu kila hali.",
+    "rentPerDay": "+ {{value}} kodi kwa siku"
   },
   "officerHome": {
     "title": "Vijiji vyako",
@@ -689,13 +700,41 @@
     "noVillagesDetail": "Akaunti yako iko kwenye mradi lakini bado haijaunganishwa na kijiji. Muulize meneja wa mradi akupangie kimoja."
   },
   "catalogue": {
-    "title": "Katalogi ya vifaa",
+    "title": "Orodha ya rasilimali",
     "colName": "Kifaa",
     "colCategory": "Aina",
     "colPower": "Nguvu iliyoandikwa",
     "colHours": "Saa za kawaida kwa siku",
     "colDays": "Siku za kawaida kwa wiki",
-    "colPrice": "Bei ya makadirio"
+    "colPrice": "Bei ya makadirio",
+    "note": "Vifaa vya kukodi au kununua, na orodha ya mikopo. Bei ni elekezi, si nukuu za bei, na mkopo ulioorodheshwa si ahadi ya mkopo.",
+    "add": {
+      "equipment": "Ongeza kifaa",
+      "loan": "Ongeza mkopo kwenye orodha"
+    },
+    "createTitle": {
+      "equipment": "Kifaa kipya",
+      "loan": "Mkopo mpya kwenye orodha"
+    },
+    "colOffered": "Kinatolewa kwa",
+    "colRent": "Kodi kwa siku",
+    "colDescription": "Maelezo",
+    "colRange": "Kiwango cha kiasi",
+    "code": "Msimbo",
+    "nameEn": "Jina (Kiingereza)",
+    "nameSw": "Jina (Kiswahili)",
+    "chooseCategory": "Chagua kundi",
+    "priceInput": "Bei elekezi ya kununua (TZS)",
+    "rentInput": "Kodi elekezi kwa siku (TZS)",
+    "descriptionEn": "Maelezo (Kiingereza)",
+    "descriptionSw": "Maelezo (Kiswahili)",
+    "minInput": "Kiasi cha chini (TZS, elekezi)",
+    "maxInput": "Kiasi cha juu (TZS, elekezi)",
+    "indicativeNote": "Kila takwimu hapa ni elekezi: si nukuu ya bei na si ahadi.",
+    "required": "Hii ni lazima.",
+    "notANumber": "Andika namba, ukitumia nukta kwa desimali.",
+    "adding": "Inaongeza…",
+    "addSubmit": "Ongeza kwenye orodha"
   },
   "people": {
     "title": "Watu",
@@ -896,12 +935,12 @@
       "myFarmPlotBody": "Kila kipande cha shamba kinaonyesha eneo lake kwa hekta, na mazao yanayolimwa hapo yameorodheshwa chini yake.",
       "myFarmCropTitle": "Zao na mavuno yake",
       "myFarmCropBody": "Kipindi cha kuvuna, na mavuno yanayotarajiwa kwa kilo (kg). Yanayotarajiwa yanamaanisha yaliyopangwa, si yaliyopimwa — lebo ndogo iliyo chini yake inaonyesha nani aliyeyaripoti na kama yamehakikiwa.",
-      "equipmentListTitle": "Vifaa unavyoweza kuomba",
-      "equipmentListBody": "Vifaa vya umeme vinavyopatikana kupitia mradi, pamoja na nguvu iliyoandikwa na bei ya makadirio. Bei ni mwongozo tu, si nukuu ya bei, na hakuna kinachoagizwa kutoka kwenye orodha hii.",
+      "equipmentListTitle": "Vifaa na mikopo",
+      "equipmentListBody": "Vifaa vya umeme ambavyo programu inatoa, vya kukodi au kununua, pamoja na nguvu iliyoandikwa na bei elekezi, na chini ya Mikopo, orodha ya mikopo ya kuuliza ofisini. Bei ni mwongozo, si nukuu ya bei, na hakuna kinachoagizwa kutoka orodha hii.",
       "equipmentOpenTitle": "Fungua kifaa",
       "equipmentOpenBody": "Gusa kifaa chochote ukione chote na ukiombe. \"Endelea\" inakufungulia cha kwanza.",
       "equipmentPriceTitle": "Nguvu na bei",
-      "equipmentPriceBody": "Nguvu iliyoandikwa ya kifaa na bei ya makadirio. Bei ni mwongozo tu, si nukuu ya bei, na hakuna kinachoagizwa kutoka kwenye skrini hii.",
+      "equipmentPriceBody": "Nguvu iliyoandikwa ya mashine, bei yake elekezi ya kununua na kodi yake elekezi kwa siku, pale inapotolewa. Bei ni mwongozo, si nukuu ya bei, na hakuna kinachoagizwa kutoka skrini hii.",
       "equipmentTryTitle": "Jaribu namba zako",
       "equipmentTryBody": "Badilisha idadi, saa kwa siku au siku kwa wiki uone makadirio yakibadilika. Ni makadirio, si kipimo. Namba isiyowezekana, kama saa 30 kwa siku, huficha makadirio hadi uirekebishe.",
       "equipmentEstimateTitle": "Makadirio yanavyokokotolewa",
@@ -1069,8 +1108,8 @@
       "demandSupplyLinesBody": "Kila mstari unataja mkulima, kipande cha shamba na msimu wa zao nyuma yake, na unaunganisha na rekodi hiyo. Hivi ndivyo takwimu kuu inavyofuatiliwa hadi rekodi zenyewe.",
       "demandAttachTitle": "Ambatisha ugavi kutoka kwenye mavuno",
       "demandAttachBody": "Chagua mavuno yanayotarajiwa na kilo yanazochangia. Kuambatisha kunaahidi ugavi huo na hakuwezi kutenganishwa, kwa hiyo fanya hivyo papo hapo kwenye fursa uliyoiunda mwenyewe. Kuomba zaidi ya kinachopatikana kunakataliwa, na ujumbe hutaja kilo zilizopo kweli.",
-      "referenceCatalogueTitle": "Katalogi ya vifaa",
-      "referenceCatalogueBody": "Vifaa ambavyo wakulima huchagua, vikiwa na nguvu iliyoandikwa, saa za kawaida na bei ya makadirio — ya makadirio, kamwe si nukuu ya bei. Hapa inasomwa tu, na makadirio ya ombi hutumia nguvu iliyoandikwa iliyoorodheshwa.",
+      "referenceCatalogueTitle": "Orodha ya rasilimali",
+      "referenceCatalogueBody": "Kile programu inachowapa wakulima: vifaa vya kukodi, kununua, au vyote viwili, pamoja na nguvu iliyoandikwa, saa za kawaida, bei elekezi na kodi elekezi kwa siku. Ni elekezi, si nukuu ya bei. Makadirio ya ombi yanatumia nguvu iliyoandikwa hapa.",
       "referenceBuyersTitle": "Wanunuzi",
       "referenceBuyersBody": "Wanunuzi ambao mahitaji yao unarekodi. Njia ni lebo tu ya jinsi mnunuzi alivyofikiwa — AFM inamaanisha asili hiyo tu: hakuna muunganisho wa mifumo wala ushirikiano.",
       "referenceBuyerCreateTitle": "Ongeza mnunuzi",
@@ -1130,7 +1169,11 @@
       "towerDrillTitle": "Hadi rekodi ya mkulima",
       "towerDrillBody": "Zao na jina la mkulima katika kila safu ni viungo. Fuata kimojawapo hadi rekodi aliyoandika afisa, ikiwa na chanzo chake na kama imehakikiwa. Kila kiasi kikuu kinaweza kufuatiliwa hivi.",
       "nextTitle": "Kila kitu kinaonekana hapa",
-      "nextBody": "Kilichofanywa na afisa na mkulima katika onyesho hili kinaonekana kwenye skrini hizi pamoja na majina: rekodi, maombi, majibu ya madodoso na kumbukumbu ya kila vocha. Msimamizi huchapisha madodoso; uendeshaji husoma kumbukumbu."
+      "nextBody": "Kilichofanywa na afisa na mkulima katika onyesho hili kinaonekana kwenye skrini hizi pamoja na majina: rekodi, maombi, majibu ya madodoso na kumbukumbu ya kila vocha. Msimamizi huchapisha madodoso; uendeshaji husoma kumbukumbu.",
+      "referenceLoansTitle": "Orodha ya mikopo",
+      "referenceLoansBody": "Mikopo pia imeorodheshwa hapa: jina, maelezo na kiwango elekezi cha kiasi. Mkopo ulioorodheshwa si ahadi na hauna masharti; wakulima huuliza ofisini.",
+      "referenceCatalogueCreateTitle": "Ongeza kwenye orodha",
+      "referenceCatalogueCreateBody": "Jaribu: bonyeza kitufe na fomu fupi itafunguka chini, ya kifaa au ya mkopo, kulingana na kichupo ulichopo. Hakuna kinachohifadhiwa mpaka ubonyeze Ongeza kwenye orodha."
     },
     "tryIt": "Jaribu",
     "gateHint": "Fanya hivi kwanza, kisha \"Endelea\" itafunguka.",
@@ -1414,5 +1457,26 @@
     "none": "Hakuna hati ya ardhi iliyohifadhiwa kwa kipande hiki.",
     "add": "Ongeza hati",
     "adding": "Inahifadhi…"
+  },
+  "resources": {
+    "title": "Vifaa na mikopo",
+    "kindLabel": "Aina ya rasilimali",
+    "kind": {
+      "equipment": "Vifaa",
+      "loan": "Mikopo"
+    },
+    "offered": {
+      "rent": "Kukodi",
+      "buy": "Kununua"
+    },
+    "rentPerDay": "Kodi kwa siku",
+    "loanNote": "Mkopo ulioorodheshwa si ahadi wala idhini ya mkopo. Viasi ni elekezi. Uliza ofisi ya Ruaha kama unastahili.",
+    "askAtOffice": "Uliza ofisi ya Ruaha",
+    "noLoansTitle": "Bado hakuna mikopo iliyoorodheshwa",
+    "noLoansDetail": "Mikopo itaonekana hapa programu itakapoiongeza.",
+    "acquisition": {
+      "rent": "Kukodi",
+      "buy": "Kununua"
+    }
   }
 }

@@ -48,6 +48,8 @@ const CHECK_CONSTRAINT: Record<string, string> = {
   opportunity_supply_contributed_kg_check: 'error.contributionPositive',
   buyer_demand_quantity_kg_check: 'error.quantityPositive',
   harvest_report_quantity_kg_check: 'error.quantityNotNegative',
+  equipment_offered: 'error.equipmentOffered',
+  loan_product_amount_range: 'error.loanRange',
 }
 
 /**
@@ -64,6 +66,7 @@ const UNIQUE_CONSTRAINT: Record<string, string> = {
   opportunity_supply_opportunity_id_harvest_report_id_key: 'error.duplicateSupply',
   equipment_project_id_code_key: 'error.duplicateEquipmentCode',
   village_project_id_code_key: 'error.duplicateVillageCode',
+  loan_product_project_id_code_key: 'error.duplicateLoanCode',
   // One try per household per survey: the backstop behind app_survey_submit.
   survey_response_one_per_household: 'error.surveyAlreadyAnswered',
   app_user_person_unique: 'error.personHasLogin',

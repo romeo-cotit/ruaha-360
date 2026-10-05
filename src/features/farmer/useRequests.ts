@@ -13,7 +13,7 @@ import type { Database } from '@/lib/db.types'
 type RequestRow = Database['public']['Tables']['pue_request']['Row']
 type EstimateRow = Database['public']['Tables']['energy_estimate']['Row']
 
-const SELECT = `id, village_id, person_id, farm_id, equipment_id, quantity, hours_per_day,
+const SELECT = `id, village_id, person_id, farm_id, equipment_id, acquisition, quantity, hours_per_day,
   days_per_week, purpose, status, submitted_at, decided_at, decision_note,
   source, verification, confidence, captured_at, captured_by,
   equipment ( id, name_en, name_sw, rated_power_kw, indicative_price, currency ),
@@ -104,6 +104,8 @@ export interface NewRequest {
   villageId: string
   personId: string
   equipmentId: string
+  /** Rent or buy. Whether the machine is offered that way is the database's call. */
+  acquisition: 'rent' | 'buy'
   quantity: number
   hoursPerDay: number
   daysPerWeek: number
@@ -135,6 +137,7 @@ export function useSubmitRequest() {
         village_id: input.villageId,
         person_id: input.personId,
         equipment_id: input.equipmentId,
+        acquisition: input.acquisition,
         quantity: input.quantity,
         hours_per_day: input.hoursPerDay,
         days_per_week: input.daysPerWeek,

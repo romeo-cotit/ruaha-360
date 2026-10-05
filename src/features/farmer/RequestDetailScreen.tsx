@@ -6,6 +6,7 @@ import { ErrorState } from '@/components/ErrorState'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '@/components/controlStyles'
 import { Card, Loading, ProductNote } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
+import { AcquisitionPill } from '@/components/OfferedPills'
 import { ProvenanceBadge } from '@/components/ProvenanceBadge'
 import { useFarmerTransition, useRequest } from '@/features/farmer/useRequests'
 import { farmerActions } from '@/features/ops/transitions'
@@ -56,6 +57,7 @@ export function RequestDetailScreen() {
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="type-screen-title">{request.equipment_name}</h1>
           <StatusPill kind="request" status={request.status} />
+          <AcquisitionPill mode={request.acquisition} />
         </div>
         <ProvenanceBadge source={request.source} verification={request.verification} confidence={request.confidence} capturedAt={request.captured_at} capturedBy={capturedBy} />
         {request.purpose && (

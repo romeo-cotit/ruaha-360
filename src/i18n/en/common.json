@@ -12,14 +12,14 @@
     "userMenu": "Account menu",
     "signOut": "Sign out",
     "myFarm": "My farm",
-    "equipment": "Equipment",
+    "equipment": "Equipment & loans",
     "requests": "Requests",
     "opportunities": "Opportunities",
     "register": "Register",
     "people": "People",
     "verify": "Verify",
     "demand": "Demand",
-    "catalogue": "Catalogue",
+    "catalogue": "Resources",
     "buyers": "Buyers",
     "villages": "Villages",
     "tower": "Control Tower",
@@ -92,7 +92,10 @@
     "surveyAlreadyAnswered": "Your household has already answered this survey.",
     "personHasLogin": "This person already has an app login.",
     "accountUnreadable": "Your account could not be read. Try again.",
-    "duplicateVillageCode": "A village with that code already exists in this project."
+    "duplicateVillageCode": "A village with that code already exists in this project.",
+    "equipmentOffered": "Equipment must be offered to rent, to buy, or both.",
+    "loanRange": "The smallest amount must be more than zero and no larger than the largest.",
+    "duplicateLoanCode": "That loan code is already in use in this project."
   },
   "dbError": {
     "surveyNotFound": "This survey could not be found.",
@@ -412,7 +415,13 @@
     "estimateBlockedTitle": "No estimate yet",
     "estimateBlockedDetail": "Fill in how many, hours per day and days per week, and the estimate appears here.",
     "estimateImpossibleTitle": "This cannot be estimated",
-    "estimateImpossibleDetail": "One of the figures above is outside what is possible, so no estimate is shown for it. Correct it and the estimate returns."
+    "estimateImpossibleDetail": "One of the figures above is outside what is possible, so no estimate is shown for it. Correct it and the estimate returns.",
+    "acquisition": "Rent or buy?",
+    "acquisitionOnly": {
+      "rent": "Offered to rent only.",
+      "buy": "Offered to buy only."
+    },
+    "chooseAcquisition": "Choose whether you want to rent it or buy it."
   },
   "requests": {
     "title": "My requests",
@@ -474,7 +483,8 @@
     "notFoundTitle": "Request not found",
     "notFoundDetail": "It may not exist, or you may not have access to it.",
     "noHeadroom": "No capacity recorded for this village",
-    "noHeadroomDetail": "A current village_capacity row is needed before headroom can be shown."
+    "noHeadroomDetail": "A current village_capacity row is needed before headroom can be shown.",
+    "colAcquisition": "Rent or buy"
   },
   "capacityBasis": {
     "planned": "Planned",
@@ -615,7 +625,7 @@
     "requestCount_one": "1 request",
     "requestCount_other": "{{count}} requests",
     "indicativeValue": "Indicative value",
-    "indicativeValueNote": "Indicative catalogue value: price times quantity. Not financed value and not a loan book.",
+    "indicativeValueNote": "Indicative catalogue value of requests to buy: price times quantity. Requests to rent show their indicative rent per day instead. Not financed value and not a loan book.",
     "capacity": "Planned capacity",
     "basis": "Basis",
     "prospectivePeak": "Prospective peak",
@@ -670,7 +680,8 @@
     "timesFactor": "× {{factor}} simultaneity =",
     "noneInFigure": "No requests in this figure.",
     "excludedFromFigures_one": "1 more request in this village is draft, rejected or withdrawn. It feeds neither figure — the equipment pipeline tile counts every status.",
-    "excludedFromFigures_other": "{{count}} more requests in this village are draft, rejected or withdrawn. They feed neither figure — the equipment pipeline tile counts every status."
+    "excludedFromFigures_other": "{{count}} more requests in this village are draft, rejected or withdrawn. They feed neither figure — the equipment pipeline tile counts every status.",
+    "rentPerDay": "+ {{value}} rent per day"
   },
   "officerHome": {
     "title": "Your villages",
@@ -689,13 +700,41 @@
     "noVillagesDetail": "Your account is on the project but not yet attached to a village. Ask your programme manager to assign one."
   },
   "catalogue": {
-    "title": "Equipment catalogue",
+    "title": "Resource catalogue",
     "colName": "Equipment",
     "colCategory": "Category",
     "colPower": "Rated power",
     "colHours": "Typical h/day",
     "colDays": "Typical days/week",
-    "colPrice": "Indicative price"
+    "colPrice": "Indicative price",
+    "note": "Equipment to rent or buy, and loan listings. Prices are indicative, not quotations, and a loan listing is not an offer.",
+    "add": {
+      "equipment": "Add equipment",
+      "loan": "Add a loan listing"
+    },
+    "createTitle": {
+      "equipment": "New equipment",
+      "loan": "New loan listing"
+    },
+    "colOffered": "Offered as",
+    "colRent": "Rent per day",
+    "colDescription": "Description",
+    "colRange": "Amount range",
+    "code": "Code",
+    "nameEn": "Name (English)",
+    "nameSw": "Name (Swahili)",
+    "chooseCategory": "Choose a category",
+    "priceInput": "Indicative price to buy (TZS)",
+    "rentInput": "Indicative rent per day (TZS)",
+    "descriptionEn": "Description (English)",
+    "descriptionSw": "Description (Swahili)",
+    "minInput": "Smallest amount (TZS, indicative)",
+    "maxInput": "Largest amount (TZS, indicative)",
+    "indicativeNote": "Every figure here is indicative: not a quotation and not an offer.",
+    "required": "Required.",
+    "notANumber": "Enter a number, using a point for decimals.",
+    "adding": "Adding…",
+    "addSubmit": "Add to the catalogue"
   },
   "people": {
     "title": "People",
@@ -896,12 +935,12 @@
       "myFarmPlotBody": "Each plot shows its area in hectares, with the crops grown there listed underneath.",
       "myFarmCropTitle": "A crop and its harvest",
       "myFarmCropBody": "The harvest window, and the expected harvest in kilograms. Expected means planned, not weighed — the small badge under it says who reported it and whether it has been checked.",
-      "equipmentListTitle": "Equipment you can ask for",
-      "equipmentListBody": "Powered equipment the programme offers, with its rated power and an indicative price. A price is a guide, not a quotation, and nothing is ordered from this list.",
+      "equipmentListTitle": "Equipment and loans",
+      "equipmentListBody": "Powered equipment the programme offers, to rent or to buy, with its rated power and indicative prices — and, under Loans, loan listings to ask about at the office. A price is a guide, not a quotation, and nothing is ordered from this list.",
       "equipmentOpenTitle": "Open a machine",
       "equipmentOpenBody": "Tap any machine to see it in full and ask for it. Next opens the first one for you.",
       "equipmentPriceTitle": "Power and price",
-      "equipmentPriceBody": "The machine's rated power and an indicative price. The price is a guide, not a quotation, and nothing is ordered from this screen.",
+      "equipmentPriceBody": "The machine's rated power, its indicative price to buy and its indicative rent per day, where offered. A price is a guide, not a quotation, and nothing is ordered from this screen.",
       "equipmentTryTitle": "Try your own figures",
       "equipmentTryBody": "Change how many, hours per day or days per week and watch the estimate move. It is an estimate, not a measurement. A figure that is impossible, like 30 hours a day, hides it until you correct it.",
       "equipmentEstimateTitle": "How the estimate is worked out",
@@ -1069,8 +1108,8 @@
       "demandSupplyLinesBody": "Each line names the farmer, plot and crop cycle behind it, and links to that record. This is how a headline figure traces back to real records.",
       "demandAttachTitle": "Attach supply from a harvest",
       "demandAttachBody": "Choose an expected harvest and the kilograms it contributes. Attaching commits that supply and cannot be detached, so do it live on an opportunity you made yourself. Asking for more than is available is refused, quoting the real kilograms.",
-      "referenceCatalogueTitle": "The equipment catalogue",
-      "referenceCatalogueBody": "The equipment farmers choose from, with rated power, typical hours and an indicative price — indicative, never a quotation. It is read-only here, and a request's estimate uses the rated power listed.",
+      "referenceCatalogueTitle": "The resource catalogue",
+      "referenceCatalogueBody": "What the programme offers farmers: equipment to rent, to buy, or both, with rated power, typical hours, an indicative price and an indicative rent per day — indicative, never a quotation. A request's estimate uses the rated power listed.",
       "referenceBuyersTitle": "Buyers",
       "referenceBuyersBody": "The buyers whose demand you record. Channel is only a label for how a buyer was reached — AFM means that origin and nothing more: no integration and no partnership.",
       "referenceBuyerCreateTitle": "Add a buyer",
@@ -1130,7 +1169,11 @@
       "towerDrillTitle": "Down to the farmer's record",
       "towerDrillBody": "The crop and the farmer's name in each row are links. Follow either to the record the officer wrote, with its source and whether it is verified. Every headline can be traced this way.",
       "nextTitle": "Everything is visible here",
-      "nextBody": "What the officer and the farmer did in this demo shows up in these screens with names beside it: records, requests, survey answers and each voucher's trail. Admin publishes surveys; ops reads the trail."
+      "nextBody": "What the officer and the farmer did in this demo shows up in these screens with names beside it: records, requests, survey answers and each voucher's trail. Admin publishes surveys; ops reads the trail.",
+      "referenceLoansTitle": "Loan listings",
+      "referenceLoansBody": "Loans are listed here too: a name, a description and an indicative range. A listing is not an offer and carries no terms; farmers ask at the office.",
+      "referenceCatalogueCreateTitle": "Add to the catalogue",
+      "referenceCatalogueCreateBody": "Try it: press the button and a short form opens below — equipment or a loan listing, by the tab you are on. Nothing is saved until you press Add to the catalogue."
     },
     "tryIt": "Try it",
     "gateHint": "Do this first, then Next unlocks.",
@@ -1414,5 +1457,26 @@
     "none": "No title documents filed for this plot.",
     "add": "Add documents",
     "adding": "Filing…"
+  },
+  "resources": {
+    "title": "Equipment and loans",
+    "kindLabel": "Kind of resource",
+    "kind": {
+      "equipment": "Equipment",
+      "loan": "Loans"
+    },
+    "offered": {
+      "rent": "Rent",
+      "buy": "Buy"
+    },
+    "rentPerDay": "Rent per day",
+    "loanNote": "A loan listing is not an offer and not an approval. Amounts are indicative. Ask at the Ruaha office whether you are eligible.",
+    "askAtOffice": "Ask at the Ruaha office",
+    "noLoansTitle": "No loans listed yet",
+    "noLoansDetail": "Loan listings appear here once the programme adds them.",
+    "acquisition": {
+      "rent": "To rent",
+      "buy": "To buy"
+    }
   }
 }

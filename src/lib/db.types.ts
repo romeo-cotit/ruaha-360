@@ -508,12 +508,15 @@ export type Database = {
       }
       equipment: {
         Row: {
+          can_buy: boolean
+          can_rent: boolean
           category_id: string
           code: string
           created_at: string
           currency: string
           id: string
           indicative_price: number | null
+          indicative_rent_per_day: number | null
           is_active: boolean
           name_en: string
           name_sw: string
@@ -524,12 +527,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          can_buy?: boolean
+          can_rent?: boolean
           category_id: string
           code: string
           created_at?: string
           currency?: string
           id?: string
           indicative_price?: number | null
+          indicative_rent_per_day?: number | null
           is_active?: boolean
           name_en: string
           name_sw: string
@@ -540,12 +546,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          can_buy?: boolean
+          can_rent?: boolean
           category_id?: string
           code?: string
           created_at?: string
           currency?: string
           id?: string
           indicative_price?: number | null
+          indicative_rent_per_day?: number | null
           is_active?: boolean
           name_en?: string
           name_sw?: string
@@ -958,6 +967,62 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "person"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loan_product: {
+        Row: {
+          code: string
+          created_at: string
+          currency: string
+          description_en: string | null
+          description_sw: string | null
+          id: string
+          indicative_max_amount: number
+          indicative_min_amount: number
+          is_active: boolean
+          name_en: string
+          name_sw: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          currency?: string
+          description_en?: string | null
+          description_sw?: string | null
+          id?: string
+          indicative_max_amount: number
+          indicative_min_amount: number
+          is_active?: boolean
+          name_en: string
+          name_sw: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          currency?: string
+          description_en?: string | null
+          description_sw?: string | null
+          id?: string
+          indicative_max_amount?: number
+          indicative_min_amount?: number
+          is_active?: boolean
+          name_en?: string
+          name_sw?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_product_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
             referencedColumns: ["id"]
           },
         ]
@@ -1522,6 +1587,7 @@ export type Database = {
       }
       pue_request: {
         Row: {
+          acquisition: Database["public"]["Enums"]["acquisition_mode"]
           captured_at: string
           captured_by: string | null
           confidence: Database["public"]["Enums"]["confidence_level"] | null
@@ -1549,6 +1615,7 @@ export type Database = {
           village_id: string
         }
         Insert: {
+          acquisition?: Database["public"]["Enums"]["acquisition_mode"]
           captured_at?: string
           captured_by?: string | null
           confidence?: Database["public"]["Enums"]["confidence_level"] | null
@@ -1576,6 +1643,7 @@ export type Database = {
           village_id: string
         }
         Update: {
+          acquisition?: Database["public"]["Enums"]["acquisition_mode"]
           captured_at?: string
           captured_by?: string | null
           confidence?: Database["public"]["Enums"]["confidence_level"] | null
@@ -2549,6 +2617,7 @@ export type Database = {
       v_village_pue_pipeline: {
         Row: {
           currency: string | null
+          indicative_rent_per_day: number | null
           indicative_value: number | null
           request_count: number | null
           status: Database["public"]["Enums"]["pue_status"] | null
@@ -2785,6 +2854,7 @@ export type Database = {
       }
     }
     Enums: {
+      acquisition_mode: "rent" | "buy"
       app_role: "farmer" | "field_officer" | "ops" | "admin"
       area_unit: "hectare" | "acre"
       buyer_channel: "direct" | "afm" | "other"
@@ -2960,6 +3030,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      acquisition_mode: ["rent", "buy"],
       app_role: ["farmer", "field_officer", "ops", "admin"],
       area_unit: ["hectare", "acre"],
       buyer_channel: ["direct", "afm", "other"],

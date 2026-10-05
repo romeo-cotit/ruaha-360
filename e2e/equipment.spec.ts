@@ -33,8 +33,10 @@ test.describe('/farm/equipment', () => {
     await page.goto('/farm/equipment')
 
     await expect(page.getByTestId('equipment-list')).toBeVisible()
-    // Five items are seeded for this project.
-    await expect(page.getByTestId('equipment-card')).toHaveCount(5)
+    // Eight items are seeded for this project: five in seed.sql, three in
+    // seed_resources.sql.
+    // catalogue.spec.ts may add marked rows alongside; only the seeded count.
+    await expect(page.getByTestId('equipment-card').filter({ hasNotText: 'E2E-' })).toHaveCount(8)
 
     const mill = page.getByTestId(`equipment-card-${MILL}`)
     await expect(mill).toContainText('15.000 kW')
@@ -46,13 +48,27 @@ test.describe('/farm/equipment', () => {
     await signInAsNeema(page)
     await page.goto('/farm/equipment')
 
-    await expect(page.getByTestId('equipment-list')).toBeVisible()
-    const prices = page.getByTestId('equipment-price')
+    // The list frame renders before its cards arrive.
+    await expect(page.getByTestId('equipment-card').first()).toBeVisible()
+    // Prices to buy and rents per day alike.
+    const prices = page.locator('[data-testid="equipment-price"], [data-testid="equipment-rent"]')
     const count = await prices.count()
-    expect(count).toBe(5)
+    expect(count).toBeGreaterThanOrEqual(8)
     for (let i = 0; i < count; i += 1) {
       await expect(prices.nth(i)).toContainText(trRe('sw', 'equipment.indicative', undefined, { flags: 'i' }))
     }
+  })
+
+  // Loans are listings: never an offer, and not requested in the app.
+  test('loan listings are shown, not offered', async ({ page }) => {
+    await signInAsNeema(page)
+    await page.goto('/farm/equipment')
+    await page.getByTestId('resources-tab-loan').click()
+
+    await expect(page).toHaveURL(/kind=loan/)
+    await expect(page.getByTestId('loan-item').first()).toBeVisible()
+    await expect(page.getByTestId('loan-range').first()).toContainText(trRe('sw', 'equipment.indicative', undefined, { flags: 'i' }))
+    await expect(page.getByTestId('loan-item').first().getByRole('link')).toHaveCount(0)
   })
 
   test('names come from the database in the active language', async ({ page }) => {
@@ -115,6 +131,7 @@ test.describe('/farm/equipment/$equipmentId', () => {
 
     await page.getByTestId('request-hours').fill('8')
     await page.getByTestId('request-purpose').fill('E2E-mill-request')
+    await page.getByTestId('equipment-acquisition-buy').check()
 
     const shownDay = await page.getByTestId('estimate-kwh-day').textContent()
     const shownWeek = await page.getByTestId('estimate-kwh-week').textContent()
@@ -137,6 +154,7 @@ test.describe('/farm/equipment/$equipmentId', () => {
     await signInAsNeema(page)
     await page.goto(`/farm/equipment/${MILL}`)
     await page.getByTestId('request-purpose').fill('E2E-frozen-request')
+    await page.getByTestId('equipment-acquisition-buy').check()
     await page.getByTestId('request-submit').click()
     await expect(page.getByTestId('request-success')).toBeVisible()
 
@@ -218,6 +236,23 @@ test.describe('the request form refuses impossible assumptions', () => {
       trRe('sw', 'equipment.moreThanZero', undefined, { flags: 'i' }),
     )
     await expect(page.getByTestId('request-success')).toHaveCount(0)
+  })
+
+  // The mill is offered both ways. Asked for on rent, it stays a rent: the
+  // request says so, and its estimate is the same machine's.
+  test('a machine can be requested on rent', async ({ page }) => {
+    await signInAsNeema(page)
+    await page.goto(`/farm/equipment/${MILL}`)
+
+    await page.getByTestId('request-purpose').fill('E2E-rent-request')
+    await page.getByTestId('request-submit').click()
+    await expect(page.getByTestId('request-acquisition-error')).toBeVisible()
+
+    await page.getByTestId('equipment-acquisition-rent').check()
+    await page.getByTestId('request-submit').click()
+    await expect(page.getByTestId('request-success')).toBeVisible()
+    await page.getByTestId('request-view').click()
+    await expect(page.getByTestId('request-acquisition')).toContainText(trRe('sw', 'resources.acquisition.rent', undefined, { flags: 'i' }))
   })
 
   test('zero machines is refused', async ({ page }) => {

@@ -518,6 +518,9 @@ them as bugs to fix, not conditions to handle politely.
 | `app_farmer_login_issue` | `['loginHistory', person]` |
 | `app_survey_submit` | `['surveyEligibility']` `['farmerVouchers']` `['voucherTimeline', id]` |
 | `app_create_village` | `['villageCapacity']` `['villages']` `['tower']` |
+| `plot_document` upload | `['plotDocuments', plot]` |
+| `equipment` insert | `['equipment', 'mine']` |
+| `loan_product` insert | `['loanProducts']` |
 | survey write / publish / close | `['surveyAdmin']` `['surveyAdmin', id]` `['surveyEligibility']` |
 | `app_voucher_redeem` · `app_voucher_void` | `['voucherTimeline', id]` `['surveyVouchers', survey]` `['surveyAdmin']` `['redemptionLog']` |
 
@@ -743,4 +746,30 @@ The one exception to "no photo upload", approved by the product owner on
   The draft is cleared only once every file is filed.
 - **Not validated in the client:** size and type are the bucket's rules; a
   refused file shows storage's own message.
+
+## 20 · Resource catalogue — rent, buy, loan listings (added 5 Oct 2026)
+
+Migration `20261005090004_resource_catalogue`; demo rows in
+`supabase/seed_resources.sql`.
+
+- **Equipment** is offered to rent, to buy, or both (`can_rent`, `can_buy`,
+  `check (can_rent or can_buy)`), with an indicative price to buy and/or an
+  indicative rent per day. Both are guides, never quotations.
+- **A request** records `acquisition` (`rent` | `buy`, default `buy`, so every
+  request before this change is a purchase). `pue_request_acquisition_check`
+  raises `this equipment is not offered for rent` (or `for sale`).
+  `pue_request_guard` locks `acquisition` with the other fields once a
+  request is submitted. The energy estimate does not depend on it.
+- **`v_village_pue_pipeline`:** `indicative_value` is price × quantity for
+  BUY requests only; rent requests add `indicative_rent_per_day` × quantity in
+  their own column. A rent is never counted as a purchase price, and neither
+  figure is financed value or a loan book.
+- **Loan listings** (`loan_product`): code, names, descriptions and an
+  indicative range (`check (min > 0 and min <= max)`). **Listing only.** No
+  interest, deposit, term, schedule or repayment column exists or may be added
+  while research item C (BoT Tier 2 classification) is open. A farmer cannot
+  request a loan in the app; they ask at the office.
+- **Who writes:** ops and admin of the project (`app_manages_project`), by
+  direct insert — config tables, no provenance. No delete: a row is retired
+  with `is_active = false`.
 

@@ -247,18 +247,27 @@ inside.
 - **Acceptance:** the farmer sees exactly her own farm. Seeded farmer Neema
   sees one farm and cannot reach Joseph's.
 
-### 6.3 `/farm/equipment` — T1
-- **Data:** `equipment` joined to `equipment_category`, scoped by
-  `app_projects()`.
-- Cards: name in the active language, `rated_power_kw`, `indicative_price` with
-  currency, category.
-- The word **indicative** appears next to every price. It is not a quotation.
+### 6.3 `/farm/equipment` — T1 (Equipment and loans since 5 Oct 2026)
+- **Data:** `equipment` joined to `equipment_category`, and `loan_product`,
+  both scoped by `app_projects()`. Tabs Equipment | Loans, held in the URL
+  (`?kind=loan`).
+- Equipment cards: name in the active language, `rated_power_kw`, category,
+  how it is offered (rent / buy), `indicative_price` when it can be bought and
+  `indicative_rent_per_day` when it can be rented.
+- Loan cards: name, description, indicative range, "not an offer", "ask at
+  the Ruaha office". No request control: a loan is not requested in the app.
+- The word **indicative** appears next to every price, rent and amount. It is
+  not a quotation and not an offer.
 
 ### 6.4 `/farm/equipment/$equipmentId` — T1
 - Detail plus **Request this** form: `quantity`, `hours_per_day`,
   `days_per_week` (prefilled from `typical_*`), `purpose`.
 - Live `EnergyEstimatePanel` recalculating as the inputs change, labelled as an
   estimate.
+- **Rent or buy:** the modes the machine is offered in. One offered: shown,
+  nothing to choose. Both: the farmer must choose. Recorded as
+  `pue_request.acquisition`; `pue_request_acquisition_check` refuses a mode
+  not offered. The estimate is the same either way.
 - Submit inserts `pue_request` with `status = 'submitted'`.
 - **Acceptance:** changing hours from 6 to 8 visibly changes the estimate
   before submit, and the stored `energy_estimate` row after submit matches.
@@ -310,9 +319,14 @@ Queue counts: requests awaiting review, open demands, unverified records.
 - **Acceptance:** approving updates the farmer's request view and moves
   `approved_peak_kw` in `v_village_energy`.
 
-### 7.4 `/ops/catalogue` — T1 read / T2 edit
-`equipment` list with power, typical hours, indicative price. Editing is T2 —
-the seed provides the catalogue for the demo.
+### 7.4 `/ops/catalogue` — the resource catalogue (5 Oct 2026)
+Tabs Equipment | Loans, held in the URL. Equipment: power, typical hours,
+offered as (rent / buy), indicative price, indicative rent per day. Loans:
+name, description, indicative range, "not an offer".
+- **Action:** add a row — equipment (code, names in both languages, category,
+  power, typicals, rent / buy, price, rent per day) or a loan listing (code,
+  names, descriptions, smallest and largest amount). Just enough of a form; no
+  edit or delete. Loans carry no finance terms (research item C).
 
 ### 7.5 `/ops/buyers` — T2
 Buyer list and create. `channel = 'afm'` is a label only; no integration.

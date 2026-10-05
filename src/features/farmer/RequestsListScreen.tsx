@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { Loading } from '@/components/controls'
 import { StatusPill } from '@/components/StatusPill'
+import { AcquisitionPill } from '@/components/OfferedPills'
 import { useMyRequests } from '@/features/farmer/useRequests'
 import { formatTimestamp } from '@/lib/format'
 
@@ -47,6 +48,7 @@ export function RequestsListScreen() {
               <span className="flex flex-wrap items-center gap-2.5">
                 <b style={{ fontSize: 16, fontWeight: 600 }}>{request.equipment_name}</b>
                 <StatusPill kind="request" status={request.status} />
+                <AcquisitionPill mode={request.acquisition} />
               </span>
               {request.purpose && (
                 <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{request.purpose}</span>

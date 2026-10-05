@@ -14,7 +14,7 @@ export interface EquipmentItem extends EquipmentRow {
 }
 
 const SELECT =
-  'id, project_id, category_id, code, name_en, name_sw, rated_power_kw, typical_hours_per_day, typical_days_per_week, indicative_price, currency, is_active, created_at, updated_at, equipment_category ( name_en, name_sw )'
+  'id, project_id, category_id, code, name_en, name_sw, rated_power_kw, typical_hours_per_day, typical_days_per_week, indicative_price, indicative_rent_per_day, can_rent, can_buy, currency, is_active, created_at, updated_at, equipment_category ( name_en, name_sw )'
 
 /**
  * The catalogue — spec 6.3. Scoped by equipment_read to app_projects(), so a

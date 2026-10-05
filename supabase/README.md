@@ -34,7 +34,7 @@ pnpm db:list        # migration history: files vs database
 pnpm db:push:dry    # what would apply
 pnpm db:push        # apply
 pnpm db:types       # regenerate src/lib/db.types.ts — commit it
-pnpm db:rls         # the 199 policy assertions
+pnpm db:rls         # the 250 policy assertions
 ```
 
 `db:types` is the exception: it goes through the Management API with
@@ -108,3 +108,15 @@ psql "$(node scripts/db-url.mjs)" -v ON_ERROR_STOP=1 -f supabase/seed_surveys.sq
 Seeded figures `survey_test.sql` asserts: three vouchers, TZS 10,000 issued,
 TZS 2,000 redeemed (by Juma), TZS 8,000 outstanding; Neema may answer two
 surveys.
+
+## seed_resources.sql
+
+Run after `seed.sql`; re-runnable. Sets rent and buy on the five seeded
+machines, adds three more with no requests against them (so the Tower's
+seeded figures do not move), and three loan listings. Every price, rent and
+loan amount is indicative; loans are listings only.
+
+```bash
+psql "$(node scripts/db-url.mjs)" -v ON_ERROR_STOP=1 -f supabase/seed_resources.sql
+```
+

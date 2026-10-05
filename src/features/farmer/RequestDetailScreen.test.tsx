@@ -62,6 +62,14 @@ const show = (over: Record<string, unknown> = {}) =>
  *
  * Which controls appear is business-rules §2's role matrix, not a UI choice.
  */
+describe('RequestDetailScreen rent or buy', () => {
+  test('says whether the farmer asked to rent or to buy', () => {
+    show({ acquisition: 'rent' })
+    render(<RequestDetailScreen />)
+    expect(screen.getByTestId('request-acquisition')).toHaveTextContent(/rent/i)
+  })
+})
+
 describe('RequestDetailScreen farmer actions', () => {
   test('a draft offers submit and withdraw', () => {
     show({ status: 'draft' })
